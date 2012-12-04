@@ -20,6 +20,9 @@
     <xs:sequence>
       <xs:element name="fastq" type="FastqType" minOccurs="2" maxOccurs="2"/>
     </xs:sequence>
+    <xs:attribute name="lane" type="xs:int"/>
+    <xs:attribute name="split-index" type="xs:int"/>
+    <xs:attribute name="sample-index" type="xs:normalizedString"/>
   </xs:complexType>
   <xs:complexType name="FastqType">
     <xs:attribute name="index" type="xs:int" use="required"/>

@@ -111,6 +111,7 @@ public class Ilmn2Project
 		JAXBContext jaxbContext = JAXBContext.newInstance(ProjectType.class);
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		jaxbMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://github.com/somewhere");
 		jaxbMarshaller.marshal(
 			new JAXBElement<ProjectType>(new QName("project"), ProjectType.class, project),
 			System.out
