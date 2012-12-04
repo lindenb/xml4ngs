@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:complexType name="ProjectType">
+    <xs:sequence>
+      <xs:element name="sample" type="SampleType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SampleType">
+    <xs:sequence>
+      <xs:element name="sequences" type="SequencesType"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:token" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="SequencesType">
+    <xs:sequence>
+      <xs:element name="pair" type="PairType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PairType">
+    <xs:sequence>
+      <xs:element name="fastq" type="FastqType" minOccurs="2" maxOccurs="2"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FastqType">
+    <xs:attribute name="index" type="xs:int" use="required"/>
+    <xs:attribute name="path" type="xs:normalizedString" use="required"/>
+  </xs:complexType>
+  <xs:element name="project" type="ProjectType"/>
+</xs:schema>

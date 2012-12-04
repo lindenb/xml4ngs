@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MyProject" default="all" basedir=".">
+<target name="all" depends="dist/ilmn2project.jar">
+</target>
+ <target name="generate-sources">
+   <mkdir dir="src/main/generated-sources/xjc"/>
+   <exec executable="xjc">
+       <arg value="-d"/> <arg value="src/main/generated-sources/xjc"/>
+       <arg value="-p"/> <arg value="com.github.lindenb.xml4ngs"/>
+       <arg value="src/main/resources/xsd/project.xsd"/>
+   </exec>
+</target> 
+
+ <target name="dist/ilmn2project.jar" depends="generate-sources">
+   <mkdir dir="tmp"/>
+   <mkdir dir="dist"/>
+          
+   
+   <javac destdir="tmp" includeAntRuntime="false" debug="true">
+   		<src path="src/main/java"/>
+   		<src path="src/main/generated-sources/xjc"/>
+   		<include name="**/Ilmn2Project.java"/>
+   		
+   </javac>
+   
+   <jar jarfile="dist/ilmn2project.jar">
+	     <fileset dir="tmp" />
+	     <manifest>
+	       <attribute name="Main-Class" value="com.github.lindenb.xml4ngs.Ilmn2Project"/>
+	     </manifest>
+ 	</jar>
+   
+    <delete dir="tmp"/>
+ </target>
+</project>
