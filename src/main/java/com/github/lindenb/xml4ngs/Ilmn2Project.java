@@ -22,10 +22,20 @@ public class Ilmn2Project
 
 	private void scan(File dir) throws IOException
 		{
-	
+		if(dir==null) return;
 		File sub[]=dir.listFiles();
+		if(sub==null)
+			{
+			System.err.println("Cannot get files under "+dir);
+			return;
+			}
 		for(File f:sub)
 			{
+			if(f==null)
+				{
+				System.err.println("WTF "+dir);
+				continue;
+				}
 			if(f.isDirectory())
 				{
 				scan(f);
@@ -156,6 +166,14 @@ public class Ilmn2Project
 				}
 			scan(file);
 			}
+			
+		/* finalize object : add lanes */
+		LanesType lanes=new LanesType();
+		for(Integer i:this.lanes)
+			{
+			lanes.getLane().add(String.valueOf(i));
+			}
+		this.project.setLanes(lanes);
 		dump();
 		}
 	public static void main(String args[]) throws Exception

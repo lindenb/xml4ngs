@@ -1,2 +1,4 @@
 src/main/generated-sources
 dist
+*~
+jeter.*

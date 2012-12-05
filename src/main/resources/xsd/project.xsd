@@ -2,6 +2,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
   <xs:complexType name="ProjectType">
     <xs:sequence>
+      <xs:element name="lanes" type="LanesType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="sample" type="SampleType" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
@@ -28,5 +29,11 @@
     <xs:attribute name="index" type="xs:int" use="required"/>
     <xs:attribute name="path" type="xs:normalizedString" use="required"/>
   </xs:complexType>
+  <xs:complexType name="LanesType">
+    <xs:sequence>
+      <xs:element name="lane" type="xs:normalizedString" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:element name="project" type="ProjectType"/>
 </xs:schema>
