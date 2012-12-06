@@ -10,6 +10,7 @@
 <xsl:param name="limit"/>
 <xsl:param name="fragmentsize">600</xsl:param>
 <xsl:param name="bwathreads">1</xsl:param>
+<xsl:param name="simulation">-999</xsl:param>
 
 <xsl:template match="/">
 
@@ -481,6 +482,23 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/>&#10;
 	$(call sizedb,$@)
 
 
+<xsl:if test="number($simulation)&gt;0">
+
+#
+# It is a simulation mode : generate the FASTQ with samtools
+#
+<xsl:apply-templates select="fastq[@index='1']" mode="fastq"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="fastq[@index='2']"/>:
+	${samtools.dir}/misc/wgsim -N <xsl:value-of select="$simulation"/> $(REF) $(basename $@)
+	gzip --best $(basename $@)
+
+
+</xsl:if>
+
+
+
+##
+## BEGIN : loop over the fastqs
+##
 <xsl:for-each select="fastq">
 <xsl:text>
 
@@ -503,7 +521,6 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/>&#10;
 </xsl:choose>
 
 
-
 <xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="fastq"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/> $(INDEXED_REFERENCE)
 	#gunzip -c $&lt; | wc -l | sed 's%$$%/4%' | bc | while read C; do lockfile $(LOCKFILE); $(VARKIT)/simplekeyvalue -f $(XMLSTATS) -p count-reads $&lt; $$C ; rm -f $(LOCKFILE) ; done
 	$(call timebegindb,$@)
@@ -513,6 +530,9 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/>&#10;
 	$(call sizedb,$@)
 
 </xsl:for-each>
+##
+## END : loop over the fastq
+##
 
 ###############################################################
 #
