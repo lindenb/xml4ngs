@@ -121,7 +121,9 @@ public class Ilmn2Project
 		JAXBContext jaxbContext = JAXBContext.newInstance(ProjectType.class);
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		jaxbMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://github.com/somewhere");
+		jaxbMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
+			"https://raw.github.com/lindenb/xml4ngs/master/src/main/resources/xsd/project.xsd"
+			);
 		jaxbMarshaller.marshal(
 			new JAXBElement<ProjectType>(new QName("project"), ProjectType.class, project),
 			System.out
@@ -166,7 +168,21 @@ public class Ilmn2Project
 				}
 			scan(file);
 			}
-			
+		/* finalize object : add ref */	
+		ReferenceType refseq=new ReferenceType();
+		refseq.setName("Hg37");
+		refseq.setDescription("Human");
+		refseq.setPath("/");
+		this.project.setReference(refseq);
+		
+		/* finalize object : add ref */	
+		CaptureType capture = new CaptureType();
+		capture.setName("capture");
+		capture.setDescription("capture");
+		capture.setPath("captue.bed");
+		this.project.setCapture(capture);
+				
+		
 		/* finalize object : add lanes */
 		LanesType lanes=new LanesType();
 		for(Integer i:this.lanes)
