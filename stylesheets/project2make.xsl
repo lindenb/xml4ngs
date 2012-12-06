@@ -10,10 +10,12 @@
 <xsl:param name="limit"/>
 <xsl:param name="fragmentsize">600</xsl:param>
 <xsl:param name="bwathreads">1</xsl:param>
-<xsl:param name="simulation">-999</xsl:param>
+
 
 <xsl:template match="/">
-
+<xsl:if test="number(project/properties/property[@key='simulation.reads'])&gt;0">
+<xsl:message terminate="no">[WARNING] FASTQs will be generated using samtools/wgsim if they don't exist.</xsl:message>
+</xsl:if>
 #
 # Makefile for NGS
 #
@@ -47,7 +49,7 @@ REF?=/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/human_g1k_v37.fasta
 #
 # file that will be used to lock the SQL-related resources
 #
-LOCKFILE=$(OUTDIR)/<xsl:value-of select="concat('_tmp.',generate-id(.),'.lock')"/>
+LOCKFILE=$(OUTDIR)/</xsl:text><xsl:value-of select="concat('_tmp.',generate-id(.),'.lock')"/>
 XMLSTATS=$(OUTDIR)/pipeline.stats.xml
 HSQLSTATS=$(OUTDIR)/hsqldb.stats
 INDEXED_REFERENCE=$(foreach S,.amb .ann .bwt .pac .sa .fai,$(addsuffix $S,$(REF))) $(addsuffix	.dict,$(basename $(REF)))
@@ -57,7 +59,6 @@ SAMPLES=<xsl:for-each select="sample"><xsl:value-of select="concat(' ',@name)"/>
 # TARGETS AS LISTS
 #
 
-<xsl:text>
 ########################################################################################################
 #
 # PHONY TARGETS
@@ -67,7 +68,8 @@ SAMPLES=<xsl:for-each select="sample"><xsl:value-of select="concat(' ',@name)"/>
 	indexed_reference bams bams_realigned  bams_sorted \
 	bams_merged bams_unsorted bams_recalibrated \
 	bams_markdup \
-	coverage toptarget
+	coverage toptarget \
+	all_fastqs
 
 ########################################################################################################
 #
@@ -144,6 +146,8 @@ bams_recalibrated: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates
 bams_unsorted: </xsl:text><xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="unsorted"/></xsl:for-each><xsl:text>
 bams_sorted: </xsl:text><xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each><xsl:text>
 coverage: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>
+
+all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templates select="." mode="fastq"/><xsl:text> </xsl:text></xsl:for-each>
 
 ########################################################################################################
 #
@@ -315,7 +319,8 @@ capture500.bed: <xsl:call-template name="capture.bed"/>
 #
 # Mark duplicates for Sample: <xsl:value-of select="@name"/>
 #
-LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/>&#10;
+LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
+</xsl:text>
 <xsl:apply-templates select="." mode="markdup"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="realigned"/>)
 	$(call timebegindb,$@_markdup)
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
@@ -343,7 +348,8 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/>&#10;
 # Recalibrate alignments for Sample &quot;<xsl:value-of select="@name"/>&quot;
 #
 #
-LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/>&#10;
+LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
+</xsl:text>
 <xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) capture500.bed
 	$(call timebegindb,$@_countCovariates)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -377,7 +383,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/>&#10;
 # IndelRealignments for Sample &quot;<xsl:value-of select="@name"/>&quot;
 #
 #
-LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/>&#10;
+LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
+</xsl:text>
 <xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) capture500.bed
 		$(call timebegindb,$@_targetcreator)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -413,7 +420,8 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/>&#10;
 # Merge all Bams for Sample &quot;<xsl:value-of select="@name"/>&quot;
 #
 #
-LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/>&#10;
+LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
+</xsl:text>
 <xsl:apply-templates select="." mode="merged"/> : <xsl:for-each select="sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
 	$(call timebegindb,$@)
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ AS=true \
@@ -443,7 +451,8 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/>&#10;
 # Sort BAM for &quot;<xsl:value-of select="@name"/>&quot;
 #
 #
-LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/>&#10;
+LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/><xsl:text>
+</xsl:text>
 <xsl:apply-templates select="." mode="sorted"/> : <xsl:apply-templates select="." mode="unsorted"/>
 	$(call timebegindb,$@)
 	$(SAMTOOLS) sort $&lt; $(basename $@)
@@ -456,7 +465,8 @@ LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/>&#10;
 # Call BWA sampe
 #
 #
-LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/>&#10;
+LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
+</xsl:text>
 <xsl:apply-templates select="." mode="unsorted"/> : <xsl:apply-templates select="fastq[@index='1']" mode="fastq"/>
 	<xsl:text> </xsl:text>
 	<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>
@@ -482,13 +492,13 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/>&#10;
 	$(call sizedb,$@)
 
 
-<xsl:if test="number($simulation)&gt;0">
+<xsl:if test="number(/project/properties/property[@key='simulation.reads'])&gt;0">
 
 #
 # It is a simulation mode : generate the FASTQ with samtools
 #
-<xsl:apply-templates select="fastq[@index='1']" mode="fastq"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="fastq[@index='2']"/>:
-	${samtools.dir}/misc/wgsim -N <xsl:value-of select="$simulation"/> $(REF) $(basename $@)
+<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/><xsl:text> </xsl:text><xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>:
+	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename $@)
 	gzip --best $(basename $@)
 
 
@@ -683,7 +693,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/>&#10;
      
      ====================================================================================================== -->
 
-<xsl:template match="project" match="fastx">
+<xsl:template match="project" mode="fastx">
 #
 # merge all the FASTX reports in one PDF
 #

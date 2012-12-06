@@ -2,26 +2,26 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
   <xs:complexType name="ProjectType">
     <xs:sequence>
-      <xs:element name="reference" type="ReferenceType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="capture" type="CaptureType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="properties" type="PropertiesType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="lanes" type="LanesType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="sample" type="SampleType" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="ReferenceType">
+
+  <xs:complexType name="PropertiesType">
     <xs:sequence>
-      <xs:element name="name" type="xs:token"/>
-      <xs:element name="description" type="xs:string"/>
-      <xs:element name="path" type="xs:string"/>
+         <xs:element name="property" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="CaptureType">
-    <xs:sequence>
-      <xs:element name="name" type="xs:token"/>
-      <xs:element name="description" type="xs:string"/>
-      <xs:element name="path" type="xs:string"/>
-    </xs:sequence>
+
+  <xs:complexType name="PropertyType">
+     <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="key" type="xs:token" />
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
+
   <xs:complexType name="SampleType">
     <xs:sequence>
       <xs:element name="sequences" type="SequencesType"/>

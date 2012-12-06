@@ -168,19 +168,7 @@ public class Ilmn2Project
 				}
 			scan(file);
 			}
-		/* finalize object : add ref */	
-		ReferenceType refseq=new ReferenceType();
-		refseq.setName("Hg37");
-		refseq.setDescription("Human");
-		refseq.setPath("/");
-		this.project.setReference(refseq);
 		
-		/* finalize object : add ref */	
-		CaptureType capture = new CaptureType();
-		capture.setName("capture");
-		capture.setDescription("capture");
-		capture.setPath("captue.bed");
-		this.project.setCapture(capture);
 				
 		
 		/* finalize object : add lanes */
