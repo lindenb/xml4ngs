@@ -76,8 +76,19 @@ SAMPLES=<xsl:for-each select="sample"><xsl:value-of select="concat(' ',@name)"/>
 # MACRO DEFINITIONS
 #
 #
+ifndef DELETEFILE
+DELETEFILE=echo 
+endif
+
+
+
 define indexed_bam
     $(1) $(foreach B,$(filter %.bam,$(1)),  $(addsuffix .bai,$B) )
+endef
+
+
+define notempty
+    test -s $(1) || (echo "$(1) is empty" &amp;&amp; rm -f $(1) &amp;&amp; exit -1) 
 endef
 
 
@@ -95,7 +106,7 @@ endef
 
 
 define sizedb
-	stat -c "%s" $(1) | while read L; do echo $$L; lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "create table if not exists sizedb(file varchar(255) not null,size int); delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
+	stat -c "%s" $(1) | while read L; do lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "create table if not exists sizedb(file varchar(255) not null,size int); delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
 endef
 
 
@@ -199,17 +210,19 @@ $(OUTDIR)/variations.gatk.snpEff.vcf.gz: $(OUTDIR)/variations.gatk.vcf.gz
 # Allele calling with samtools
 #
 $(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,mpileup)
 	$(SAMTOOLS) mpileup -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - | gzip --best &gt; $@
-	$(call timeenddb,$@)
+	$(call timeenddb,$@,mpileup)
+	$(call sizedb,$@)
+	$(call notempty,$@)
 
 
 #
 # Allele calling with GATK
 #
 $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,UnifiedGenotyper)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T UnifiedGenotyper \
@@ -219,8 +232,9 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 		--dbsnp $(VCFDBSNP) \
 		-o $(basename $@)
 	gzip --best $(basename $@)
-	$(call timeendb,$@)
+	$(call timeendb,$@,UnifiedGenotyper)
 	$(call sizedb,$@)
+	$(call notempty,$@)
 
 
 ###################################################################################################################################################
@@ -228,11 +242,14 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 # Capture
 #
 
-ensembl.exons.bed:
-	 curl -s -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="hsapiens_gene_ensembl" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>]]>' "http://www.biomart.org/biomart/martservice/result" |\
+$(OUTDIR)/ensembl.exons.bed:
+	$(call timebegindb,$@,$@)
+	curl  -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="hsapiens_gene_ensembl" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>]]>' "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
-	sort -t '	' -k1,1 -k2,2n -k3,3n &gt; $@
-
+	uniq | sort -t '	' -k1,1 -k2,2n -k3,3n | uniq &gt; $@
+	$(call timeendb,$@,$@)
+	$(call sizedb,$@)
+	$(call notempty,$@)
 
 #
 # extends the bed by 500 by default
@@ -245,7 +262,7 @@ endif
 #
 # an extended version of the capture, will be used for recalibration
 #
-capture500.bed: <xsl:call-template name="capture.bed"/>
+$(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 	cut -d '	' -f1,2,3 $&lt; |\
 	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-in(x); if(S&lt;0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
 	sort -t '	' -k1,1 -k2,2n -k3,3n |\
@@ -350,7 +367,7 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 #
 LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 </xsl:text>
-<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) capture500.bed
+<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed
 	$(call timebegindb,$@_countCovariates)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
@@ -385,7 +402,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 #
 LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 </xsl:text>
-<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) capture500.bed
+<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed
 		$(call timebegindb,$@_targetcreator)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
@@ -474,7 +491,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	<xsl:apply-templates select="fastq[@index='1']" mode="sai"/>
 	<xsl:text> </xsl:text>
 	<xsl:apply-templates select="fastq[@index='2']" mode="sai"/>
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,bwasampe)
 	$(BWA) sampe -a <xsl:apply-templates select="." mode="fragmentSize"/> ${REF} \
 		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA" \
 		<xsl:apply-templates select="fastq[@index='1']" mode="sai"/> \
@@ -488,19 +505,28 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 			<xsl:apply-templates select="." mode="fastq"/>
 		</xsl:if>
 	</xsl:for-each> 
-	$(call timeenddb,$@)
+	$(call timeenddb,$@,bwasampe)
 	$(call sizedb,$@)
+	$(call notempty,$@)
 
 
+<!-- if the simulation.reads is set and greater than 0, the two fastqs will be created -->
 <xsl:if test="number(/project/properties/property[@key='simulation.reads'])&gt;0">
-
+<xsl:variable name="twofastqs">
+<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/>
+<xsl:text> </xsl:text>
+<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>
+</xsl:variable>
 #
 # It is a simulation mode : generate the FASTQ with samtools
 #
-<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/><xsl:text> </xsl:text><xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>:
-	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename $@)
-	gzip --best $(basename $@)
-
+<xsl:value-of select="$twofastqs"/>:
+	$(warning  simulation.reads is set : CREATING TWO FASTQ FILES)
+	$(call timebegindb,$@,wgsim)
+	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename <xsl:value-of select="$twofastqs"/>) &gt; $(OUTDIR)/wgsim<xsl:value-of select="generate-id(.)"/>.vcf
+	gzip -f --best  $(basename <xsl:value-of select="$twofastqs"/>) 
+	$(call timeenddb,$@,wgsim)
+	$(call sizedb,$@)
 
 </xsl:if>
 
@@ -533,11 +559,12 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 
 <xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="fastq"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/> $(INDEXED_REFERENCE)
 	#gunzip -c $&lt; | wc -l | sed 's%$$%/4%' | bc | while read C; do lockfile $(LOCKFILE); $(VARKIT)/simplekeyvalue -f $(XMLSTATS) -p count-reads $&lt; $$C ; rm -f $(LOCKFILE) ; done
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,sai)
 	$(call sizedb,$&lt;)
 	$(BWA) aln $(BWA.aln.options) -f $@ ${REF} $&lt;
-	$(call timeenddb,$@)
+	$(call timeenddb,$@,sai)
 	$(call sizedb,$@)
+	$(call notempty,$@)
 
 </xsl:for-each>
 ##
@@ -671,10 +698,12 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 </xsl:text>
 <xsl:value-of select="concat(normalize-space($bam),'.bai')"/> <xsl:text>: </xsl:text><xsl:value-of select="$bam"/><xsl:text>
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,bai)
 	$(SAMTOOLS) index $&lt;
-	$(call timeenddb,$@)
+	$(call timeenddb,$@,bai)
 	$(call sizedb,$@)
+	$(call notempty,$@)
+	
 
 </xsl:text>
 </xsl:template>
@@ -683,7 +712,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 <xsl:template name="capture.bed">
  <xsl:choose>
   <xsl:when test="//capture/bed/@path"><xsl:value-of select="//capture/bed/@path"/></xsl:when>
-  <xsl:otherwise>ensembl.exons.bed</xsl:otherwise>
+  <xsl:otherwise>$(OUTDIR)/ensembl.exons.bed</xsl:otherwise>
  </xsl:choose>
 </xsl:template>
 

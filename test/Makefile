@@ -6,7 +6,7 @@ all: validate test
 
 test: test.mk tools.mk config.mk
 	mkdir -p $(OUTDIR)
-	$(MAKE) -f $< all_fastqs
+	$(MAKE) -f $< all_predictions
 
 
 test.mk : ../stylesheets/project2make.xsl project.xml 
@@ -16,7 +16,7 @@ validate: ../src/main/resources/xsd/project.xsd project.xml
 	xmllint --noout --schema $^
 	
 tools.mk:
-	touch  $@
+	cp tools.sample.mk $@
 
 config.mk:
 	echo "OUTDIR=${OUTDIR}"> $@
