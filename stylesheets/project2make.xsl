@@ -38,9 +38,21 @@
 include tools.mk  config.mk
 
 #
-# path to GHOSTVIEW
+# Color for Makefile
+# ref: http://jamesdolan.blogspot.fr/2009/10/color-coding-makefile-output.html
 #
+NO_COLOR=\x1b[0m
+OK_COLOR=\x1b[32;01m
+ERROR_COLOR=\x1b[31;01m
+WARN_COLOR=\x1b[33;01m
+
+#
+#
+# path to GHOSTVIEW
 GHOSTVIEW ?= gs
+
+TABIX.bgzip?=${TABIX}/bgzip
+TABIX.tabix?=${TABIX}/tabix
 
 #
 #reference genome
@@ -127,6 +139,8 @@ endef
 		O=$@ \
 		GENOME_ASSEMBLY=$(basename $(notdir $&lt;)) \
 		TRUNCATE_NAMES_AT_WHITESPACE=true
+
+
 #
 # treat all files as SECONDARY
 #
@@ -175,29 +189,39 @@ all_predictions: \
 # prediction samtools with Variation Ensembl Prediction API
 #
 $(OUTDIR)/variations.samtools.vep.tsv.gz: $(OUTDIR)/variations.samtools.vcf.gz
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF)--format vcf --force_overwrite -i $&lt; -o STDOUT | gzip --best &gt; $@
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF)--format vcf --force_overwrite -i $&lt; -o STDOUT |\
+	${TABIX.bgzip} -c  &gt; $@
+	
 
 
 #
 # annotate samtools vcf with snpEff
 #
 $(OUTDIR)/variations.samtools.snpEff.vcf.gz: $(OUTDIR)/variations.samtools.vcf.gz
+	$(call timebegindb,$@,mpileupsnpeff)
 	gunzip -c  $&lt; |\
 	egrep -v '^GL' |\
 	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
 	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
-	gzip &gt; $@
-
+	${TABIX.bgzip} -c  &gt; $@
+	${TABIX.tabix} -p vcf $@ 
+	$(call timeenddb,$@,mpileupsnpeff)
+	$(call sizedb,$@)
+	$(call notempty,$@)
 #
 # annotate GATK vcf with snpEff
 #
 $(OUTDIR)/variations.gatk.snpEff.vcf.gz: $(OUTDIR)/variations.gatk.vcf.gz
+	$(call timebegindb,$@,gatksnpeff)
 	gunzip -c  $&lt; |\
 	egrep -v '^GL' |\
 	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
 	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
-	gzip &gt; $@
-
+	${TABIX.bgzip} -c  &gt; $@
+	${TABIX.tabix} -p vcf $@ 
+	$(call timeenddb,$@,gatksnpeff)
+	$(call sizedb,$@)
+	$(call notempty,$@)
 
 ########################################################################################################
 #
@@ -212,7 +236,9 @@ $(OUTDIR)/variations.gatk.snpEff.vcf.gz: $(OUTDIR)/variations.gatk.vcf.gz
 $(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
 	$(call timebegindb,$@,mpileup)
 	$(SAMTOOLS) mpileup -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
-	$(BCFTOOLS) view -vcg - | gzip --best &gt; $@
+	$(BCFTOOLS) view -vcg - |\
+	${TABIX.bgzip} -c &gt; $@
+	${TABIX.tabix} -p vcf $@ 
 	$(call timeenddb,$@,mpileup)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -231,7 +257,7 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp $(VCFDBSNP) \
 		-o $(basename $@)
-	gzip --best $(basename $@)
+	${TABIX.bgzip} -c $(basename $@)
 	$(call timeendb,$@,UnifiedGenotyper)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -267,6 +293,7 @@ $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-in(x); if(S&lt;0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
 	sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - &gt; $@
+	$(call notempty,$@)
 
 
 ########################################################################################################
@@ -287,7 +314,7 @@ $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 # Depth of coverage with GATK
 #
 <xsl:apply-templates select="." mode="coverage"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) <xsl:call-template name="capture.bed"/>
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,coverage)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
@@ -297,7 +324,7 @@ $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 		--summaryCoverageThreshold 5 \
 		-I $(filter %.bam,$^) \
 		-o $@
-	$(call timeendb,$@)
+	$(call timeendb,$@,coverage)
 
 
 
@@ -358,7 +385,7 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 	#$(call timeenddb,$@_validate)
 	$(DELETEFILE) $&lt; $@.metrics 
 	$(call sizedb,$@)
-
+	$(call notempty,$@)
 
 #
 #
@@ -393,6 +420,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 	$(call timeenddb,$@_tableRecalibaration)
 	$(call sizedb,$@)
 	$(DELETEFILE) $&lt; $@.recal_data.grp
+	$(call notempty,$@)
 
 
 #
@@ -425,6 +453,7 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 		$(call timeenddb,$@_indelrealigner)
 		$(call sizedb,$@)
 		$(DELETEFILE) $&lt; $&lt;.intervals
+		$(call notempty,$@)
 
 
 
@@ -440,13 +469,14 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="merged"/> : <xsl:for-each select="sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,merge)
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ AS=true \
 		VALIDATION_STRINGENCY=SILENT COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
 	$(DELETEFILE) $^
-	$(call timeenddb,$@)
+	$(call timeenddb,$@,merge)
 	$(call sizedb,$@)
+	$(call notempty,$@)
 
 </xsl:if>
 
@@ -466,16 +496,17 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 #
 #
 # Sort BAM for &quot;<xsl:value-of select="@name"/>&quot;
-#
+# default memory sort size for samtools sort is 500,000,000
 #
 LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="sorted"/> : <xsl:apply-templates select="." mode="unsorted"/>
-	$(call timebegindb,$@)
+	$(call timebegindb,$@,sort)
 	$(SAMTOOLS) sort $&lt; $(basename $@)
 	$(DELETEFILE) $&lt;
-	$(call timeenddb,$@)
+	$(call timeenddb,$@,sort)
 	$(call sizedb,$@)
+	$(call notempty,$@)
 
 
 #
