@@ -127,7 +127,7 @@ endef
 
 define delete_and_touch
 <xsl:choose>
-<xsl:when test="properties/property[key='delete.temporary.files']='yes'">rm -f ($1); touch $(1); sleep 2</xsl:when>
+<xsl:when test="properties/property[key='delete.temporary.files']='yes'">rm -f $(1); touch $(1); sleep 2</xsl:when>
 <xsl:otherwise><!-- ignore --></xsl:otherwise>
 </xsl:choose>
 endef
