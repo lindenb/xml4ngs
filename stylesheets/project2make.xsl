@@ -57,7 +57,7 @@ TABIX.tabix?=${TABIX}/tabix
 #
 #reference genome
 #
-REF?=/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/human_g1k_v37.fasta
+REF?=$(OUTDIR)/Reference/human_g1k_v37.fasta
 #
 # file that will be used to lock the SQL-related resources
 #
@@ -184,6 +184,9 @@ coverage: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="
 
 all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templates select="." mode="fastq"/><xsl:text> </xsl:text></xsl:for-each>
 
+
+
+
 ########################################################################################################
 #
 # PREDICTIONS
@@ -303,7 +306,7 @@ endif
 #
 $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 	cut -d '	' -f1,2,3 $&lt; |\
-	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-in(x); if(S&lt;0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
+	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-int(x); if(S&lt;0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
 	sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - &gt; $@
 	$(call notempty,$@)
@@ -569,10 +572,11 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 # It is a simulation mode : generate the FASTQ with samtools
 #
-<xsl:value-of select="$twofastqs"/>:
+<xsl:value-of select="$twofastqs"/>: <xsl:apply-templates select="../.." mode="dir"/>
 	$(warning  simulation.reads is set : CREATING TWO FASTQ FILES)
 	$(call timebegindb,$@,wgsim)
-	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename <xsl:value-of select="$twofastqs"/>) &gt; $(OUTDIR)/wgsim<xsl:value-of select="generate-id(.)"/>.vcf
+	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename <xsl:value-of select="$twofastqs"/>) |\
+		${TABIX.bgzip} &gt; <xsl:apply-templates select="../.." mode="dir"/>/wgsim<xsl:value-of select="generate-id(.)"/>.vcf.gz
 	gzip -f --best  $(basename <xsl:value-of select="$twofastqs"/>) 
 	$(call timeenddb,$@,wgsim)
 	$(call sizedb,$@)
@@ -637,6 +641,17 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 # END SAMPLES
 #
 ########################################################################################################
+
+#####################################################################################
+#
+# REFERENCE
+#
+$(OUTDIR)/Reference/human_g1k_v37.fasta:
+	mkdir -p $(dir $@)	
+	curl -o $(addsuffix .gz,$@) "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/$@.gz"
+	$(call notempty,$(addsuffix .gz,$@))
+	gunzip $(addsuffix .gz,$@)
+	$(call notempty,$@)
 
 </xsl:template>
 

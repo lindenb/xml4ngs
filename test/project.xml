@@ -6,36 +6,36 @@
     <sample name="Sample1">
         <sequences>
             <pair lane="1" split-index="1" sample-index="CGATGT">
-                <fastq index="1" path="test.out.dir/Sample1_CGATGT_L001_R1_001.fastq.gz"/>
-                <fastq index="2" path="test.out.dir/Sample1_CGATGT_L001_R2_001.fastq.gz"/>
+                <fastq index="1" path="test.out.dir/Sample1/Sample1_CGATGT_L001_R1_001.fastq.gz"/>
+                <fastq index="2" path="test.out.dir/Sample1/Sample1_CGATGT_L001_R2_001.fastq.gz"/>
             </pair>
             <pair lane="2" split-index="2" sample-index="CGATGT">
-                <fastq index="1" path="test.out.dir/Sample1_CGATGT_L002_R1_002.fastq.gz"/>
-                <fastq index="2" path="test.out.dir/Sample1_CGATGT_L002_R2_002.fastq.gz"/>
+                <fastq index="1" path="test.out.dir/Sample1/Sample1_CGATGT_L002_R1_002.fastq.gz"/>
+                <fastq index="2" path="test.out.dir/Sample1/Sample1_CGATGT_L002_R2_002.fastq.gz"/>
             </pair>
         </sequences>
     </sample>
     <sample name="Sample2">
         <sequences>
             <pair lane="1" split-index="1" sample-index="CGATGT">
-                <fastq index="1" path="test.out.dir/Sample2_CGATGT_L001_R1_001.fastq.gz"/>
-                <fastq index="2" path="test.out.dir/Sample2_CGATGT_L001_R2_001.fastq.gz"/>
+                <fastq index="1" path="test.out.dir/Sample2/Sample2_CGATGT_L001_R1_001.fastq.gz"/>
+                <fastq index="2" path="test.out.dir/Sample2/Sample2_CGATGT_L001_R2_001.fastq.gz"/>
             </pair>
             <pair lane="2" split-index="2" sample-index="CGATGT">
-                <fastq index="1" path="test.out.dir/Sample2_CGATGT_L002_R1_002.fastq.gz"/>
-                <fastq index="2" path="test.out.dir/Sample2_CGATGT_L002_R2_002.fastq.gz"/>
+                <fastq index="1" path="test.out.dir/Sample2/Sample2_CGATGT_L002_R1_002.fastq.gz"/>
+                <fastq index="2" path="test.out.dir/Sample2/Sample2_CGATGT_L002_R2_002.fastq.gz"/>
             </pair>
         </sequences>
     </sample>
     <sample name="Sample3">
         <sequences>
             <pair lane="1" split-index="1" sample-index="CGATGT">
-                <fastq index="1" path="test.out.dir/Sample3_CGATGT_L001_R1_001.fastq.gz"/>
-                <fastq index="2" path="test.out.dir/Sample3_CGATGT_L001_R2_001.fastq.gz"/>
+                <fastq index="1" path="test.out.dir/Sample3/Sample3_CGATGT_L001_R1_001.fastq.gz"/>
+                <fastq index="2" path="test.out.dir/Sample3/Sample3_CGATGT_L001_R2_001.fastq.gz"/>
             </pair>
             <pair lane="2" split-index="2" sample-index="CGATGT">
-                <fastq index="1" path="test.out.dir/Sample3_CGATGT_L002_R1_002.fastq.gz"/>
-                <fastq index="2" path="test.out.dir/Sample3_CGATGT_L002_R2_002.fastq.gz"/>
+                <fastq index="1" path="test.out.dir/Sample3/Sample3_CGATGT_L002_R1_002.fastq.gz"/>
+                <fastq index="2" path="test.out.dir/Sample3/Sample3_CGATGT_L002_R2_002.fastq.gz"/>
             </pair>
         </sequences>
     </sample>
