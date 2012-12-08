@@ -92,10 +92,13 @@ ifndef DELETEFILE
 DELETEFILE=echo 
 endif
 
+define bai_files
+    $(foreach B,$(filter %.bam,$(1)),  $(addsuffix .bai,$B) )
+endef
 
 
 define indexed_bam
-    $(1) $(foreach B,$(filter %.bam,$(1)),  $(addsuffix .bai,$B) )
+    $(1) $(call bai_files, $(1))
 endef
 
 
@@ -121,6 +124,13 @@ define sizedb
 	stat -c "%s" $(1) | while read L; do lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "create table if not exists sizedb(file varchar(255) not null,size int); delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
 endef
 
+
+define delete_and_touch
+<xsl:choose>
+<xsl:when test="properties/property[key='delete.temporary.files']='yes'">rm -f ($1); touch $(1); sleep 2</xsl:when>
+<xsl:otherwise><!-- ignore --></xsl:otherwise>
+</xsl:choose>
+endef
 
 ########################################################################################################
 #
@@ -270,7 +280,10 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 
 $(OUTDIR)/ensembl.exons.bed:
 	$(call timebegindb,$@,$@)
-	curl  -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="hsapiens_gene_ensembl" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>]]>' "http://www.biomart.org/biomart/martservice/result" |\
+	curl  -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="]]><xsl:choose>
+		<xsl:when test="properties/property[@key='ensembl.dataset.name']"><xsl:value-of select="properties/property[@key='ensembl.dataset.name']"/></xsl:when>
+		<xsl:otherwise>hsapiens_gene_ensembl</xsl:otherwise>
+		</xsl:choose><![CDATA[" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>]]>' "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
 	uniq | sort -t '	' -k1,1 -k2,2n -k3,3n | uniq &gt; $@
 	$(call timeendb,$@,$@)
@@ -438,7 +451,7 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 			-L $(filter %.bed,$^) \
   			-I $(filter %.bam,$^) \
 			-S SILENT \
-  			-o $&lt;.intervals \
+  			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
 			--known $(VCFDBSNP)
 		$(call timebegindb,$@_targetcreator)
 		$(call timeenddb,$@_indelrealigner)
@@ -448,15 +461,15 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
   			-I $(filter %.bam,$^) \
 			-S SILENT \
   			-o $@ \
-  			-targetIntervals $&lt;.intervals \
+  			-targetIntervals $(addsuffix .intervals, $(filter %.bam,$^) ) \
 			--knownAlleles $(VCFDBSNP)
 		$(call timeenddb,$@_indelrealigner)
 		$(call sizedb,$@)
-		$(DELETEFILE) $&lt; $&lt;.intervals
 		$(call notempty,$@)
-
-
-
+		rm -f $(addsuffix .intervals, $(filter %.bam,$^) )
+		$(call delete_and_touch,$(filter %.bam,$^)  )
+		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
+		touch $@
 
 
 
@@ -477,7 +490,9 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 	$(call timeenddb,$@,merge)
 	$(call sizedb,$@)
 	$(call notempty,$@)
-
+	$(call delete_and_touch,$^)
+	touch $@
+	
 </xsl:if>
 
 ###############################################################
@@ -507,7 +522,8 @@ LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/><xsl:text>
 	$(call timeenddb,$@,sort)
 	$(call sizedb,$@)
 	$(call notempty,$@)
-
+	$(call delete_and_touch,$&lt;)
+	touch $@
 
 #
 # Call BWA sampe
@@ -539,6 +555,8 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	$(call timeenddb,$@,bwasampe)
 	$(call sizedb,$@)
 	$(call notempty,$@)
+	$(call delete_and_touch,<xsl:apply-templates select="fastq" mode="sai"/>)
+	touch $@
 
 
 <!-- if the simulation.reads is set and greater than 0, the two fastqs will be created -->
