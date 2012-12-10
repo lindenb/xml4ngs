@@ -32,3 +32,7 @@ VEP.cache=  --cache --dir /commun/data/pubdb/ensembl/vep/cache --write_cache
 FASTX.dir=${packages.dir}/fastx_toolkit-0.0.13.2
 HSQLDB.dir=${packages.dir}/hsqldb-2.2.9/hsqldb
 HSQLDB.sqltool=${HSQLDB.dir}/lib/sqltool.jar
+BOWTIE.dir=${packages.dir}/bowtie-0.12.8
+BOWTIE2.dir=${packages.dir}/bowtie2-2.0.2
+CUFFLINKS.dir=${packages.dir}/cufflinks-2.0.2.Linux_x86_64
+TOPHAT.dir=${packages.dir}/tophat-2.0.6.Linux_x86_64

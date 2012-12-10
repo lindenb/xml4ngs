@@ -2,7 +2,7 @@ OUTDIR=./test.out.dir
 .PHONY: validate test all
 
 	
-all: validate test
+all: validatexml validatexsl test
 
 test: test.mk tools.mk config.mk
 	mkdir -p $(OUTDIR)
@@ -10,9 +10,14 @@ test: test.mk tools.mk config.mk
 
 
 test.mk : ../stylesheets/project2make.xsl project.xml 
+	$(MAKE) validatexsl
 	xsltproc $^ > $@
 
-validate: ../src/main/resources/xsd/project.xsd project.xml 
+validatexsl: ../stylesheets/project2make.xsl project.xml
+	$(MAKE) validatexml
+	xsltproc --noout $^
+
+validatexml: ../src/main/resources/xsd/project.xsd project.xml 
 	xmllint --noout --schema $^
 	
 tools.mk:

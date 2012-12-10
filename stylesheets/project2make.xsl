@@ -38,6 +38,10 @@
 include tools.mk  config.mk
 
 #
+#
+OUTDIR?=Output
+
+#
 # Color for Makefile
 # ref: http://jamesdolan.blogspot.fr/2009/10/color-coding-makefile-output.html
 #
@@ -66,6 +70,25 @@ XMLSTATS=$(OUTDIR)/pipeline.stats.xml
 HSQLSTATS=$(OUTDIR)/hsqldb.stats
 INDEXED_REFERENCE=$(foreach S,.amb .ann .bwt .pac .sa .fai,$(addsuffix $S,$(REF))) $(addsuffix	.dict,$(basename $(REF)))
 SAMPLES=<xsl:for-each select="sample"><xsl:value-of select="concat(' ',@name)"/></xsl:for-each>
+capture.bed?=<xsl:choose>
+	<xsl:when test="properties/property[@key='capture.bed.path']"><xsl:value-of select="normalize-space(properties/property[@key='capture.bed.path'])"/></xsl:when>
+	<xsl:otherwise>$(OUTDIR)/ensembl.exons.bed</xsl:otherwise>
+</xsl:choose>
+
+#build for snpEff
+SNPEFFBUILD?=<xsl:choose>
+	<xsl:when test="properties/property[@key='snpEff.build']"><xsl:value-of select="normalize-space(properties/property[@key='snpEff.build'])"/></xsl:when>
+	<xsl:otherwise>hg19</xsl:otherwise>
+</xsl:choose>
+
+#
+# known sites for the GATK
+#
+known.sites?=<xsl:choose>
+        <xsl:when test="properties/property[@key='known.sites']"><xsl:value-of select="normalize-space(properties/property[@key='known.sites'])"/></xsl:when>
+        <xsl:otherwise>$(OUTDIR)/Reference/dbsnp.vcf.gz</xsl:otherwise>
+</xsl:choose>
+
 
 #
 # TARGETS AS LISTS
@@ -168,7 +191,7 @@ indexed_reference: $(INDEXED_REFERENCE)
 
 
 
-#coverage.tsv : ensembl.exons.bed  $(foreach S,$(SAMPLES),$(OUTDIR)/$(S)$(BAMSUFFIX).bam )
+#coverage.tsv : $(capture.bed)  $(foreach S,$(SAMPLES),$(OUTDIR)/$(S)$(BAMSUFFIX).bam )
 #	${VARKIT}/beddepth $(foreach S,$(SAMPLES),-f $(OUTDIR)/$(S)$(BAMSUFFIX).bam ) &lt; $&lt; &gt; $@
 
 
@@ -202,9 +225,10 @@ all_predictions: \
 # prediction samtools with Variation Ensembl Prediction API
 #
 $(OUTDIR)/variations.samtools.vep.tsv.gz: $(OUTDIR)/variations.samtools.vcf.gz
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF)--format vcf --force_overwrite -i $&lt; -o STDOUT |\
-	${TABIX.bgzip} -c  &gt; $@
-	
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite -i $&lt; -o $(basename $@)
+	$(call notempty,$(basename $@))
+	${TABIX.bgzip} -f $(basename $@)
+	$(call notempty,$@)
 
 
 #
@@ -260,7 +284,7 @@ $(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="s
 #
 # Allele calling with GATK
 #
-$(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
+$(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>) $(known.sites)
 	$(call timebegindb,$@,UnifiedGenotyper)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
@@ -268,7 +292,7 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 		-glm BOTH \
 		-S SILENT \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
-		--dbsnp $(VCFDBSNP) \
+		--dbsnp $(known.sites) \
 		-o $(basename $@)
 	${TABIX.bgzip} -c $(basename $@)
 	$(call timeendb,$@,UnifiedGenotyper)
@@ -304,7 +328,7 @@ endif
 #
 # an extended version of the capture, will be used for recalibration
 #
-$(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
+$(OUTDIR)/capture500.bed: $(capture.bed)
 	cut -d '	' -f1,2,3 $&lt; |\
 	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-int(x); if(S&lt;0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
 	sort -t '	' -k1,1 -k2,2n -k3,3n |\
@@ -329,7 +353,7 @@ $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 #
 # Depth of coverage with GATK
 #
-<xsl:apply-templates select="." mode="coverage"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) <xsl:call-template name="capture.bed"/>
+<xsl:apply-templates select="." mode="coverage"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
 	$(call timebegindb,$@,coverage)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
@@ -343,9 +367,6 @@ $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 	$(call timeendb,$@,coverage)
 
 
-
-<xsl:apply-templates select="." mode="dir"/>:
-	mkdir -p $@
 
 
 <xsl:call-template name="make.bai">
@@ -382,7 +403,7 @@ $(OUTDIR)/capture500.bed: <xsl:call-template name="capture.bed"/>
 LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="markdup"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="realigned"/>)
-	$(call timebegindb,$@_markdup)
+	$(call timebegindb,$@_markdup,markdup)
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		TMP_DIR=$(OUTDIR) \
 		INPUT=$(filter %.bam,$^) \
@@ -391,14 +412,14 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 		M=$@.metrics \
 		AS=true \
 		VALIDATION_STRINGENCY=SILENT
-	$(call timeenddb,$@_markdup)
-	#$(call timebegindb,$@_fixmate)
+	$(call timeenddb,$@_markdup,markdup)
+	#$(call timebegindb,$@_fixmate,fixmate)
 	#$(JAVA) $(PICARD.jvm) -jar $(PICARD)/FixMateInformation.jar  TMP_DIR=$(OUTDIR) INPUT=$@  VALIDATION_STRINGENCY=SILENT
-	#$(call timendedb,$@_fixmate)
+	#$(call timendedb,$@_fixmate,fixmate)
 	#$(SAMTOOLS) index $@
-	#$(call timebegindb,$@_validate)
+	#$(call timebegindb,$@_validate,validate)
 	#$(JAVA) $(PICARD.jvm) -jar $(PICARD)/ValidateSamFile.jar TMP_DIR=$(OUTDIR) VALIDATE_INDEX=true I=$@  CREATE_INDEX=true VALIDATION_STRINGENCY=SILENT IGNORE_WARNINGS=true
-	#$(call timeenddb,$@_validate)
+	#$(call timeenddb,$@_validate,validate)
 	$(DELETEFILE) $&lt; $@.metrics 
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -410,22 +431,22 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 #
 LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 </xsl:text>
-<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed
-	$(call timebegindb,$@_countCovariates)
+<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed $(known.sites)
+	$(call timebegindb,$@_countCovariates,covariates)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
 		-R $(REF) \
 		-I $(filter %.bam,$^) \
 		-l INFO \
 		-o $@.recal_data.grp \
-		-knownSites $(VCFDBSNP) \
+		-knownSites $(known.sites) \
 		-L $(filter %.bed,$^) \
 		-cov ReadGroupCovariate \
 		-cov QualityScoreCovariate \
 		-cov CycleCovariate \
 		-cov ContextCovariate
-	$(call timeenddb,$@_countCovariates)
-	$(call timebegindb,$@_tableRecalibaration)
+	$(call timeenddb,$@_countCovariates,covariates)
+	$(call timebegindb,$@_tableRecalibaration,recalibration)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T PrintReads \
 		-R $(REF) \
@@ -433,7 +454,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		-I $(filter %.bam,$^) \
 		-o $@ \
 		-l INFO
-	$(call timeenddb,$@_tableRecalibaration)
+	$(call timeenddb,$@_tableRecalibaration,recalibration)
 	$(call sizedb,$@)
 	$(DELETEFILE) $&lt; $@.recal_data.grp
 	$(call notempty,$@)
@@ -446,8 +467,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 #
 LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 </xsl:text>
-<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed
-		$(call timebegindb,$@_targetcreator)
+<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed $(known.sites)
+		$(call timebegindb,$@_targetcreator,targetcreator)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
@@ -455,9 +476,9 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
   			-I $(filter %.bam,$^) \
 			-S SILENT \
   			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
-			--known $(VCFDBSNP)
-		$(call timebegindb,$@_targetcreator)
-		$(call timeenddb,$@_indelrealigner)
+			--known $(known.sites)
+		$(call timeenddb,$@_targetcreator,targetcreator)
+		$(call timebegindb,$@_indelrealigner,indelrealign)
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
   			-R $(REF) \
@@ -465,8 +486,8 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 			-S SILENT \
   			-o $@ \
   			-targetIntervals $(addsuffix .intervals, $(filter %.bam,$^) ) \
-			--knownAlleles $(VCFDBSNP)
-		$(call timeenddb,$@_indelrealigner)
+			--knownAlleles $(known.sites)
+		$(call timeenddb,$@_indelrealigner,indelrealign)
 		$(call sizedb,$@)
 		$(call notempty,$@)
 		rm -f $(addsuffix .intervals, $(filter %.bam,$^) )
@@ -543,7 +564,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	<xsl:apply-templates select="fastq[@index='2']" mode="sai"/>
 	$(call timebegindb,$@,bwasampe)
 	$(BWA) sampe -a <xsl:apply-templates select="." mode="fragmentSize"/> ${REF} \
-		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA" \
+		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA	PU:<xsl:value-of select="@lane"/>" \
 		<xsl:apply-templates select="fastq[@index='1']" mode="sai"/> \
 		<xsl:apply-templates select="fastq[@index='2']" mode="sai"/> \
 		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
@@ -572,7 +593,8 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 # It is a simulation mode : generate the FASTQ with samtools
 #
-<xsl:value-of select="$twofastqs"/>: <xsl:apply-templates select="../.." mode="dir"/>
+<xsl:value-of select="$twofastqs"/>:
+	mkdir -p <xsl:apply-templates select="../.." mode="dir"/>
 	$(warning  simulation.reads is set : CREATING TWO FASTQ FILES)
 	$(call timebegindb,$@,wgsim)
 	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename <xsl:value-of select="$twofastqs"/>) |\
@@ -597,7 +619,8 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 <xsl:when test="substring(@path, string-length(@path)- 3)='.bz2'">
 
 #need to convert from bz2 to gz
-<xsl:apply-templates select="." mode="fastq"/>:<xsl:value-of select="@path"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/>
+<xsl:apply-templates select="." mode="fastq"/>:<xsl:value-of select="@path"/>
+	mkdir -p <xsl:apply-templates select="." mode="dir"/>
 	bunzip -c $&lt; | <xsl:if test="number($limit)&gt;0"> head -n <xsl:value-of select="number($limit)*4"/> |</xsl:if> gzip --best &gt; $@
 
 </xsl:when>
@@ -610,8 +633,8 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 </xsl:choose>
 
 
-<xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="fastq"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/> $(INDEXED_REFERENCE)
-	#gunzip -c $&lt; | wc -l | sed 's%$$%/4%' | bc | while read C; do lockfile $(LOCKFILE); $(VARKIT)/simplekeyvalue -f $(XMLSTATS) -p count-reads $&lt; $$C ; rm -f $(LOCKFILE) ; done
+<xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="fastq"/> $(INDEXED_REFERENCE)
+	mkdir -p $(dir $@)
 	$(call timebegindb,$@,sai)
 	$(call sizedb,$&lt;)
 	$(BWA) aln $(BWA.aln.options) -f $@ ${REF} $&lt;
@@ -651,6 +674,20 @@ $(OUTDIR)/Reference/human_g1k_v37.fasta:
 	curl -o $(addsuffix .gz,$@) "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/$@.gz"
 	$(call notempty,$(addsuffix .gz,$@))
 	gunzip $(addsuffix .gz,$@)
+	$(call notempty,$@)
+
+
+#
+# download ncbi dbsnp as VCF
+#
+$(OUTDIR)/Reference/dbsnp.vcf.gz : $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi
+	mkdir -p $(dir $@)
+	curl  -o $@ "ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/00-All.vcf.gz"
+	$(call notempty,$@)
+
+$(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
+	mkdir -p $(dir $@)
+	curl  -o $@ "ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/00-All.vcf.gz.tbi"
 	$(call notempty,$@)
 
 </xsl:template>
@@ -770,14 +807,6 @@ $(OUTDIR)/Reference/human_g1k_v37.fasta:
 	
 
 </xsl:text>
-</xsl:template>
-
-<!-- provides a BED for the capture --> 
-<xsl:template name="capture.bed">
- <xsl:choose>
-  <xsl:when test="//capture/bed/@path"><xsl:value-of select="//capture/bed/@path"/></xsl:when>
-  <xsl:otherwise>$(OUTDIR)/ensembl.exons.bed</xsl:otherwise>
- </xsl:choose>
 </xsl:template>
 
 <!-- ======================================================================================================
