@@ -6,7 +6,7 @@ all: validatexml validatexsl test
 
 test: test.mk tools.mk config.mk
 	mkdir -p $(OUTDIR)
-	$(MAKE) -f $< all_predictions
+	$(MAKE) -f $< all
 
 
 test.mk : ../stylesheets/project2make.xsl project.xml 
@@ -27,4 +27,4 @@ config.mk:
 	echo "OUTDIR=${OUTDIR}"> $@
 
 clean:
-	rm -f test.mk $(OUTDIR)
+	rm -rf test.mk $(OUTDIR)

@@ -99,7 +99,7 @@ known.sites?=<xsl:choose>
 # PHONY TARGETS
 #
 #
-.PHONY: all_predictions \
+.PHONY: all fastx all_predictions \
 	indexed_reference bams bams_realigned  bams_sorted \
 	bams_merged bams_unsorted bams_recalibrated \
 	bams_markdup \
@@ -184,7 +184,7 @@ endef
 toptarget:
 	echo "This is the top target. Please select a specific target"
 
-all: $(OUTDIR)/variations.samtools.snpEff.vcf.gz $(OUTDIR)/variations.gatk.snpEff.vcf.gz
+all: all_predictions fastx
 
 indexed_reference: $(INDEXED_REFERENCE)
 
@@ -294,7 +294,7 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp $(known.sites) \
 		-o $(basename $@)
-	${TABIX.bgzip} -c $(basename $@)
+	${TABIX.bgzip} -f $(basename $@)
 	$(call timeendb,$@,UnifiedGenotyper)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -665,6 +665,9 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 ########################################################################################################
 
+
+<xsl:apply-templates select="." mode="fastx"/>
+
 #####################################################################################
 #
 # REFERENCE
@@ -689,6 +692,8 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 	mkdir -p $(dir $@)
 	curl  -o $@ "ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/00-All.vcf.gz.tbi"
 	$(call notempty,$@)
+
+
 
 </xsl:template>
 
@@ -819,7 +824,8 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 #
 # merge all the FASTX reports in one PDF
 #
-$(OUTDIR)/fastx.report.pdf: <xsl:for-each select="sample">
+fastx: $(OUTDIR)/FASTX/fastx.report.pdf
+$(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 	<xsl:text> \
 	</xsl:text>
 	<xsl:apply-templates select="." mode="fastx.qual.and.nuc"/>
@@ -828,6 +834,7 @@ $(OUTDIR)/fastx.report.pdf: <xsl:for-each select="sample">
 	</xsl:text>
 	<xsl:apply-templates select="." mode="fastx.qual.and.nuc"/>
 </xsl:for-each>
+	mkdir -p $(dir $@)
 	${GHOSTVIEW} -dNOPAUSE -q -sDEVICE=pdfwrite -sOUTPUTFILE=$@ -dBATCH $^
 <xsl:text>
 </xsl:text>
@@ -853,7 +860,7 @@ $(OUTDIR)/fastx.report.pdf: <xsl:for-each select="sample">
 	mkdir -p $(dir $@)
 	gunzip -c $^ |\
 	$(FASTX.dir)/bin/fastx_quality_stats &gt; <xsl:value-of select="$stat"/>
-	$(FASTX.dir)/bin/ffastq_quality_boxplot_graph.sh -p  -i <xsl:value-of select="$stat"/> -t "QUAL <xsl:value-of select="@name"/>" -o <xsl:apply-templates select="." mode="fastx.qual"/>
+	$(FASTX.dir)/bin/fastq_quality_boxplot_graph.sh -p  -i <xsl:value-of select="$stat"/> -t "QUAL <xsl:value-of select="@name"/>" -o <xsl:apply-templates select="." mode="fastx.qual"/>
 	$(FASTX.dir)/bin/fastx_nucleotide_distribution_graph.sh -p -i <xsl:value-of select="$stat"/> -t "NUCLEOTIDE-DIST <xsl:value-of select="@name"/>" -o <xsl:apply-templates select="." mode="fastx.nuc"/>
 	rm -f <xsl:value-of select="$stat"/>
 </xsl:template>

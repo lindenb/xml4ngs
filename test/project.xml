@@ -2,6 +2,7 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://raw.github.com/lindenb/xml4ngs/master/src/main/resources/xsd/project.xsd">
     <properties>
       <property key="simulation.reads">10000</property>
+      <property key="delete.temporary.files">yes</property>
     </properties>
     <sample name="Sample1">
         <sequences>
