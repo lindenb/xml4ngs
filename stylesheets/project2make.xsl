@@ -49,7 +49,10 @@ NO_COLOR=\x1b[0m
 OK_COLOR=\x1b[32;01m
 ERROR_COLOR=\x1b[31;01m
 WARN_COLOR=\x1b[33;01m
-
+#
+# fix PATH (tophat needs this)
+#
+export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}
 #
 #
 # path to GHOSTVIEW
@@ -69,11 +72,25 @@ LOCKFILE=$(OUTDIR)/</xsl:text><xsl:value-of select="concat('_tmp.',generate-id(.
 XMLSTATS=$(OUTDIR)/pipeline.stats.xml
 HSQLSTATS=$(OUTDIR)/hsqldb.stats
 INDEXED_REFERENCE=$(foreach S,.amb .ann .bwt .pac .sa .fai,$(addsuffix $S,$(REF))) $(addsuffix	.dict,$(basename $(REF)))
+#
+#genome indexed with bowtie
+#
+BOWTIE_INDEXED_REFERENCE=$(foreach S,.1.bt2 .2.bt2 .3.bt2 .4.bt2 .rev.1.bt2 .rev.2.bt2, $(addsuffix $S,$(basename  $(REF))) )
+
 SAMPLES=<xsl:for-each select="sample"><xsl:value-of select="concat(' ',@name)"/></xsl:for-each>
 capture.bed?=<xsl:choose>
 	<xsl:when test="properties/property[@key='capture.bed.path']"><xsl:value-of select="normalize-space(properties/property[@key='capture.bed.path'])"/></xsl:when>
 	<xsl:otherwise>$(OUTDIR)/ensembl.exons.bed</xsl:otherwise>
 </xsl:choose>
+
+#
+# exons reference for tophat
+#
+exons.gtf?=<xsl:choose>
+	<xsl:when test="properties/property[@key='exons.gtf.path']"><xsl:value-of select="normalize-space(properties/property[@key='exons.gtf.path'])"/></xsl:when>
+	<xsl:otherwise>$(OUTDIR)/Reference/Homo_sapiens.GRCh37.69.gtf</xsl:otherwise>
+</xsl:choose>
+
 
 #build for snpEff
 SNPEFFBUILD?=<xsl:choose>
@@ -104,7 +121,8 @@ known.sites?=<xsl:choose>
 	bams_merged bams_unsorted bams_recalibrated \
 	bams_markdup \
 	coverage toptarget \
-	all_fastqs
+	all_fastqs \
+	hsqldb_statistics
 
 ########################################################################################################
 #
@@ -148,9 +166,11 @@ define sizedb
 endef
 
 
+
+
 define delete_and_touch
 <xsl:choose>
-<xsl:when test="properties/property[key='delete.temporary.files']='yes'">rm -f $(1); touch $(1); sleep 2</xsl:when>
+<xsl:when test="properties/property[@key='delete.temporary.files']='yes'">echo "[WARNING] delete $(1)"; rm -f $(1); touch $(1); sleep 2</xsl:when>
 <xsl:otherwise><!-- ignore --></xsl:otherwise>
 </xsl:choose>
 endef
@@ -184,7 +204,7 @@ endef
 toptarget:
 	echo "This is the top target. Please select a specific target"
 
-all: all_predictions fastx
+all: all_predictions fastx hsqldb_statistics
 
 indexed_reference: $(INDEXED_REFERENCE)
 
@@ -317,6 +337,21 @@ $(OUTDIR)/ensembl.exons.bed:
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
+###################################################################################################################################################
+#
+# EXONS GTF for tophat
+#
+$(OUTDIR)/Reference/Homo_sapiens.GRCh37.69.gtf:
+	$(call timebegindb,$@,$@)
+	mkdir -p $(dir $@)
+	curl -o $@.gz "ftp://ftp.ensembl.org/pub/current_gtf/homo_sapiens/$(basename $@).gz"
+	$(call notempty,$@.gz)
+	gunzip $@.gz
+	$(call timeendb,$@,$@)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+
 #
 # extends the bed by 500 by default
 #
@@ -398,6 +433,46 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 
 #
 #
+# Recalibrate alignments for Sample &quot;<xsl:value-of select="@name"/>&quot;
+#
+#
+LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
+</xsl:text>
+<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed $(known.sites)
+	$(call timebegindb,$@_countCovariates,covariates)
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T BaseRecalibrator \
+		-R $(REF) \
+		-I $(filter %.bam,$^) \
+		-l INFO \
+		-o $@.recal_data.grp \
+		-knownSites $(known.sites) \
+		-L $(filter %.bed,$^) \
+		-cov ReadGroupCovariate \
+		-cov QualityScoreCovariate \
+		-cov CycleCovariate \
+		-cov ContextCovariate
+	$(call timeenddb,$@_countCovariates,covariates)
+	$(call timebegindb,$@_tableRecalibaration,recalibration)
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T PrintReads \
+		--disable_bam_indexing \
+		-R $(REF) \
+		-BQSR $@.recal_data.grp \
+		-I $(filter %.bam,$^) \
+		-o $@ \
+		-l INFO
+	$(call timeenddb,$@_tableRecalibaration,recalibration)
+	$(call sizedb,$@)
+	rm -f $@.recal_data.grp
+	$(call notempty,$@)
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
+	touch $@
+
+
+#
+#
 # Mark duplicates for Sample: <xsl:value-of select="@name"/>
 #
 LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
@@ -423,41 +498,9 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 	$(DELETEFILE) $&lt; $@.metrics 
 	$(call sizedb,$@)
 	$(call notempty,$@)
-
-#
-#
-# Recalibrate alignments for Sample &quot;<xsl:value-of select="@name"/>&quot;
-#
-#
-LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
-</xsl:text>
-<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed $(known.sites)
-	$(call timebegindb,$@_countCovariates,covariates)
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
-		-T BaseRecalibrator \
-		-R $(REF) \
-		-I $(filter %.bam,$^) \
-		-l INFO \
-		-o $@.recal_data.grp \
-		-knownSites $(known.sites) \
-		-L $(filter %.bed,$^) \
-		-cov ReadGroupCovariate \
-		-cov QualityScoreCovariate \
-		-cov CycleCovariate \
-		-cov ContextCovariate
-	$(call timeenddb,$@_countCovariates,covariates)
-	$(call timebegindb,$@_tableRecalibaration,recalibration)
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
-		-T PrintReads \
-		-R $(REF) \
-		-BQSR $@.recal_data.grp \
-		-I $(filter %.bam,$^) \
-		-o $@ \
-		-l INFO
-	$(call timeenddb,$@_tableRecalibaration,recalibration)
-	$(call sizedb,$@)
-	$(DELETEFILE) $&lt; $@.recal_data.grp
-	$(call notempty,$@)
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
+	touch $@
 
 
 #
@@ -579,7 +622,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	$(call timeenddb,$@,bwasampe)
 	$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,<xsl:apply-templates select="fastq" mode="sai"/>)
+	$(call delete_and_touch,$(filter %.sai,$^))
 	touch $@
 
 
@@ -605,7 +648,19 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 
 </xsl:if>
 
-
+#
+# tophat: Align the RNA-seq reads to the genome for sample '<xsl:value-of select="../../@name"/>'
+#
+<xsl:apply-templates select="." mode="tophat.dir"/>: <xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
+	<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> \
+	$(REF) $(exons.gtf)
+	mkdir -p $@
+	$(call timebegindb,$@,tophat)
+	${TOPHAT.dir}/tophat2 -G $(exons.gtf) -o $@ \
+		$(REF) \
+		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
+		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> 
+	$(call timeenddb,$@,tophat)
 
 ##
 ## BEGIN : loop over the fastqs
@@ -642,6 +697,22 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
+
+<xsl:if test="substring(@path, string-length(@path)- 2)='.gz'">
+#
+# tophat needs uncompressed fastq 
+#
+<xsl:apply-templates select="." mode="fastq-unzipped"/>: <xsl:apply-templates select="." mode="fastq"/>
+	mkdir -p $(dir $@)
+	$(call timebegindb,$@,gunzipfastq)
+	gunzip -c $&lt; &gt; > $@
+	$(call timeenddb,$@,gunzipfastq)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+</xsl:if>
+
+
 </xsl:for-each>
 ##
 ## END : loop over the fastq
@@ -670,6 +741,25 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 
 #####################################################################################
 #
+# statistics from HSQLDB
+#
+hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
+
+$(OUTDIR)/durations.stats.txt:
+	lockfile $(LOCKFILE)
+	-$(JAVA) -jar ${HSQLDB.sqltool}--autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+		--sql "select B.category$(foreach T,SECOND MINUTE HOUR DAY, ,AVG(TIMESTAMPDIFF(SQL_TSI_${T},B.W,E.W)) as duration_${T}) from begindb as B ,enddb as E where B.file=E.file group by B.category;" > $@
+	rm -f $(LOCKFILE)
+
+$(OUTDIR)/filesize.stats.txt:
+	lockfile $(LOCKFILE)
+	-$(JAVA) -jar ${HSQLDB.sqltool}--autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
+	rm -f $(LOCKFILE)
+
+
+#####################################################################################
+#
 # REFERENCE
 #
 $(OUTDIR)/Reference/human_g1k_v37.fasta:
@@ -679,6 +769,13 @@ $(OUTDIR)/Reference/human_g1k_v37.fasta:
 	gunzip $(addsuffix .gz,$@)
 	$(call notempty,$@)
 
+
+#
+# index reference with bowtie
+#
+${REF.bowtie}:$(REF)
+	${BOWTIE2.dir}/bowtie2-build  -f -c $(REF) $(basename $(REF))
+	${BOWTIE2.dir}/bowtie2-inspect -s $(basename $(REF))
 
 #
 # download ncbi dbsnp as VCF
@@ -714,6 +811,8 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 </xsl:choose>
 </xsl:template>
 
+
+
 <xsl:template match="fastq" mode="sai">
 <xsl:variable name="p"><xsl:apply-templates select=".." mode="pairname"/></xsl:variable>
 <xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../../@name,'/$(TMPREFIX)',$p,'_',@index,'.sai ')"/>
@@ -731,6 +830,12 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 <xsl:variable name="p"><xsl:apply-templates select="." mode="pairname"/></xsl:variable>
 <xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../@name,'/$(TMPREFIX)',$p,'_sorted.bam ')"/>
 </xsl:template>
+
+<xsl:template match="pair" mode="tophat.dir">
+<xsl:variable name="p"><xsl:apply-templates select="." mode="pairname"/></xsl:variable>
+<xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../@name,'/$(TMPREFIX)',$p,'_thout ')"/>
+</xsl:template>
+
 
 <xsl:template match="sample" mode="merged">
 <xsl:choose>

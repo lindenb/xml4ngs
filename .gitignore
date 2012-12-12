@@ -1,4 +1,8 @@
 src/main/generated-sources
+test/test.out.dir
+test/test.mk
+test/tools.mk
+test/config.mk
 dist
 *~
 jeter.*
