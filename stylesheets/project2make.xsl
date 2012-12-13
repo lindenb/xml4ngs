@@ -52,7 +52,7 @@ WARN_COLOR=\x1b[33;01m
 #
 # fix PATH (tophat needs this)
 #
-export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}
+export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}
 #
 #
 # path to GHOSTVIEW
@@ -122,7 +122,7 @@ known.sites?=<xsl:choose>
 	bams_markdup \
 	coverage toptarget \
 	all_fastqs \
-	hsqldb_statistics
+	hsqldb_statistics all_tophat
 
 ########################################################################################################
 #
@@ -204,7 +204,7 @@ endef
 toptarget:
 	echo "This is the top target. Please select a specific target"
 
-all: all_predictions fastx hsqldb_statistics
+all: all_predictions fastx hsqldb_statistics <xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
 
 indexed_reference: $(INDEXED_REFERENCE)
 
@@ -648,20 +648,6 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 
 </xsl:if>
 
-#
-# tophat: Align the RNA-seq reads to the genome for sample '<xsl:value-of select="../../@name"/>'
-#
-<xsl:apply-templates select="." mode="tophat.dir"/>: <xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
-	<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> \
-	$(REF) $(exons.gtf)
-	mkdir -p $@
-	$(call timebegindb,$@,tophat)
-	${TOPHAT.dir}/tophat2 -G $(exons.gtf) -o $@ \
-		$(REF) \
-		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
-		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> 
-	$(call timeenddb,$@,tophat)
-
 ##
 ## BEGIN : loop over the fastqs
 ##
@@ -698,19 +684,6 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	$(call notempty,$@)
 
 
-<xsl:if test="substring(@path, string-length(@path)- 2)='.gz'">
-#
-# tophat needs uncompressed fastq 
-#
-<xsl:apply-templates select="." mode="fastq-unzipped"/>: <xsl:apply-templates select="." mode="fastq"/>
-	mkdir -p $(dir $@)
-	$(call timebegindb,$@,gunzipfastq)
-	gunzip -c $&lt; &gt; > $@
-	$(call timeenddb,$@,gunzipfastq)
-	$(call sizedb,$@)
-	$(call notempty,$@)
-
-</xsl:if>
 
 
 </xsl:for-each>
@@ -736,7 +709,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 ########################################################################################################
 
-
+<xsl:apply-templates select="." mode="tophat"/>
 <xsl:apply-templates select="." mode="fastx"/>
 
 #####################################################################################
@@ -747,13 +720,13 @@ hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 
 $(OUTDIR)/durations.stats.txt:
 	lockfile $(LOCKFILE)
-	-$(JAVA) -jar ${HSQLDB.sqltool}--autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category$(foreach T,SECOND MINUTE HOUR DAY, ,AVG(TIMESTAMPDIFF(SQL_TSI_${T},B.W,E.W)) as duration_${T}) from begindb as B ,enddb as E where B.file=E.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
 $(OUTDIR)/filesize.stats.txt:
 	lockfile $(LOCKFILE)
-	-$(JAVA) -jar ${HSQLDB.sqltool}--autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
@@ -831,10 +804,6 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 <xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../@name,'/$(TMPREFIX)',$p,'_sorted.bam ')"/>
 </xsl:template>
 
-<xsl:template match="pair" mode="tophat.dir">
-<xsl:variable name="p"><xsl:apply-templates select="." mode="pairname"/></xsl:variable>
-<xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../@name,'/$(TMPREFIX)',$p,'_thout ')"/>
-</xsl:template>
 
 
 <xsl:template match="sample" mode="merged">
@@ -917,6 +886,103 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 	
 
 </xsl:text>
+</xsl:template>
+
+
+<!-- ======================================================================================================
+     
+   	TOPHAT
+     
+     ====================================================================================================== -->
+<xsl:template match="sample" mode="tophat.dir">
+<xsl:variable name="p"><xsl:apply-templates select="." mode="dir"/></xsl:variable>
+<xsl:value-of select="concat($p,'/TOPHAT/')"/>
+</xsl:template>
+
+<xsl:template match="pair" mode="tophat.dir">
+<xsl:variable name="s1"><xsl:apply-templates select="../.." mode="tophat.dir"/></xsl:variable>
+<xsl:variable name="s2"><xsl:apply-templates select="." mode="pairname"/></xsl:variable>
+<xsl:value-of select="concat($s1,$s2,'/')"/>
+</xsl:template>
+
+<xsl:template match="pair" mode="tophat.accepted_hits.bam">
+<xsl:text>$(addsuffix </xsl:text>
+<xsl:apply-templates select="." mode="tophat.dir"/>
+<xsl:text>, accepted_hits.bam)</xsl:text>
+</xsl:template>
+
+
+<xsl:template match="pair" mode="tophat.transcripts.gtf">
+<xsl:text>$(addsuffix </xsl:text>
+<xsl:apply-templates select="." mode="tophat.dir"/>
+<xsl:text>, transcripts.gtf)</xsl:text>
+</xsl:template>
+
+<xsl:template match="pair" mode="tophat">
+#
+# cufflinks: assemble transcripts for sample '<xsl:value-of select="../../@name"/>'
+#
+<xsl:apply-templates select="." mode="tophat.transcripts.gtf"/>: <xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/>
+	mkdir -p $(dir $@)
+	$(call timebegindb,$@,tophat_accepted_hits)
+	$(CUFFLINKS.dir)/cufflinks -o $(dir $@) $&lt;
+	$(call timeenddb,$@,tophat_accepted_hits)
+
+#
+# tophat: Align the RNA-seq reads to the genome for sample '<xsl:value-of select="../../@name"/>'
+#
+<xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/> : <xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
+	<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> \
+	$(BOWTIE_INDEXED_REFERENCE) \
+	$(exons.gtf)
+	mkdir -p $(dir $@)
+	$(call timebegindb,$@,tophat_accepted_hits)
+	${TOPHAT.dir}/tophat2 -G $(exons.gtf) -o $(dir $@) \
+		$(basename $(REF)) \
+		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
+		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> 
+	$(call timeenddb,$@,tophat_accepted_hits)
+
+</xsl:template>
+
+
+<xsl:template match="sample" mode="tophat">
+<xsl:apply-templates select="sequences/pair" mode="tophat"/>
+</xsl:template>
+
+
+
+<xsl:template match="project" mode="tophat">
+##############################################################################################
+#
+#  BEGIN TOPHAT
+#
+#
+
+all_tophat: tophat_fixme
+
+#
+# Run cuffmerge to create a single merged transcription annotation
+#
+tophat_fixme: $(OUTDIR)/tophat.assemblies.txt $(exons.gtf) $(BOWTIE_INDEXED_REFERENCE)
+	$(CUFFLINKS.dir)/cuffmerge -g $(exons.gtf) -s $(REF) $&lt;
+
+#
+# assembly file for cuffmerge
+#
+$(OUTDIR)/tophat.assemblies.txt: <xsl:for-each select="sample/sequences/pair"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="tophat.transcripts.gtf"/></xsl:for-each>
+	mkdir -p $(dir $@)
+	rm -f $@
+	$(foreach F,$^, echo "$F" &gt;&gt; $@ ; )
+	
+<xsl:apply-templates select="sample" mode="tophat"/>
+
+
+#
+#  END TOPHAT
+#
+##############################################################################################
+
 </xsl:template>
 
 <!-- ======================================================================================================
