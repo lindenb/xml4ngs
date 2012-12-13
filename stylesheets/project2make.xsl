@@ -199,7 +199,7 @@ endef
 #
 .SECONDARY :
 
-<xsl:text>
+
 
 toptarget:
 	echo "This is the top target. Please select a specific target"
@@ -210,14 +210,13 @@ indexed_reference: $(INDEXED_REFERENCE)
 
 
 
-
 #coverage.tsv : $(capture.bed)  $(foreach S,$(SAMPLES),$(OUTDIR)/$(S)$(BAMSUFFIX).bam )
 #	${VARKIT}/beddepth $(foreach S,$(SAMPLES),-f $(OUTDIR)/$(S)$(BAMSUFFIX).bam ) &lt; $&lt; &gt; $@
 
 
 
 #bams:bams$(BAMSUFFIX)
-bams_realigned:</xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="realigned"/></xsl:for-each><xsl:text>
+bams_realigned:<xsl:for-each select="sample"><xsl:apply-templates select="." mode="realigned"/></xsl:for-each><xsl:text>
 bams_markdup: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="markdup"/></xsl:for-each><xsl:text>
 bams_merged: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="merged"/></xsl:for-each><xsl:text>
 bams_recalibrated: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each><xsl:text>
