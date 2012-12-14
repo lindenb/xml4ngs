@@ -17,7 +17,20 @@
   <xs:complexType name="PropertyType">
      <xs:simpleContent>
       <xs:extension base="xs:string">
-        <xs:attribute name="key" type="xs:token" />
+        <xs:attribute name="key">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="capture.bed.path"/>
+              <xs:enumeration value="exons.gtf.path"/>
+              <xs:enumeration value="snpEff.build"/>
+              <xs:enumeration value="known.sites"/>
+              <xs:enumeration value="simulation.reads"/>
+              <xs:enumeration value="is.rnaseq"/>
+              <xs:enumeration value="ensembl.dataset.name"/>
+              <xs:enumeration value="delete.temporary.files"/>
+            </xs:restriction>
+          </xs:simpleType>
+	</xs:attribute>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>

@@ -52,7 +52,7 @@ WARN_COLOR=\x1b[33;01m
 #
 # fix PATH (tophat needs this)
 #
-export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}
+export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${R.dir}/bin
 #
 #
 # path to GHOSTVIEW
@@ -122,6 +122,7 @@ known.sites?=<xsl:choose>
 	bams_markdup \
 	coverage toptarget \
 	all_fastqs \
+	build_bowtie_index \
 	hsqldb_statistics all_tophat
 
 ########################################################################################################
@@ -147,22 +148,23 @@ define notempty
     test -s $(1) || (echo "$(1) is empty" &amp;&amp; rm -f $(1) &amp;&amp; exit -1) 
 endef
 
+CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category));create table if not exists enddb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category));create table if not exists sizedb(file varchar(255) not null,size int,CONSTRAINT K3 UNIQUE (file));
 
 define timebegindb
 	lockfile $(LOCKFILE)
-	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "create table if not exists begindb(file varchar(255) not null,category varchar(50) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category)); delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);"
+	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);"
 	rm -f $(LOCKFILE)
 endef
 
 define timeenddb
 	lockfile $(LOCKFILE)
-	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "create table if not exists enddb(file varchar(255) not null,category varchar(50) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category)); delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);"
+	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);"
 	rm -f $(LOCKFILE)
 endef
 
 
 define sizedb
-	stat -c "%s" $(1) | while read L; do lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "create table if not exists sizedb(file varchar(255) not null,size int); delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
+	stat -c "%s" $(1) | while read L; do lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
 endef
 
 
@@ -745,8 +747,10 @@ $(OUTDIR)/Reference/human_g1k_v37.fasta:
 #
 # index reference with bowtie
 #
-${REF.bowtie}:$(REF)
-	${BOWTIE2.dir}/bowtie2-build  -f -c $(REF) $(basename $(REF))
+build_bowtie_index:$(BOWTIE_INDEXED_REFERENCE)
+$(filter-out %.1.bt2,$(BOWTIE_INDEXED_REFERENCE)): $(filter  %.1.bt2,$(BOWTIE_INDEXED_REFERENCE))
+$(filter  %.1.bt2,$(BOWTIE_INDEXED_REFERENCE)): $(REF)
+	${BOWTIE2.dir}/bowtie2-build  -f $(REF) $(basename $(REF))
 	${BOWTIE2.dir}/bowtie2-inspect -s $(basename $(REF))
 
 #
@@ -905,16 +909,16 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 </xsl:template>
 
 <xsl:template match="pair" mode="tophat.accepted_hits.bam">
-<xsl:text>$(addsuffix </xsl:text>
+<xsl:text>$(addsuffix accepted_hits.bam,</xsl:text>
 <xsl:apply-templates select="." mode="tophat.dir"/>
-<xsl:text>, accepted_hits.bam)</xsl:text>
+<xsl:text>)</xsl:text>
 </xsl:template>
 
 
 <xsl:template match="pair" mode="tophat.transcripts.gtf">
-<xsl:text>$(addsuffix </xsl:text>
+<xsl:text>$(addsuffix  transcripts.gtf,</xsl:text>
 <xsl:apply-templates select="." mode="tophat.dir"/>
-<xsl:text>, transcripts.gtf)</xsl:text>
+<xsl:text>)</xsl:text>
 </xsl:template>
 
 <xsl:template match="pair" mode="tophat">
@@ -936,10 +940,20 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 	$(exons.gtf)
 	mkdir -p $(dir $@)
 	$(call timebegindb,$@,tophat_accepted_hits)
+	#tophat requires a .fa extension
+	$(foreach F,$(filter %.fasta,$(REF)), if [ ! -f $(basename $F).fa ]; then ln -s $F $(basename $F).fa; fi; )
 	${TOPHAT.dir}/tophat2 -G $(exons.gtf) -o $(dir $@) \
+		--rg-id  <xsl:value-of select="generate-id(.)"/> \
+		--rg-library <xsl:value-of select="../../@name"/> \
+		--rg-sample <xsl:value-of select="../../@name"/> \
+		--rg-description <xsl:value-of select="../../@name"/> \
+		--rg-platform-unit <xsl:value-of select="concat('L',@lane)"/> \
+		--rg-center Nantes \
+		--rg-platform Illumina \
 		$(basename $(REF)) \
 		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
-		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> 
+		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>
+	$(call sizedb,$@)
 	$(call timeenddb,$@,tophat_accepted_hits)
 
 </xsl:template>
