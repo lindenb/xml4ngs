@@ -20,8 +20,16 @@
         <xs:attribute name="key">
           <xs:simpleType>
             <xs:restriction base="xs:token">
-              <xs:enumeration value="capture.bed.path"/>
-              <xs:enumeration value="exons.gtf.path"/>
+              <xs:enumeration value="capture.bed.path">
+                <xs:annotation>
+                  <xs:documentation>For exome-sequencing, the path to a BED file defining the captured regions.</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
+              <xs:enumeration value="exons.gtf.path">
+       	       	<xs:annotation>
+       	       	  <xs:documentation>For RNAseq/tophat, the path to a GTF file defining the known transcripts.</xs:documentation>
+       	       	</xs:annotation>
+              </xs:enumeration>
               <xs:enumeration value="snpEff.build"/>
               <xs:enumeration value="known.sites"/>
               <xs:enumeration value="simulation.reads"/>

@@ -2,6 +2,8 @@
 
 <xsl:stylesheet
 	xmlns:xsl='http://www.w3.org/1999/XSL/Transform'
+        xmlns:date="http://exslt.org/dates-and-times" 
+        extension-element-prefixes="date" 
 	version='1.0'
 	>
 
@@ -20,6 +22,8 @@
 # Makefile for NGS
 #
 # WWW: https://github.com/lindenb/xml4ngs
+#
+# Date : <xsl:value-of select="date:date-time()"/>
 #
 <xsl:apply-templates select="project"/>
 
@@ -439,6 +443,15 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 #
 LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 </xsl:text>
+<xsl:choose>
+<xsl:when  test="/project/properties/property[@key='disable.recalibration']='yes'">
+<xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>)
+	#just create a symbolic link
+	ln -s $(filter %.bam,$^) $@
+	ln -s $(filter %.bai,$^) $(addsuffix .bai,$@)
+
+</xsl:when>
+<xsl:otherwise>
 <xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed $(known.sites)
 	$(call timebegindb,$@_countCovariates,covariates)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -471,6 +484,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 	$(call delete_and_touch,$(filter %.bai,$^) )
 	touch $@
 
+</xsl:otherwise>
+</xsl:choose>
 
 #
 #
@@ -479,7 +494,14 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="markdup"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="realigned"/>)
-	$(call timebegindb,$@_markdup,markdup)
+<xsl:choose>
+<xsl:when  test="/project/properties/property[@key='disable.mark.duplicates']='yes'">
+<xsl:message>[WARNING] Mark Duplicate Disabled.</xsl:message>	#just create a symbolic link
+	ln -s $(filter %.bam,$^) $@
+	ln -s $(filter %.bai,$^) $(addsuffix .bai,$@)
+	
+</xsl:when>
+<xsl:otherwise>	$(call timebegindb,$@_markdup,markdup)
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		TMP_DIR=$(OUTDIR) \
 		INPUT=$(filter %.bam,$^) \
@@ -503,6 +525,8 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 	$(call delete_and_touch,$(filter %.bai,$^) )
 	touch $@
 
+</xsl:otherwise>
+</xsl:choose>
 
 #
 #
