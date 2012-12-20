@@ -152,7 +152,7 @@ define notempty
     test -s $(1) || (echo "$(1) is empty" &amp;&amp; rm -f $(1) &amp;&amp; exit -1) 
 endef
 
-CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category));create table if not exists enddb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category));create table if not exists sizedb(file varchar(255) not null,size int,CONSTRAINT K3 UNIQUE (file));
+CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category));create table if not exists enddb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category));create table if not exists sizedb(file varchar(255) not null,size BIGINT,CONSTRAINT K3 UNIQUE (file));
 
 define timebegindb
 	lockfile $(LOCKFILE)
