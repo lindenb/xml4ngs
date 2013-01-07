@@ -992,17 +992,32 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 <xsl:template match="project" mode="tophat">
 ##############################################################################################
 #
-#  BEGIN TOPHAT
+#  BEGIN TOPHAT 
 #
 #
 
-all_tophat: tophat_fixme
+all_tophat: $(OUTDIR)/diff_out/TODO
+
+#
+# identify differencially expressed genes and transcripts
+#
+$(OUTDIR)/diff_out/TODO : $(OUTDIR)/merged_asm/merged.gtf \
+	<xsl:for-each select="sample/sequences/pair"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/></xsl:for-each>
+	$(call timebegindb,$@,tophat_cuffdiff)
+	$(CUFFLINKS.dir)/cuffdiff -v -o $(dir $@) \
+		-b $(REF) \
+		-L <xsl:for-each select="sample"><xsl:if test="position()&gt;1">,</xsl:if><xsl:value-of select="@name"/></xsl:for-each> \
+		-u $&lt; \
+		<xsl:for-each select="sample"><xsl:text> </xsl:text><xsl:for-each select="sequences/pair"><xsl:if test="position()&gt;1">,</xsl:if><xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/></xsl:for-each></xsl:for-each>
+	$(call timeenddb,$@,tophat_cuffdiff)	
 
 #
 # Run cuffmerge to create a single merged transcription annotation
 #
-tophat_fixme: $(OUTDIR)/tophat.assemblies.txt $(exons.gtf) $(BOWTIE_INDEXED_REFERENCE)
-	$(CUFFLINKS.dir)/cuffmerge -g $(exons.gtf) -s $(REF) $&lt;
+$(OUTDIR)/merged_asm/merged.gtf : $(OUTDIR)/tophat.assemblies.txt $(exons.gtf) $(BOWTIE_INDEXED_REFERENCE)
+	$(call timebegindb,$@,tophat_cuffmerge)
+	$(CUFFLINKS.dir)/cuffmerge -o $(dir $@) -g $(exons.gtf) -s $(REF) $&lt;
+	$(call timeenddb,$@,tophat_cuffmerge)	
 
 #
 # assembly file for cuffmerge
