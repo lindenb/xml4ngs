@@ -245,6 +245,19 @@ all_predictions: \
 	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
 	$(OUTDIR)/variations.gatk.snpEff.vcf.gz
 
+#
+# Join samtools VEP to diseases database (jensenlab.org)
+# 
+$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools.vep.tsv.gz
+	mkdir -p $(dir $@)
+	curl "http://download.jensenlab.org/human_disease_textmining_full.tsv" | sort -t '	' -k1,1 > $(OUTDIR)/human_disease_textmining_full_01.tsv
+	curl "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/ensGtp.txt.gz" | gunzip -c | awk -F '	' '($$3!="")' | sort -t '	' -k3,3 > $(OUTDIR)/ensGtp_01.txt
+	(echo "Ensembl.Protein	GeneSymbol	disease.ontology.id	disease.ontology.label	jensenlab.zscore	jensenlab.confidence	Gene	Transcript" ; join -t '	' -1 1 -2 3 $(OUTDIR)/human_disease_textmining_full_01.tsv $(OUTDIR)/ensGtp_01.txt )| sort -t '	' -k7,7 > $(OUTDIR)/jeter_01.join
+	gunzip -c $&lt; | sort -t '	' -k4,4 | join -t '	' -1 4 -2 7 - $(OUTDIR)/jeter_01.join | gzip --best > $@ 
+	rm -f $(OUTDIR)/human_disease_textmining_full_01.tsv $(OUTDIR)/ensGtp_01.txt $(OUTDIR)/jeter_01.join
+
+
+
 
 #
 # prediction samtools with Variation Ensembl Prediction API
