@@ -1095,7 +1095,7 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 </xsl:for-each>
 	mkdir -p $(dir $@)
 	gunzip -c $^ |\
-	$(FASTX.dir)/bin/fastx_quality_stats &gt; <xsl:value-of select="$stat"/>
+	$(FASTX.dir)/bin/fastx_quality_stats  -Q33 &gt; <xsl:value-of select="$stat"/>
 	$(FASTX.dir)/bin/fastq_quality_boxplot_graph.sh -p  -i <xsl:value-of select="$stat"/> -t "QUAL <xsl:value-of select="@name"/>" -o <xsl:apply-templates select="." mode="fastx.qual"/>
 	$(FASTX.dir)/bin/fastx_nucleotide_distribution_graph.sh -p -i <xsl:value-of select="$stat"/> -t "NUCLEOTIDE-DIST <xsl:value-of select="@name"/>" -o <xsl:apply-templates select="." mode="fastx.nuc"/>
 	rm -f <xsl:value-of select="$stat"/>
