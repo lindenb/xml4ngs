@@ -56,7 +56,7 @@ WARN_COLOR=\x1b[33;01m
 #
 # fix PATH (tophat needs this)
 #
-export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${R.dir}/bin
+export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${R.dir}/bin:/usr/bin
 #
 #
 # path to GHOSTVIEW
@@ -147,6 +147,9 @@ define indexed_bam
     $(1) $(call bai_files, $(1))
 endef
 
+define create_symbolic_link
+	cp -f $(1) $(2)
+endef
 
 define notempty
     test -s $(1) || (echo "$(1) is empty" &amp;&amp; rm -f $(1) &amp;&amp; exit -1) 
@@ -460,8 +463,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 <xsl:when  test="/project/properties/property[@key='disable.recalibration']='yes'">
 <xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>)
 	#just create a symbolic link
-	ln -s $(filter %.bam,$^) $@
-	ln -s $(filter %.bai,$^) $(addsuffix .bai,$@)
+	$(call create_symbolic_link,$(filter %.bam,$^),$@)
+	##ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
 
 </xsl:when>
 <xsl:otherwise>
@@ -510,8 +513,8 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 <xsl:choose>
 <xsl:when  test="/project/properties/property[@key='disable.mark.duplicates']='yes'">
 <xsl:message>[WARNING] Mark Duplicate Disabled.</xsl:message>	#just create a symbolic link
-	ln -s $(filter %.bam,$^) $@
-	ln -s $(filter %.bai,$^) $(addsuffix .bai,$@)
+	$(call create_symbolic_link,$(filter %.bam,$^),$@)
+	##ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
 	
 </xsl:when>
 <xsl:otherwise>	$(call timebegindb,$@_markdup,markdup)
@@ -548,6 +551,15 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 #
 LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 </xsl:text>
+<xsl:choose>
+<xsl:when  test="/project/properties/property[@key='disable.indelrealigner']='yes'">
+<xsl:apply-templates select="." mode="realigned"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>)
+	#just create a symbolic link
+	$(call create_symbolic_link,$(filter %.bam,$^),$@)
+	##ln --force -s $(filter %.bai,$^) $(addsuffix .bai,$@)
+
+</xsl:when>
+<xsl:otherwise>
 <xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed $(known.sites)
 		$(call timebegindb,$@_targetcreator,targetcreator)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -576,7 +588,8 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
 		touch $@
 
-
+</xsl:otherwise>
+</xsl:choose>
 
 <xsl:if test="count(sequences/pair)&gt;1">
 #
@@ -978,7 +991,7 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 	mkdir -p $(dir $@)
 	$(call timebegindb,$@,tophat_accepted_hits)
 	#tophat requires a .fa extension
-	$(foreach F,$(filter %.fasta,$(REF)), if [ ! -f $(basename $F).fa ]; then ln -s $F $(basename $F).fa; fi; )
+	$(foreach F,$(filter %.fasta,$(REF)), if [ ! -f $(basename $F).fa ]; then ln -s --force $F $(basename $F).fa; fi; )
 	${TOPHAT.dir}/tophat2 -G $(exons.gtf) -o $(dir $@) \
 		--rg-id  <xsl:value-of select="generate-id(.)"/> \
 		--rg-library <xsl:value-of select="../../@name"/> \

@@ -37,6 +37,16 @@
               <xs:enumeration value="is.rnaseq"/>
               <xs:enumeration value="ensembl.dataset.name"/>
               <xs:enumeration value="delete.temporary.files"/>
+              <xs:enumeration value="disable.recalibration">
+               <xs:annotation>
+                  <xs:documentation>When set to 'yes', ignores the recalibration and creates a symbolic link from 'markdup' to 'recal' .</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
+              <xs:enumeration value="disable.indelrealigner">
+               <xs:annotation>
+                  <xs:documentation>When set to 'yes', ignores the GATK IndelRealigner and creates a symbolic link from 'merged' to 'realigned' .</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
             </xs:restriction>
           </xs:simpleType>
 	</xs:attribute>
