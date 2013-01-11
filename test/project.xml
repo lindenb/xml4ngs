@@ -3,6 +3,7 @@
     <properties>
       <property key="simulation.reads">10000</property>
       <property key="delete.temporary.files">yes</property>
+      <property key="one.vcf.per.sample">yes</property>
     </properties>
 <!-- __REPLACE_TAG1__ -->
     <sample name="Sample1">

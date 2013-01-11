@@ -51,6 +51,7 @@ include tools.mk  config.mk
 # PROPERTIES defined in the project.xml 
 #
 #
+</xsl:text>
 <xsl:for-each select="properties/property">
 <xsl:text># </xsl:text>
 <xsl:value-of select="@key"/>
@@ -69,6 +70,7 @@ include tools.mk  config.mk
 #
 OUTDIR?=Output
 </xsl:text>
+</xsl:when>
 <xsl:otherwise>
 <xsl:text>
 #
@@ -79,7 +81,6 @@ OUTDIR=</xsl:text>
 <xsl:text>
 </xsl:text>
 </xsl:otherwise>
-</xsl:when>
 </xsl:choose>
 
 
@@ -115,6 +116,7 @@ TABIX.tabix?=${TABIX}/tabix
 #
 REF?=$(OUTDIR)/Reference/human_g1k_v37.fasta
 </xsl:text>
+</xsl:when>
 <xsl:otherwise>
 <xsl:text>
 #
@@ -125,14 +127,14 @@ REF=</xsl:text>
 <xsl:text>
 </xsl:text>
 </xsl:otherwise>
-</xsl:when>
+
 </xsl:choose>
 
 
 #
 # file that will be used to lock the SQL-related resources
 #
-LOCKFILE=$(OUTDIR)/</xsl:text><xsl:value-of select="concat('_tmp.',generate-id(.),'.lock')"/>
+LOCKFILE=$(OUTDIR)/<xsl:value-of select="concat('_tmp.',generate-id(.),'.lock')"/>
 XMLSTATS=$(OUTDIR)/pipeline.stats.xml
 HSQLSTATS=$(OUTDIR)/hsqldb.stats
 INDEXED_REFERENCE=$(foreach S,.amb .ann .bwt .pac .sa .fai,$(addsuffix $S,$(REF))) $(addsuffix	.dict,$(basename $(REF)))
@@ -189,7 +191,13 @@ known.sites?=<xsl:choose>
 	build_bowtie_index \
 	hsqldb_statistics \
 	all_tophat \
-	bam_statistics
+	bam_statistics \
+	<xsl:if test="/project/properties/property[@key='one.vcf.per.sample']='yes'"> variations.samtools \
+	variations.gatk \
+	variations.samtools.snpeff \
+	variations.gatk.snpeff \
+	variations.samtools.vep \
+	variations.gatk.vep </xsl:if>
 
 ########################################################################################################
 #
@@ -307,7 +315,7 @@ all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templa
 all_predictions: \
 	$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz \
 	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
-	<!-- gatk equivalent of -A for mpileup ? --><xsl:if test="/project/properties/property[@key='is.haloplex']!='yes'">$(OUTDIR)/variations.gatk.snpEff.vcf.gz</xsl:if>
+	<!-- gatk equivalent of -A for mpileup ? --><xsl:if test="/project/properties/property[@key='is.haloplex']!='yes'">$(OUTDIR)/variations.gatk.snpEff.vcf.gz</xsl:if> 
 
 #
 # Join samtools VEP to diseases database (jensenlab.org)
@@ -323,57 +331,14 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 
 
 
-#
-# prediction samtools with Variation Ensembl Prediction API
-#
-$(OUTDIR)/variations.samtools.vep.tsv.gz: $(OUTDIR)/variations.samtools.vcf.gz
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite -i $&lt; -o $(basename $@)
-	$(call notempty,$(basename $@))
-	${TABIX.bgzip} -f $(basename $@)
-	$(call notempty,$@)
 
-
-#
-# annotate samtools vcf with snpEff
-#
-$(OUTDIR)/variations.samtools.snpEff.vcf.gz: $(OUTDIR)/variations.samtools.vcf.gz
-	$(call timebegindb,$@,mpileupsnpeff)
-	gunzip -c  $&lt; |\
-	egrep -v '^GL' |\
-	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
-	${TABIX.bgzip} -c  &gt; $@
-	${TABIX.tabix} -p vcf $@ 
-	$(call timeenddb,$@,mpileupsnpeff)
-	$(call sizedb,$@)
-	$(call notempty,$@)
-#
-# annotate GATK vcf with snpEff
-#
-$(OUTDIR)/variations.gatk.snpEff.vcf.gz: $(OUTDIR)/variations.gatk.vcf.gz
-	$(call timebegindb,$@,gatksnpeff)
-	gunzip -c  $&lt; |\
-	egrep -v '^GL' |\
-	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
-	${TABIX.bgzip} -c  &gt; $@
-	${TABIX.tabix} -p vcf $@ 
-	$(call timeenddb,$@,gatksnpeff)
-	$(call sizedb,$@)
-	$(call notempty,$@)
 
 ########################################################################################################
 #
 # ALLELES CALLING
 #
 #
-
-
-#
-# Allele calling with samtools
-#
-$(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
-	$(call timebegindb,$@,mpileup)
+<xsl:variable name="call.with.samtools.mpileup">	$(call timebegindb,$@,mpileup)
 	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A </xsl:if> -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c &gt; $@
@@ -382,12 +347,10 @@ $(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="s
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
+</xsl:variable>
 
-#
-# Allele calling with GATK
-#
-$(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>) $(known.sites)
-	$(call timebegindb,$@,UnifiedGenotyper)
+
+<xsl:variable name="call.with.gatk">		$(call timebegindb,$@,UnifiedGenotyper)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T UnifiedGenotyper \
@@ -400,6 +363,142 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 	$(call timeendb,$@,UnifiedGenotyper)
 	$(call sizedb,$@)
 	$(call notempty,$@)
+
+</xsl:variable>
+
+define ANNOTATE_WITH_SNPEFF
+
+$(1):$(2)
+	#Annotation of $$&lt; with SNPEFF 
+	$$(call timebegindb,$$@,$(3))
+	gunzip -c  $$&lt; |\
+	egrep -v '^GL' |\
+	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
+	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
+	${TABIX.bgzip} -c  &gt; $$@
+	${TABIX.tabix} -p vcf $$@ 
+	$$(call timeenddb,$$@,gatksnpeff)
+	$$(call sizedb,$$@)
+	$$(call notempty,$$@)
+
+endef
+
+
+define ANNOTATE_WITH_VEP
+
+$(1):$(2)
+	#Annotation of $$&lt; with VEP 
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite -i $$&lt; -o $$(basename $$@)
+	$$(call notempty,$$(basename $$@))
+	${TABIX.bgzip} -f $$(basename $$@)
+	$$(call notempty,$$@)
+
+
+endef
+
+
+
+<xsl:choose>
+<xsl:when test="/project/properties/property[@key='one.vcf.per.sample']='yes'">
+all_predictions: \
+	variations.samtools \
+	variations.gatk \
+	variations.samtools.snpeff \
+	variations.gatk.snpeff \
+	variations.samtools.vep \
+	variations.gatk.vep
+
+
+variations.samtools: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:for-each>
+variations.gatk: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:for-each>
+variations.samtools.snpeff: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.snpeff.gz"/></xsl:for-each>
+variations.gatk.snpeff: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.gatk.snpeff.gz"/></xsl:for-each>
+variations.samtools.vep: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.vep.gz"/></xsl:for-each>
+variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.gatk.vep.gz"/></xsl:for-each>
+
+
+<xsl:for-each select="sample">
+
+
+#
+# prediction samtools with Variation Ensembl Prediction API for  sample <xsl:value-of select="@name"/>
+#
+$(eval $(call ANNOTATE_WITH_VEP,<xsl:apply-templates select="." mode="vcf.samtools.vep.gz"/>,<xsl:apply-templates select="." mode="vcf.samtools.gz"/>,samtoolsvep))
+
+#
+# prediction gatk with Variation Ensembl Prediction API for  sample <xsl:value-of select="@name"/>
+#
+$(eval $(call ANNOTATE_WITH_VEP,<xsl:apply-templates select="." mode="vcf.gatk.vep.gz"/>,<xsl:apply-templates select="." mode="vcf.gatk.gz"/>,gatkvep))
+
+#
+# Annotation samtools with SNPEFF for  sample <xsl:value-of select="@name"/>
+#
+$(eval $(call ANNOTATE_WITH_SNPEFF,<xsl:apply-templates select="." mode="vcf.samtools.snpeff.gz"/>,<xsl:apply-templates select="." mode="vcf.samtools.gz"/>,mpileupsnpeff))
+
+#
+# Annotation gatk with SNPEFF for  sample <xsl:value-of select="@name"/>
+#
+$(eval $(call ANNOTATE_WITH_SNPEFF,<xsl:apply-templates select="." mode="vcf.gatk.snpeff.gz"/>,<xsl:apply-templates select="." mode="vcf.gatk.gz"/>,gatksnpeff))
+
+#
+# Allele calling with samtools for sample <xsl:value-of select="@name"/>
+#
+<xsl:apply-templates select="." mode="vcf.samtools.gz"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>)
+<xsl:value-of select="$call.with.samtools.mpileup"/>
+
+#
+# Allele calling with GATK for sample <xsl:value-of select="@name"/>
+#
+<xsl:apply-templates select="." mode="vcf.gatk.gz"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(known.sites)
+<xsl:value-of select="$call.with.gatk"/>
+
+</xsl:for-each>
+</xsl:when>
+<xsl:otherwise>
+
+all_predictions: \
+	$(OUTDIR)/variations.samtools.vep.tsv.gz \
+	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
+	$(OUTDIR)/variations.gatk.vep.tsv.gz \
+	$(OUTDIR)/variations.gatk.snpEff.tsv.gz 
+	
+#
+# prediction samtools with Variation Ensembl Prediction API
+#
+$(eval $(call ANNOTATE_WITH_VEP,$(OUTDIR)/variations.samtools.vep.tsv.gz,$(OUTDIR)/variations.samtools.vcf.gz,samtoolsvep))
+
+
+#
+# prediction gatk with Variation Ensembl Prediction API
+#
+$(eval $(call ANNOTATE_WITH_VEP,$(OUTDIR)/variations.gatk.vep.tsv.gz,$(OUTDIR)/variations.gatk.vcf.gz,gatkvep))
+
+
+#
+# annotate samtools vcf with snpEff
+#
+$(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.samtools.snpEff.vcf.gz,$(OUTDIR)/variations.samtools.vcf.gz,mpileupsnpeff))
+	
+#
+# annotate GATK vcf with snpEff
+#
+$(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.gatk.snpEff.vcf.gz,$(OUTDIR)/variations.gatk.vcf.gz,gatksnpeff))
+
+#
+# Allele calling with samtools
+#
+$(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
+<xsl:value-of select="$call.with.samtools.mpileup"/>
+
+#
+# Allele calling with GATK
+#
+$(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>) $(known.sites)
+<xsl:value-of select="call.with.gatk"/>
+
+</xsl:otherwise>
+</xsl:choose>
+
 
 ###################################################################################################################################################
 #
@@ -1015,6 +1114,38 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 <xsl:value-of select="@name"/>
 </xsl:template>
 
+
+<xsl:template match="sample" mode="vcf.samtools.gz">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_variations.samtools.vcf.gz ')"/>
+</xsl:template>
+
+<xsl:template match="sample" mode="vcf.gatk.gz">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_variations.gatk.vcf.gz ')"/>
+</xsl:template>
+
+<xsl:template match="sample" mode="vcf.samtools.snpeff.gz">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_variations.samtools.snpeff.vcf.gz ')"/>
+</xsl:template>
+
+<xsl:template match="sample" mode="vcf.gatk.snpeff.gz">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_variations.gatk.snpeff.vcf.gz ')"/>
+</xsl:template>
+
+<xsl:template match="sample" mode="vcf.samtools.vep.gz">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_variations.samtools.vep.tsv.gz ')"/>
+</xsl:template>
+
+<xsl:template match="sample" mode="vcf.gatk.vep.gz">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_variations.gatk.vep.tsv.gz ')"/>
+</xsl:template>
+
+
 <xsl:template name="make.bai">
 <xsl:param name="bam"/>
 <xsl:text>
@@ -1229,6 +1360,9 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:apply-templates select="." mode="dir"/>
 </xsl:template>
 
+
+
+<!-- ===================================================================================== -->
 
 <xsl:template match="lane" mode="fastx">
 <xsl:variable name="laneid" select="./text()"/>
