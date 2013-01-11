@@ -25,6 +25,9 @@
 #
 # Date : <xsl:value-of select="date:date-time()"/>
 #
+
+
+
 <xsl:apply-templates select="project"/>
 
 #
@@ -35,15 +38,50 @@
 <xsl:template match="project">
 <xsl:text>
 
+
+
 #
 # tools.mk define the path to the application
 # config.mk are user-specific values
 #
 include tools.mk  config.mk
 
+#######################################
 #
+# PROPERTIES defined in the project.xml 
+#
+#
+<xsl:for-each select="properties/property">
+<xsl:text># </xsl:text>
+<xsl:value-of select="@key"/>
+<xsl:text>	&quot;</xsl:text>
+<xsl:value-of select="."/>
+<xsl:text>&quot;
+</xsl:text>
+</xsl:for-each>
+
+<xsl:choose>
+<xsl:when test="not(/project/properties/property[@key='output.directory'])">
+<xsl:message terminate="no">[WARNING] 'output.directory' undefined in project.</xsl:message>
+<xsl:text>
+#
+#OUTPUT DIRECTORY
 #
 OUTDIR?=Output
+</xsl:text>
+<xsl:otherwise>
+<xsl:text>
+#
+# outputdir was set in project properties
+#
+OUTDIR=</xsl:text>
+<xsl:value-of select="/project/properties/property[@key='output.directory']"/>
+<xsl:text>
+</xsl:text>
+</xsl:otherwise>
+</xsl:when>
+</xsl:choose>
+
 
 #
 # Color for Makefile
@@ -62,13 +100,35 @@ export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${R.dir}/bi
 # path to GHOSTVIEW
 GHOSTVIEW ?= gs
 
+
+
 TABIX.bgzip?=${TABIX}/bgzip
 TABIX.tabix?=${TABIX}/tabix
 
+
+<xsl:choose>
+<xsl:when test="not(/project/properties/property[@key='genome.reference.path'])">
+<xsl:message terminate="no">[WARNING] 'genome.reference.path' undefined in project.</xsl:message>
+<xsl:text>
 #
 #reference genome
 #
 REF?=$(OUTDIR)/Reference/human_g1k_v37.fasta
+</xsl:text>
+<xsl:otherwise>
+<xsl:text>
+#
+# reference genome was set in project properties
+#
+REF=</xsl:text>
+<xsl:value-of select="/project/properties/property[@key='genome.reference.path']"/>
+<xsl:text>
+</xsl:text>
+</xsl:otherwise>
+</xsl:when>
+</xsl:choose>
+
+
 #
 # file that will be used to lock the SQL-related resources
 #
@@ -127,7 +187,9 @@ known.sites?=<xsl:choose>
 	coverage toptarget \
 	all_fastqs \
 	build_bowtie_index \
-	hsqldb_statistics all_tophat
+	hsqldb_statistics \
+	all_tophat \
+	bam_statistics
 
 ########################################################################################################
 #
@@ -219,8 +281,7 @@ indexed_reference: $(INDEXED_REFERENCE)
 
 
 
-#coverage.tsv : $(capture.bed)  $(foreach S,$(SAMPLES),$(OUTDIR)/$(S)$(BAMSUFFIX).bam )
-#	${VARKIT}/beddepth $(foreach S,$(SAMPLES),-f $(OUTDIR)/$(S)$(BAMSUFFIX).bam ) &lt; $&lt; &gt; $@
+
 
 
 
@@ -244,9 +305,9 @@ all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templa
 #
 #
 all_predictions: \
-	$(OUTDIR)/variations.samtools.vep.tsv.gz \
+	$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz \
 	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
-	$(OUTDIR)/variations.gatk.snpEff.vcf.gz
+	<!-- gatk equivalent of -A for mpileup ? --><xsl:if test="/project/properties/property[@key='is.haloplex']!='yes'">$(OUTDIR)/variations.gatk.snpEff.vcf.gz</xsl:if>
 
 #
 # Join samtools VEP to diseases database (jensenlab.org)
@@ -313,7 +374,7 @@ $(OUTDIR)/variations.gatk.snpEff.vcf.gz: $(OUTDIR)/variations.gatk.vcf.gz
 #
 $(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
 	$(call timebegindb,$@,mpileup)
-	$(SAMTOOLS) mpileup -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
+	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A </xsl:if> -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -p vcf $@ 
@@ -337,6 +398,39 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 		-o $(basename $@)
 	${TABIX.bgzip} -f $(basename $@)
 	$(call timeendb,$@,UnifiedGenotyper)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+###################################################################################################################################################
+#
+# Statistics for BAM
+#
+bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/coverage.tsv.gz
+
+#
+# coverage per target
+#
+$(OUTDIR)/coverage.tsv.gz : $(capture.bed)  $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
+	$(call timebegindb,$@,$@)
+	${VARKIT}/beddepth $(foreach S,$(filter %.bam,$^),-f $(S) ) &lt; $&lt; | gzip --best &gt; $@
+	$(call timeendb,$@,$@)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+#
+# create a PDF for bamstats01.tsv
+#
+$(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
+	echo 'pdf("$@",paper="A4r"); T&lt;-read.table("$&lt;",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
+	${R.exe} --no-save
+
+#
+# count of mapped-reads, quality per sample	
+#
+$(OUTDIR)/bamstats01.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
+	$(call timebegindb,$@,$@)
+	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) > $@
+	$(call timeendb,$@,$@)
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
@@ -511,7 +605,7 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="markdup"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="realigned"/>)
 <xsl:choose>
-<xsl:when  test="/project/properties/property[@key='disable.mark.duplicates']='yes'">
+<xsl:when  test="/project/properties/property[@key='disable.mark.duplicates']='yes' or /project/properties/property[@key='is.haloplex']='yes'">
 <xsl:message>[WARNING] Mark Duplicate Disabled.</xsl:message>	#just create a symbolic link
 	$(call create_symbolic_link,$(filter %.bam,$^),$@)
 	##ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)

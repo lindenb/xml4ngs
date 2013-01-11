@@ -21,6 +21,28 @@
         <xs:attribute name="key">
           <xs:simpleType>
             <xs:restriction base="xs:token">
+            
+             <xs:enumeration value="output.directory">
+	        <xs:annotation>
+	          <xs:documentation>Where we should save the data.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+            
+	     <xs:enumeration value="genome.reference.path">
+	        <xs:annotation>
+	          <xs:documentation>The path to the genome reference as FASTA.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+              <xs:enumeration value="is.whole.genome">
+	        <xs:annotation>
+	          <xs:documentation>When set to 'yes', specify a project of whole genome sequencing.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      <xs:enumeration value="is.haloplex">
+	        <xs:annotation>
+	          <xs:documentation>When set to 'yes', specify a capture whith haloplex.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
               <xs:enumeration value="capture.bed.path">
                 <xs:annotation>
                   <xs:documentation>For exome-sequencing, the path to a BED file defining the captured regions.</xs:documentation>
