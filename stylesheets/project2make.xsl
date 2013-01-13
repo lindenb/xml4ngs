@@ -668,6 +668,14 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		-R $(REF) \
 		-I $(filter %.bam,$^) \
 		-l INFO \
+		<xsl:choose>
+			  <xsl:when test="/project/properties/property[@key='gatk.base.recalibrator.options']">
+			  	<xsl:value-of select="gatk.base.recalibrator.options']"/>
+			  </xsl:when>
+			  <xsl:otherwise>
+			  	<!-- no option   -->
+			  </xsl:otherwise>
+			</xsl:choose> \
 		-o $@.recal_data.grp \
 		-knownSites $(known.sites) \
 		-L $(filter %.bed,$^) \
@@ -683,6 +691,14 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		-R $(REF) \
 		-BQSR $@.recal_data.grp \
 		-I $(filter %.bam,$^) \
+		<xsl:choose>
+		  <xsl:when test="/project/properties/property[@key='gatk.recalibration.print.reads.options']">
+		  	<xsl:value-of select="gatk.recalibration.print.reads.options']"/>
+		  </xsl:when>
+		  <xsl:otherwise>
+		  	<!-- no option   -->
+		  </xsl:otherwise>
+		</xsl:choose> \
 		-o $@ \
 		-l INFO
 	$(call timeenddb,$@_tableRecalibaration,recalibration)
@@ -718,6 +734,14 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 		MAX_FILE_HANDLES=400 \
 		M=$@.metrics \
 		AS=true \
+		<xsl:choose>
+		  <xsl:when test="/project/properties/property[@key='picard.mark.duplicates.options']">
+		  	<xsl:value-of select="/project/properties/property[@key='picard.mark.duplicates.options']"/>
+		  </xsl:when>
+		  <xsl:otherwise>
+		  	<!-- no option   -->
+		  </xsl:otherwise>
+		</xsl:choose> \
 		VALIDATION_STRINGENCY=SILENT
 	$(call timeenddb,$@_markdup,markdup)
 	#$(call timebegindb,$@_fixmate,fixmate)
@@ -761,6 +785,14 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 			-L $(filter %.bed,$^) \
   			-I $(filter %.bam,$^) \
 			-S SILENT \
+			<xsl:choose>
+			  <xsl:when test="/project/properties/property[@key='gatk.realigner.target.creator.options']">
+			  	<xsl:value-of select="/project/properties/property[@key='gatk.realigner.target.creator.options']"/>
+			  </xsl:when>
+			  <xsl:otherwise>
+			  	<!-- no option   -->
+			  </xsl:otherwise>
+			</xsl:choose> \
   			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
 			--known $(known.sites)
 		$(call timeenddb,$@_targetcreator,targetcreator)
@@ -770,6 +802,14 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
   			-R $(REF) \
   			-I $(filter %.bam,$^) \
 			-S SILENT \
+			<xsl:choose>
+			  <xsl:when test="/project/properties/property[@key='gatk.indel.realigner.options']">
+			  	<xsl:value-of select="/project/properties/property[@key='gatk.indel.realigner.options']"/>
+			  </xsl:when>
+			  <xsl:otherwise>
+			  	<!-- no option   -->
+			  </xsl:otherwise>
+			</xsl:choose> \
   			-o $@ \
   			-targetIntervals $(addsuffix .intervals, $(filter %.bam,$^) ) \
 			--knownAlleles $(known.sites)
@@ -795,7 +835,15 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 <xsl:apply-templates select="." mode="merged"/> : <xsl:for-each select="sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
 	$(call timebegindb,$@,merge)
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ AS=true \
-		VALIDATION_STRINGENCY=SILENT COMMENT="Merged from $^" \
+		<xsl:choose>
+		  <xsl:when test="/project/properties/property[@key='picard.merge.options']">
+		  	<xsl:value-of select="/project/properties/property[@key='picard.merge.options']"/>
+		  </xsl:when>
+		  <xsl:otherwise>
+		  	<!-- picard.merge.options   -->
+		  </xsl:otherwise>
+		</xsl:choose> VALIDATION_STRINGENCY=SILENT \
+		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
 	$(DELETEFILE) $^
 	$(call timeenddb,$@,merge)
@@ -828,7 +876,13 @@ LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="sorted"/> : <xsl:apply-templates select="." mode="unsorted"/>
 	$(call timebegindb,$@,sort)
-	$(SAMTOOLS) sort $&lt; $(basename $@)
+	$(SAMTOOLS) sort <xsl:choose><xsl:when test="/project/properties/property[@key='samtools.sort.options']">
+	  	<xsl:value-of select="/project/properties/property[@key='samtools.sort.options']"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  	<!-- no samtools.sort option   -->
+	  </xsl:otherwise>
+	</xsl:choose> $&lt; $(basename $@)
 	$(DELETEFILE) $&lt;
 	$(call timeenddb,$@,sort)
 	$(call sizedb,$@)
@@ -850,7 +904,15 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	<xsl:text> </xsl:text>
 	<xsl:apply-templates select="fastq[@index='2']" mode="sai"/>
 	$(call timebegindb,$@,bwasampe)
-	$(BWA) sampe -a <xsl:apply-templates select="." mode="fragmentSize"/> ${REF} \
+	$(BWA) sampe <xsl:choose>
+	  <xsl:when test="/project/properties/property[@key='bwa.sampe.options']">
+	  	<xsl:value-of select="/project/properties/property[@key='bwa.sampe.options']"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  	<!-- no bwa.sampe option $(BWA.aln.options)  -->
+	  	 -a <xsl:apply-templates select="." mode="fragmentSize"/>
+	  </xsl:otherwise>
+	</xsl:choose> ${REF} \
 		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA	PU:<xsl:value-of select="@lane"/>" \
 		<xsl:apply-templates select="fastq[@index='1']" mode="sai"/> \
 		<xsl:apply-templates select="fastq[@index='2']" mode="sai"/> \
@@ -924,7 +986,14 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	mkdir -p $(dir $@)
 	$(call timebegindb,$@,sai)
 	$(call sizedb,$&lt;)
-	$(BWA) aln $(BWA.aln.options) -f $@ ${REF} $&lt;
+	$(BWA) aln <xsl:choose>
+	  <xsl:when test="/project/properties/property[@key='bwa.aln.options']">
+	  	<xsl:value-of select="/project/properties/property[@key='bwa.aln.options']"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  	<!-- no bwa.aln option $(BWA.aln.options)  -->
+	  </xsl:otherwise>
+	</xsl:choose> -f $@ ${REF} $&lt;<xsl:message terminate="yes">FIXME</xsl:message>
 	$(call timeenddb,$@,sai)
 	$(call sizedb,$@)
 	$(call notempty,$@)

@@ -14,7 +14,7 @@ public class Ilmn2Project
 	private Pattern uscore=Pattern.compile("_");
 	private Set<String> seqIndexes=new TreeSet<String>();
 	private Set<Integer> lanes=new TreeSet<Integer>();
-
+	private PropertiesType properties=null;
 	private Ilmn2Project()
 		{
 		
@@ -128,7 +128,15 @@ public class Ilmn2Project
 			new JAXBElement<ProjectType>(new QName("project"), ProjectType.class, project),
 			System.out
 			);
-		}	
+		}
+	private void readPropertyFile(File f)  throws Exception
+		{
+		JAXBContext jaxbContext = JAXBContext.newInstance(ProjectType.class);
+		Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
+		this.properties=(PropertiesType)((javax.xml.bind.JAXBElement)unmarshaller.unmarshal(
+			f)).getValue();
+		}
+	
 	private void run(String args[]) throws Exception
 		{
 		int optind=0;
@@ -136,7 +144,13 @@ public class Ilmn2Project
 			{
 			if(args[optind].equals("-h"))
 				{
+				System.out.println(" -h help (this screen)");
+				System.out.println(" -p (properties.xml)");
 				return;
+				}
+			else if(args[optind].equals("-p") && optind+1< args.length)
+				{
+				readPropertyFile(new File(args[++optind]));
 				}
 			else if(args[optind].equals("--"))
 				{
@@ -178,6 +192,10 @@ public class Ilmn2Project
 			lanes.getLane().add(String.valueOf(i));
 			}
 		this.project.setLanes(lanes);
+		if(this.properties!=null)
+			{
+			this.project.setProperties(this.properties);
+			}
 		dump();
 		}
 	public static void main(String args[]) throws Exception
