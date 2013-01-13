@@ -302,7 +302,7 @@ bams_unsorted: </xsl:text><xsl:for-each select="sample/sequences/pair"><xsl:appl
 bams_sorted: </xsl:text><xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each><xsl:text>
 coverage: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>
 
-all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templates select="." mode="fastq"/><xsl:text> </xsl:text></xsl:for-each>
+all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templates select="." mode="preprocessed.fastq"/><xsl:text> </xsl:text></xsl:for-each>
 
 
 
@@ -842,9 +842,9 @@ LIST_BAM_SORTED+=<xsl:apply-templates select="." mode="sorted"/><xsl:text>
 #
 LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 </xsl:text>
-<xsl:apply-templates select="." mode="unsorted"/> : <xsl:apply-templates select="fastq[@index='1']" mode="fastq"/>
+<xsl:apply-templates select="." mode="unsorted"/> : <xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/>
 	<xsl:text> </xsl:text>
-	<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>
+	<xsl:apply-templates select="fastq[@index='2']" mode="preprocessed.fastq"/>
 	<xsl:text> </xsl:text>
 	<xsl:apply-templates select="fastq[@index='1']" mode="sai"/>
 	<xsl:text> </xsl:text>
@@ -854,13 +854,13 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA	PU:<xsl:value-of select="@lane"/>" \
 		<xsl:apply-templates select="fastq[@index='1']" mode="sai"/> \
 		<xsl:apply-templates select="fastq[@index='2']" mode="sai"/> \
-		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
-		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> |\
+		<xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/> \
+		<xsl:apply-templates select="fastq[@index='2']" mode="preprocessed.fastq"/> |\
 	$(SAMTOOLS) view -S -b -o $@ -T ${REF} -
 	$(DELETEFILE) <xsl:apply-templates select="fastq" mode="sai"/> <xsl:for-each select="fastq">
 		<xsl:if test="number($limit)&gt;0 or substring(@path, string-length(@path)- 3)='.bz2'">
 			<xsl:text> </xsl:text>
-			<xsl:apply-templates select="." mode="fastq"/>
+			<xsl:apply-templates select="." mode="preprocessed.fastq"/>
 		</xsl:if>
 	</xsl:for-each> 
 	$(call timeenddb,$@,bwasampe)
@@ -870,12 +870,14 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	touch $@
 
 
+
+
 <!-- if the simulation.reads is set and greater than 0, the two fastqs will be created -->
 <xsl:if test="number(/project/properties/property[@key='simulation.reads'])&gt;0">
 <xsl:variable name="twofastqs">
-<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/>
+<xsl:apply-templates select="fastq[@index='1']" mode="raw.fastq"/>
 <xsl:text> </xsl:text>
-<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>
+<xsl:apply-templates select="fastq[@index='2']" mode="raw.fastq"/>
 </xsl:variable>
 #
 # It is a simulation mode : generate the FASTQ with samtools
@@ -904,21 +906,21 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 <xsl:when test="substring(@path, string-length(@path)- 3)='.bz2'">
 
 #need to convert from bz2 to gz
-<xsl:apply-templates select="." mode="fastq"/>:<xsl:value-of select="@path"/>
+<xsl:apply-templates select="." mode="preprocessed.fastq"/>:<xsl:value-of select="@path"/>
 	mkdir -p <xsl:apply-templates select="." mode="dir"/>
 	bunzip -c $&lt; | <xsl:if test="number($limit)&gt;0"> head -n <xsl:value-of select="number($limit)*4"/> |</xsl:if> gzip --best &gt; $@
 
 </xsl:when>
 
 <xsl:when test="number($limit)&gt;0">
-<xsl:apply-templates select="." mode="fastq"/>:<xsl:value-of select="@path"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/>
+<xsl:apply-templates select="." mode="preprocessed.fastq"/>:<xsl:value-of select="@path"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/>
 	gunzip -c $&lt; | head  -n <xsl:value-of select="number($limit)*4"/> | gzip --best &gt; $@	
 </xsl:when>
 
 </xsl:choose>
 
 
-<xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="fastq"/> $(INDEXED_REFERENCE)
+<xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="preprocessed.fastq"/> $(INDEXED_REFERENCE)
 	mkdir -p $(dir $@)
 	$(call timebegindb,$@,sai)
 	$(call sizedb,$&lt;)
@@ -928,6 +930,22 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	$(call notempty,$@)
 
 
+
+<!-- using haloplex ? need to preprocess the fastqs -->
+<xsl:if test="/project/properties/property[@key='is.haloplex']='yes'">
+#
+# Preprocess FASTQ
+#
+<xsl:template match="." mode="preprocessed.fastq"/>:<xsl:template match="." mode="raw.fastq"/>
+	mkdir -p $(dir $@)
+	$(call timebegindb,$@,preprocessfastq)
+	$(call sizedb,$&lt;)
+	##TODO cutadap $&lt;
+	$(call timeenddb,$@,preprocessfastq)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+</xsl:if>
 
 
 </xsl:for-each>
@@ -1018,7 +1036,19 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 	<xsl:apply-templates select="../../.." mode="dir"/>
 </xsl:template>
 
-<xsl:template match="fastq" mode="fastq">
+<xsl:template match="fastq" mode="preprocessed.fastq">
+<xsl:choose>
+ <xsl:when test="/project/properties/property[@key='is.haloplex']='yes'">
+	<xsl:variable name="p"><xsl:apply-templates select=".." mode="pairname"/></xsl:variable>
+	<xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../../@name,'/$(TMPREFIX)',$p,'_',@index,'.preproc.fastq.gz ')"/>
+ </xsl:when>
+ <xsl:otherwise>
+	<xsl:apply-templates select="." mode="raw.fastq"/>
+ </xsl:otherwise>
+</xsl:choose>
+</xsl:template>
+
+<xsl:template match="fastq" mode="raw.fastq">
 <xsl:choose>
  <xsl:when test="number($limit)&gt;0 or substring(@path, string-length(@path)- 3)='.bz2'">
 	<xsl:variable name="p"><xsl:apply-templates select=".." mode="pairname"/></xsl:variable>
@@ -1029,7 +1059,6 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
  </xsl:otherwise>
 </xsl:choose>
 </xsl:template>
-
 
 
 <xsl:template match="fastq" mode="sai">
@@ -1209,8 +1238,8 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 #
 # tophat: Align the RNA-seq reads to the genome for sample '<xsl:value-of select="../../@name"/>'
 #
-<xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/> : <xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
-	<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/> \
+<xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/> : <xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/> \
+	<xsl:apply-templates select="fastq[@index='2']" mode="preprocessed.fastq"/> \
 	$(BOWTIE_INDEXED_REFERENCE) \
 	$(exons.gtf)
 	mkdir -p $(dir $@)
@@ -1226,8 +1255,8 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 		--rg-center Nantes \
 		--rg-platform Illumina \
 		$(basename $(REF)) \
-		<xsl:apply-templates select="fastq[@index='1']" mode="fastq"/> \
-		<xsl:apply-templates select="fastq[@index='2']" mode="fastq"/>
+		<xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/> \
+		<xsl:apply-templates select="fastq[@index='2']" mode="preprocessed.fastq"/>
 	$(call sizedb,$@)
 	$(call timeenddb,$@,tophat_accepted_hits)
 
