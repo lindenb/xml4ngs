@@ -7,6 +7,7 @@ import javax.xml.bind.*;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+
 public class Ilmn2Project
 	{
 	private static final String SUFFIX=".fastq.gz";
@@ -14,7 +15,8 @@ public class Ilmn2Project
 	private Pattern uscore=Pattern.compile("_");
 	private Set<String> seqIndexes=new TreeSet<String>();
 	private Set<Integer> lanes=new TreeSet<Integer>();
-	private PropertiesType properties=null;
+	private PropertiesType properties=new PropertiesType();
+	
 	private Ilmn2Project()
 		{
 		
@@ -118,7 +120,7 @@ public class Ilmn2Project
 		}
 	private void dump() throws Exception
 		{
-		JAXBContext jaxbContext = JAXBContext.newInstance(ProjectType.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance("com.github.lindenb.xml4ngs");
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		jaxbMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
@@ -131,10 +133,12 @@ public class Ilmn2Project
 		}
 	private void readPropertyFile(File f)  throws Exception
 		{
-		JAXBContext jaxbContext = JAXBContext.newInstance(ProjectType.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(PropertiesType.class);
 		Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
-		this.properties=(PropertiesType)((javax.xml.bind.JAXBElement)unmarshaller.unmarshal(
-			f)).getValue();
+		
+		JAXBElement e=unmarshaller.unmarshal(new  javax.xml.transform.stream.StreamSource(f),PropertiesType.class);
+		PropertiesType p2=(PropertiesType)((e).getValue());
+		this.properties.getProperty().addAll(p2.getProperty());
 		}
 	
 	private void run(String args[]) throws Exception
@@ -145,12 +149,22 @@ public class Ilmn2Project
 			if(args[optind].equals("-h"))
 				{
 				System.out.println(" -h help (this screen)");
-				System.out.println(" -p (properties.xml)");
+				System.out.println(" -f (properties.xml)");
+				System.out.println(" -p prop.key prop.value");
 				return;
 				}
-			else if(args[optind].equals("-p") && optind+1< args.length)
+			else if(args[optind].equals("-f") && optind+1< args.length)
 				{
 				readPropertyFile(new File(args[++optind]));
+				}
+			else if(args[optind].equals("-p") && optind+2< args.length)
+				{
+				String key=args[++optind];
+				String val=args[++optind];
+				PropertyType prop=new PropertyType();
+				prop.setKey(key);
+				prop.setValue(val);
+				this.properties.getProperty().add(prop);
 				}
 			else if(args[optind].equals("--"))
 				{
@@ -192,10 +206,9 @@ public class Ilmn2Project
 			lanes.getLane().add(String.valueOf(i));
 			}
 		this.project.setLanes(lanes);
-		if(this.properties!=null)
-			{
-			this.project.setProperties(this.properties);
-			}
+		
+		this.project.setProperties(this.properties);
+			
 		dump();
 		}
 	public static void main(String args[]) throws Exception

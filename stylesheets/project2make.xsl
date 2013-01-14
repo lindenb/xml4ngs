@@ -44,7 +44,7 @@
 # tools.mk define the path to the application
 # config.mk are user-specific values
 #
-include tools.mk  config.mk
+include tools.mk  <!-- config.mk -->
 
 #######################################
 #
@@ -307,15 +307,7 @@ all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templa
 
 
 
-########################################################################################################
-#
-# PREDICTIONS
-#
-#
-all_predictions: \
-	$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz \
-	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
-	<!-- gatk equivalent of -A for mpileup ? --><xsl:if test="/project/properties/property[@key='is.haloplex']!='yes'">$(OUTDIR)/variations.gatk.snpEff.vcf.gz</xsl:if> 
+
 
 #
 # Join samtools VEP to diseases database (jensenlab.org)
@@ -482,7 +474,7 @@ $(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.samtools.snpEff.vcf.gz,$
 #
 # annotate GATK vcf with snpEff
 #
-$(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.gatk.snpEff.vcf.gz,$(OUTDIR)/variations.gatk.vcf.gz,gatksnpeff))
+$(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.gatk.snpEff.tsv.gz,$(OUTDIR)/variations.gatk.vcf.gz,gatksnpeff))
 
 #
 # Allele calling with samtools
@@ -670,7 +662,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		-l INFO \
 		<xsl:choose>
 			  <xsl:when test="/project/properties/property[@key='gatk.base.recalibrator.options']">
-			  	<xsl:value-of select="gatk.base.recalibrator.options']"/>
+			  	<xsl:value-of select="/project/properties/property[@key='gatk.base.recalibrator.options']"/>
 			  </xsl:when>
 			  <xsl:otherwise>
 			  	<!-- no option   -->
@@ -693,7 +685,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		-I $(filter %.bam,$^) \
 		<xsl:choose>
 		  <xsl:when test="/project/properties/property[@key='gatk.recalibration.print.reads.options']">
-		  	<xsl:value-of select="gatk.recalibration.print.reads.options']"/>
+		  	<xsl:value-of select="/project/properties/property[@key='gatk.recalibration.print.reads.options']"/>
 		  </xsl:when>
 		  <xsl:otherwise>
 		  	<!-- no option   -->
@@ -903,6 +895,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	<xsl:apply-templates select="fastq[@index='1']" mode="sai"/>
 	<xsl:text> </xsl:text>
 	<xsl:apply-templates select="fastq[@index='2']" mode="sai"/>
+	## ALIGN WITH BWA #######################################################################
 	$(call timebegindb,$@,bwasampe)
 	$(BWA) sampe <xsl:choose>
 	  <xsl:when test="/project/properties/property[@key='bwa.sampe.options']">
@@ -910,7 +903,9 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	  </xsl:when>
 	  <xsl:otherwise>
 	  	<!-- no bwa.sampe option $(BWA.aln.options)  -->
-	  	 -a <xsl:apply-templates select="." mode="fragmentSize"/>
+	  	<xsl:text> -a </xsl:text>
+	  	<xsl:apply-templates select="." mode="fragmentSize"/> 
+	  	<xsl:text> </xsl:text>
 	  </xsl:otherwise>
 	</xsl:choose> ${REF} \
 		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA	PU:<xsl:value-of select="@lane"/>" \
@@ -993,7 +988,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	  <xsl:otherwise>
 	  	<!-- no bwa.aln option $(BWA.aln.options)  -->
 	  </xsl:otherwise>
-	</xsl:choose> -f $@ ${REF} $&lt;<xsl:message terminate="yes">FIXME</xsl:message>
+	</xsl:choose> -f $@ ${REF} $&lt;
 	$(call timeenddb,$@,sai)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -1005,12 +1000,20 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 # Preprocess FASTQ
 #
-<xsl:template match="." mode="preprocessed.fastq"/>:<xsl:template match="." mode="raw.fastq"/>
+<xsl:apply-templates select="." mode="preprocessed.fastq"/>: <xsl:apply-templates select="." mode="raw.fastq"/>
 	mkdir -p $(dir $@)
-	$(call timebegindb,$@,preprocessfastq)
+	$(call timebegindb,$@,cutadapt)
 	$(call sizedb,$&lt;)
-	##TODO cutadap $&lt;
-	$(call timeenddb,$@,preprocessfastq)
+	$(CUTADAPT) -b <xsl:choose>
+	  <xsl:when test="/project/properties/property[@key='cutadapt.sequence']">
+	  	<xsl:value-of select="/project/properties/property[@key='cutadapt.sequence']"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  	<xsl:text>AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC</xsl:text>
+	  </xsl:otherwise>
+	</xsl:choose> $&lt; -o $(basename $@) > $(addsuffix .report.txt,$@)
+	gzip --best --force $(basename $@)
+	$(call timeenddb,$@,cutadapt)
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
@@ -1345,12 +1348,12 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 #
 #
 
-all_tophat: $(OUTDIR)/diff_out/TODO
+all_tophat: $(OUTDIR)/diff_out/gene_exp.diff
 
 #
 # identify differencially expressed genes and transcripts
 #
-$(OUTDIR)/diff_out/TODO : $(OUTDIR)/merged_asm/merged.gtf \
+$(OUTDIR)/diff_out/gene_exp.diff : $(OUTDIR)/merged_asm/merged.gtf \
 	<xsl:for-each select="sample/sequences/pair"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/></xsl:for-each>
 	$(call timebegindb,$@,tophat_cuffdiff)
 	$(CUFFLINKS.dir)/cuffdiff -v -o $(dir $@) \

@@ -22,6 +22,12 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	     <xs:enumeration value="cutadapt.sequence">
+	        <xs:annotation>
+	          <xs:documentation>custom sequence for cutadapt (option -b )</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
 	     <xs:enumeration value="gatk.recalibration.print.reads.options">
 	        <xs:annotation>
 	          <xs:documentation>Specific options for GATK PrintRead after recalibration.</xs:documentation>
@@ -119,7 +125,11 @@
        	       	</xs:annotation>
               </xs:enumeration>
               <xs:enumeration value="snpEff.build"/>
-              <xs:enumeration value="known.sites"/>
+              <xs:enumeration value="known.sites">
+		      <xs:annotation>
+	       	       	  <xs:documentation>Known sites for GATK</xs:documentation>
+	       	       	</xs:annotation>
+              </xs:enumeration>
               <xs:enumeration value="simulation.reads"/>
               <xs:enumeration value="is.rnaseq"/>
               <xs:enumeration value="ensembl.dataset.name"/>
@@ -171,4 +181,5 @@
   </xs:complexType>
 
   <xs:element name="project" type="ProjectType"/>
+  <xs:element name="properties" type="PropertiesType"/>
 </xs:schema>
