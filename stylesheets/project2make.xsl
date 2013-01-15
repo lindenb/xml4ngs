@@ -331,7 +331,7 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 #
 #
 <xsl:variable name="call.with.samtools.mpileup">	$(call timebegindb,$@,mpileup)
-	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A </xsl:if> -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
+	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A  -d 8000 </xsl:if> -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -p vcf $@ 
@@ -486,7 +486,7 @@ $(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="s
 # Allele calling with GATK
 #
 $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>) $(known.sites)
-<xsl:value-of select="call.with.gatk"/>
+<xsl:value-of select="$call.with.gatk"/>
 
 </xsl:otherwise>
 </xsl:choose>
