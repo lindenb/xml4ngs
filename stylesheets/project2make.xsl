@@ -37,8 +37,12 @@
 
 <xsl:template match="project">
 <xsl:text>
-
-
+#
+# this is the name of the current Makefile
+# should be always here,  before' include'
+# will be used for 'git'
+#
+makefile.name := $(lastword $(MAKEFILE_LIST))
 
 #
 # tools.mk define the path to the application
@@ -82,6 +86,11 @@ OUTDIR=</xsl:text>
 </xsl:text>
 </xsl:otherwise>
 </xsl:choose>
+
+#
+# LIST_OF_PHONY_TARGET
+#
+LIST_PHONY_TARGET=
 
 
 #
@@ -168,8 +177,13 @@ SNPEFFBUILD?=<xsl:choose>
 # known sites for the GATK
 #
 known.sites?=<xsl:choose>
-        <xsl:when test="properties/property[@key='known.sites']"><xsl:value-of select="normalize-space(properties/property[@key='known.sites'])"/></xsl:when>
-        <xsl:otherwise>$(OUTDIR)/Reference/dbsnp.vcf.gz</xsl:otherwise>
+        <xsl:when test="properties/property[@key='known.sites']">
+        	<xsl:value-of select="normalize-space(properties/property[@key='known.sites'])"/>
+        </xsl:when>
+        <xsl:otherwise>
+        	<xsl:message terminate="no">[WARNING] property 'known.sites' undefined.</xsl:message>
+        	<xsl:text>$(OUTDIR)/Reference/dbsnp.vcf.gz</xsl:text>
+        </xsl:otherwise>
 </xsl:choose>
 
 
@@ -182,22 +196,7 @@ known.sites?=<xsl:choose>
 # PHONY TARGETS
 #
 #
-.PHONY: all fastx all_predictions \
-	indexed_reference bams bams_realigned  bams_sorted \
-	bams_merged bams_unsorted bams_recalibrated \
-	bams_markdup \
-	coverage toptarget \
-	all_fastqs \
-	build_bowtie_index \
-	hsqldb_statistics \
-	all_tophat \
-	bam_statistics \
-	<xsl:if test="/project/properties/property[@key='one.vcf.per.sample']='yes'"> variations.samtools \
-	variations.gatk \
-	variations.samtools.snpeff \
-	variations.gatk.snpeff \
-	variations.samtools.vep \
-	variations.gatk.vep </xsl:if>
+.PHONY: all toptarget ${LIST_PHONY_TARGET} 
 
 ########################################################################################################
 #
@@ -282,8 +281,9 @@ endef
 
 toptarget:
 	echo "This is the top target. Please select a specific target"
+	echo "e.g: ${LIST_PHONY_TARGET} "
 
-all: all_predictions fastx hsqldb_statistics <xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
+all: ${LIST_PHONY_TARGET} all_predictions fastx hsqldb_statistics <xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
 
 indexed_reference: $(INDEXED_REFERENCE)
 
@@ -293,15 +293,21 @@ indexed_reference: $(INDEXED_REFERENCE)
 
 
 
-#bams:bams$(BAMSUFFIX)
-bams_realigned:<xsl:for-each select="sample"><xsl:apply-templates select="." mode="realigned"/></xsl:for-each><xsl:text>
-bams_markdup: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="markdup"/></xsl:for-each><xsl:text>
-bams_merged: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="merged"/></xsl:for-each><xsl:text>
-bams_recalibrated: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each><xsl:text>
-bams_unsorted: </xsl:text><xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="unsorted"/></xsl:for-each><xsl:text>
-bams_sorted: </xsl:text><xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each><xsl:text>
-coverage: </xsl:text><xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>
-
+LIST_PHONY_TARGET+= bams_realigned 
+bams_realigned:<xsl:for-each select="sample"><xsl:apply-templates select="." mode="realigned"/></xsl:for-each>
+LIST_PHONY_TARGET+= bams_markdup 
+bams_markdup: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="markdup"/></xsl:for-each>
+LIST_PHONY_TARGET+= bams_merged 
+bams_merged: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="merged"/></xsl:for-each>
+LIST_PHONY_TARGET+= bams_recalibrated 
+bams_recalibrated: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>
+LIST_PHONY_TARGET+= bams_unsorted 
+bams_unsorted: <xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="unsorted"/></xsl:for-each>
+LIST_PHONY_TARGET+= bams_sorted 
+bams_sorted: <xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
+LIST_PHONY_TARGET+= coverage
+coverage: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>
+LIST_PHONY_TARGET+= all_fastqs
 all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templates select="." mode="preprocessed.fastq"/><xsl:text> </xsl:text></xsl:for-each>
 
 
@@ -358,40 +364,12 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 
 </xsl:variable>
 
-define ANNOTATE_WITH_SNPEFF
-
-$(1):$(2)
-	#Annotation of $$&lt; with SNPEFF 
-	$$(call timebegindb,$$@,$(3))
-	gunzip -c  $$&lt; |\
-	egrep -v '^GL' |\
-	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
-	${TABIX.bgzip} -c  &gt; $$@
-	${TABIX.tabix} -p vcf $$@ 
-	$$(call timeenddb,$$@,gatksnpeff)
-	$$(call sizedb,$$@)
-	$$(call notempty,$$@)
-
-endef
-
-
-define ANNOTATE_WITH_VEP
-
-$(1):$(2)
-	#Annotation of $$&lt; with VEP 
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite -i $$&lt; -o $$(basename $$@)
-	$$(call notempty,$$(basename $$@))
-	${TABIX.bgzip} -f $$(basename $$@)
-	$$(call notempty,$$@)
-
-
-endef
 
 
 
 <xsl:choose>
 <xsl:when test="/project/properties/property[@key='one.vcf.per.sample']='yes'">
+LIST_PHONY_TARGET+= all_predictions
 all_predictions: \
 	variations.samtools \
 	variations.gatk \
@@ -401,11 +379,17 @@ all_predictions: \
 	variations.gatk.vep
 
 
+LIST_PHONY_TARGET+= variations.samtools 
 variations.samtools: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:for-each>
+LIST_PHONY_TARGET+= variations.gatk 
 variations.gatk: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:for-each>
+LIST_PHONY_TARGET+= variations.samtools.snpeff 
 variations.samtools.snpeff: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.snpeff.gz"/></xsl:for-each>
+LIST_PHONY_TARGET+= variations.gatk.snpeff  
 variations.gatk.snpeff: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.gatk.snpeff.gz"/></xsl:for-each>
+LIST_PHONY_TARGET+= variations.samtools.vep  
 variations.samtools.vep: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.samtools.vep.gz"/></xsl:for-each>
+LIST_PHONY_TARGET+= variations.gatk.vep  
 variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="vcf.gatk.vep.gz"/></xsl:for-each>
 
 
@@ -415,22 +399,38 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 #
 # prediction samtools with Variation Ensembl Prediction API for  sample <xsl:value-of select="@name"/>
 #
-$(eval $(call ANNOTATE_WITH_VEP,<xsl:apply-templates select="." mode="vcf.samtools.vep.gz"/>,<xsl:apply-templates select="." mode="vcf.samtools.gz"/>,samtoolsvep))
+<xsl:call-template name="ANNOTATE_WITH_VEP">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.samtools.vep.gz"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:with-param>
+	<xsl:with-param name="type">mpileupvep</xsl:with-param>
+</xsl:call-template>
 
 #
 # prediction gatk with Variation Ensembl Prediction API for  sample <xsl:value-of select="@name"/>
 #
-$(eval $(call ANNOTATE_WITH_VEP,<xsl:apply-templates select="." mode="vcf.gatk.vep.gz"/>,<xsl:apply-templates select="." mode="vcf.gatk.gz"/>,gatkvep))
+<xsl:call-template name="ANNOTATE_WITH_VEP">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.gatk.vep.gz"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.gatk.gz"/></xsl:with-param>
+	<xsl:with-param name="type">gatkvep</xsl:with-param>
+</xsl:call-template>
 
 #
 # Annotation samtools with SNPEFF for  sample <xsl:value-of select="@name"/>
 #
-$(eval $(call ANNOTATE_WITH_SNPEFF,<xsl:apply-templates select="." mode="vcf.samtools.snpeff.gz"/>,<xsl:apply-templates select="." mode="vcf.samtools.gz"/>,mpileupsnpeff))
+<xsl:call-template name="ANNOTATE_WITH_SNPEFF">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.samtools.snpeff.gz"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:with-param>
+	<xsl:with-param name="type">mpileupsnpeff</xsl:with-param>
+</xsl:call-template>
 
 #
 # Annotation gatk with SNPEFF for  sample <xsl:value-of select="@name"/>
 #
-$(eval $(call ANNOTATE_WITH_SNPEFF,<xsl:apply-templates select="." mode="vcf.gatk.snpeff.gz"/>,<xsl:apply-templates select="." mode="vcf.gatk.gz"/>,gatksnpeff))
+<xsl:call-template name="ANNOTATE_WITH_SNPEFF">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.gatk.snpeff.gz"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.gatk.gz"/></xsl:with-param>
+	<xsl:with-param name="type">gatksnpeff</xsl:with-param>
+</xsl:call-template>
 
 #
 # Allele calling with samtools for sample <xsl:value-of select="@name"/>
@@ -448,33 +448,48 @@ $(eval $(call ANNOTATE_WITH_SNPEFF,<xsl:apply-templates select="." mode="vcf.gat
 </xsl:when>
 <xsl:otherwise>
 
+LIST_PHONY_TARGET+=all_predictions 
 all_predictions: \
 	$(OUTDIR)/variations.samtools.vep.tsv.gz \
 	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
 	$(OUTDIR)/variations.gatk.vep.tsv.gz \
-	$(OUTDIR)/variations.gatk.snpEff.tsv.gz 
+	$(OUTDIR)/variations.gatk.snpEff.vcf.gz 
 	
 #
 # prediction samtools with Variation Ensembl Prediction API
 #
-$(eval $(call ANNOTATE_WITH_VEP,$(OUTDIR)/variations.samtools.vep.tsv.gz,$(OUTDIR)/variations.samtools.vcf.gz,samtoolsvep))
-
+<xsl:call-template name="ANNOTATE_WITH_VEP">
+	<xsl:with-param name="target">$(OUTDIR)/variations.samtools.vep.tsv.gz</xsl:with-param>
+	<xsl:with-param name="dependencies">$(OUTDIR)/variations.samtools.vcf.gz</xsl:with-param>
+	<xsl:with-param name="type">samtoolsvep</xsl:with-param>
+</xsl:call-template>
 
 #
 # prediction gatk with Variation Ensembl Prediction API
 #
-$(eval $(call ANNOTATE_WITH_VEP,$(OUTDIR)/variations.gatk.vep.tsv.gz,$(OUTDIR)/variations.gatk.vcf.gz,gatkvep))
-
+<xsl:call-template name="ANNOTATE_WITH_VEP">
+	<xsl:with-param name="target">$(OUTDIR)/variations.gatk.vep.tsv.gz</xsl:with-param>
+	<xsl:with-param name="dependencies">$(OUTDIR)/variations.gatk.vcf.gz</xsl:with-param>
+	<xsl:with-param name="type">gatkvep</xsl:with-param>
+</xsl:call-template>
 
 #
 # annotate samtools vcf with snpEff
 #
-$(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.samtools.snpEff.vcf.gz,$(OUTDIR)/variations.samtools.vcf.gz,mpileupsnpeff))
-	
+<xsl:call-template name="ANNOTATE_WITH_SNPEFF">
+	<xsl:with-param name="target">$(OUTDIR)/variations.samtools.snpEff.vcf.gz</xsl:with-param>
+	<xsl:with-param name="dependencies">$(OUTDIR)/variations.samtools.vcf.gz</xsl:with-param>
+	<xsl:with-param name="type">mpileupsnpeff</xsl:with-param>
+</xsl:call-template>
+
 #
 # annotate GATK vcf with snpEff
 #
-$(eval $(call ANNOTATE_WITH_SNPEFF,$(OUTDIR)/variations.gatk.snpEff.tsv.gz,$(OUTDIR)/variations.gatk.vcf.gz,gatksnpeff))
+<xsl:call-template name="ANNOTATE_WITH_SNPEFF">
+	<xsl:with-param name="target">$(OUTDIR)/variations.gatk.snpEff.vcf.gz</xsl:with-param>
+	<xsl:with-param name="dependencies">$(OUTDIR)/variations.gatk.vcf.gz</xsl:with-param>
+	<xsl:with-param name="type">gatksnpeff</xsl:with-param>
+</xsl:call-template>
 
 #
 # Allele calling with samtools
@@ -496,6 +511,7 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 #
 # Statistics for BAM
 #
+LIST_PHONY_TARGET+= bam_statistics 
 bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/coverage.tsv.gz
 
 #
@@ -1058,6 +1074,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 # statistics from HSQLDB
 #
+LIST_PHONY_TARGET+= hsqldb_statistics 
 hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 
 $(OUTDIR)/durations.stats.txt:
@@ -1088,6 +1105,7 @@ $(OUTDIR)/Reference/human_g1k_v37.fasta:
 #
 # index reference with bowtie
 #
+LIST_PHONY_TARGET+= build_bowtie_index 
 build_bowtie_index:$(BOWTIE_INDEXED_REFERENCE)
 $(filter-out %.1.bt2,$(BOWTIE_INDEXED_REFERENCE)): $(filter  %.1.bt2,$(BOWTIE_INDEXED_REFERENCE))
 $(filter  %.1.bt2,$(BOWTIE_INDEXED_REFERENCE)): $(REF)
@@ -1107,7 +1125,18 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 	curl  -o $@ "ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/00-All.vcf.gz.tbi"
 	$(call notempty,$@)
 
-
+################################################################################################
+#
+# track project changes with git
+#
+#
+LIST_PHONY_TARGET+= git 
+git:.git/config
+	-git add $(makefile.name)
+	-git commit -m "changes $(makefile.name)" $(makefile.name)
+	
+.git/config:
+	git init ($dir $(makefile.name))
 
 </xsl:template>
 
@@ -1355,7 +1384,7 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 #  BEGIN TOPHAT 
 #
 #
-
+LIST_PHONY_TARGET+= all_tophat
 all_tophat: $(OUTDIR)/diff_out/gene_exp.diff
 
 #
@@ -1407,6 +1436,7 @@ $(OUTDIR)/tophat.assemblies.txt: <xsl:for-each select="sample/sequences/pair"><x
 #
 # merge all the FASTX reports in one PDF
 #
+LIST_PHONY_TARGET+= fastx
 fastx: $(OUTDIR)/FASTX/fastx.report.pdf
 $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 	<xsl:text> \
@@ -1518,7 +1548,45 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 </xsl:template>
 
 
+<xsl:template name="ANNOTATE_WITH_SNPEFF">
+<xsl:param name="target"/>
+<xsl:param name="dependencies"/>
+<xsl:param name="type"/>
+#
+# Annotation of <xsl:value-of select="$dependencies"/>
+#
+<xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
+	#Annotation of $&lt; with SNPEFF 
+	$(call timebegindb,$@,<xsl:value-of select="$type"/>)
+	gunzip -c  $&lt; |\
+	egrep -v '^GL' |\
+	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
+	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
+	${TABIX.bgzip} -c  &gt; $@
+	${TABIX.tabix} -p vcf $@ 
+	$(call timeenddb,$@,<xsl:value-of select="$type"/>)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+</xsl:template>
+
+
+<xsl:template name="ANNOTATE_WITH_VEP">
+<xsl:param name="target"/>
+<xsl:param name="dependencies"/>
+<xsl:param name="type"/>
+<xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
+	#Annotation of $&lt; with VEP 
+	$(call timebegindb,$@,<xsl:value-of select="$type"/>)
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite -i $&lt; -o $(basename $@)
+	#VEP: done.
+	$(call notempty,$(basename $@))
+	${TABIX.bgzip} -f $(basename $@)
+	$(call timeenddb,$@,<xsl:value-of select="$type"/>)
+	$(call sizedb,$@)
+	$(call notempty,$@)
 	
+</xsl:template>
 
 
 
