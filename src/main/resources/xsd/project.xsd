@@ -22,6 +22,12 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	     <xs:enumeration value="use.samtools.rmdup">
+	        <xs:annotation>
+	          <xs:documentation>if set to 'yes', will use samtools rmdup instead of picard MarkDuplicates</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
 	     <xs:enumeration value="cutadapt.sequence">
 	        <xs:annotation>
 	          <xs:documentation>custom sequence for cutadapt (option -b )</xs:documentation>

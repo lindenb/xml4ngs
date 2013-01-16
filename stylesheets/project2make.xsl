@@ -718,6 +718,14 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 	##ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
 	
 </xsl:when>
+<xsl:when test="/project/properties/property[@key='use.samtools.rmdup']='yes'">	$(call timebegindb,$@_markdup,markdup)
+	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
+	$(call sizedb,$@)
+	$(call notempty,$@)
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
+
+</xsl:when>
 <xsl:otherwise>	$(call timebegindb,$@_markdup,markdup)
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		TMP_DIR=$(OUTDIR) \
