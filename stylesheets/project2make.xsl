@@ -304,8 +304,8 @@ endef
 
 
 toptarget:
-	echo "This is the top target. Please select a specific target"
-	echo "e.g: ${LIST_PHONY_TARGET} "
+	@echo "This is the top target. Please select a specific target"
+	@echo "e.g: ${LIST_PHONY_TARGET} "
 
 all: ${LIST_PHONY_TARGET} all_predictions fastx hsqldb_statistics <xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
 
@@ -578,8 +578,23 @@ $(OUTDIR)/bamstats01.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
+
+## coverage of distribution ###############################################################
+
 LIST_PHONY_TARGET+= coverage_distribution
-coverage_distribution: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:for-each>
+
+coverage_distribution: coverage_distribution_merged  coverage_distribution_markdup coverage_distribution_recal
+
+LIST_PHONY_TARGET+= coverage_distribution_merged
+coverage_distribution_merged : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:for-each>
+
+LIST_PHONY_TARGET+= coverage_distribution_markdup
+coverage_distribution_markdup : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.markdup"/></xsl:for-each>
+
+LIST_PHONY_TARGET+= coverage_distribution_recal
+coverage_distribution_recal : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.recal"/></xsl:for-each>
+
+
 
 #
 # create a PDF for bamstats03.tsv
@@ -929,17 +944,25 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 </xsl:if>
 
 
-##
-# distribution of coverage for sample &quot;<xsl:value-of select="@name"/>&quot;
-#
-<xsl:apply-templates select="." mode="coverage.distribution.merged"/>:  $(call indexed_bam, <xsl:apply-templates select="." mode="merged"/> ) $(capture.bed)
-	$(call timebegindb,$@,depthofcovdist)
-	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
-		grep -v bam | cut -d '	' -f 4 &gt; $(patsubst %.pdf,%.tsv,$@)
-	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(filter %.bam,$^)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
-		${R.exe} --no-save 
-	$(call timeenddb,$@,depthofcovdist)
-	$(call sizedb,$@)
+<!-- distribution of coverage -->
+<xsl:call-template name="DISTRIBUTION_OF_COVERAGE">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="merged"/></xsl:with-param>
+	<xsl:with-param name="type">depthofcovdist</xsl:with-param>
+</xsl:call-template>
+
+<xsl:call-template name="DISTRIBUTION_OF_COVERAGE">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="coverage.distribution.markdup"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="markdup"/></xsl:with-param>
+	<xsl:with-param name="type">depthofcovdist</xsl:with-param>
+</xsl:call-template>
+
+<xsl:call-template name="DISTRIBUTION_OF_COVERAGE">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="coverage.distribution.recal"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="recal"/></xsl:with-param>
+	<xsl:with-param name="type">depthofcovdist</xsl:with-param>
+</xsl:call-template>
+
 
 
 ###############################################################
@@ -1274,13 +1297,32 @@ git:.git/config
 </xsl:choose>
 </xsl:template>
 
+<!-- distribution of coverage   -->
 <xsl:template match="sample" mode="coverage.distribution.merged">
 <xsl:text>$(dir </xsl:text>
 <xsl:apply-templates select="." mode="merged"/>
-<xsl:text>)/</xsl:text>
+<xsl:text>)</xsl:text>
 <xsl:value-of select="concat(@name,'.merged.coverage.pdf')"/>
 <xsl:text> </xsl:text>
 </xsl:template>
+
+<xsl:template match="sample" mode="coverage.distribution.markdup">
+<xsl:text>$(dir </xsl:text>
+<xsl:apply-templates select="." mode="markdup"/>
+<xsl:text>)</xsl:text>
+<xsl:value-of select="concat(@name,'.markdup.coverage.pdf')"/>
+<xsl:text> </xsl:text>
+</xsl:template>
+
+<xsl:template match="sample" mode="coverage.distribution.recal">
+<xsl:text>$(dir </xsl:text>
+<xsl:apply-templates select="." mode="recal"/>
+<xsl:text>)</xsl:text>
+<xsl:value-of select="concat(@name,'.recal.coverage.pdf')"/>
+<xsl:text> </xsl:text>
+</xsl:template>
+
+
 
 
 <xsl:template match="pair" mode="unsorted">
@@ -1668,6 +1710,23 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 	
 </xsl:template>
 
+<xsl:template name="DISTRIBUTION_OF_COVERAGE">
+<xsl:param name="target"/>
+<xsl:param name="dependencies"/>
+<xsl:param name="type"/>
+##
+# distribution of coverage for sample &quot;<xsl:value-of select="@name"/>&quot; ( <xsl:value-of select="$type"/> )
+#
+<xsl:value-of select="$target"/>:  $(call indexed_bam, <xsl:value-of select="$dependencies"/> ) $(capture.bed)
+	$(call timebegindb,$@,<xsl:value-of select="$type"/>)
+	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
+		grep -v bam | cut -d '	' -f 4 &gt; $(patsubst %.pdf,%.tsv,$@)
+	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
+		${R.exe} --no-save 
+	$(call timeenddb,$@,<xsl:value-of select="$type"/>)
+	$(call sizedb,$@)
+
+</xsl:template>
 
 
 </xsl:stylesheet>
