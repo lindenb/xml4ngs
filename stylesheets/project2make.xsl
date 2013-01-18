@@ -139,6 +139,30 @@ REF=</xsl:text>
 
 </xsl:choose>
 
+<!-- ========= min mapping quality ======================================================= -->
+<xsl:choose>
+<xsl:when test="not(/project/properties/property[@key='min.mapping.quality'])">
+<xsl:message terminate="no">[WARNING] 'min.mapping.quality' undefined in project, will use: 30</xsl:message>
+<xsl:text>
+#
+# min mapping quality
+#
+MIN_MAPPING_QUALITY=30
+</xsl:text>
+</xsl:when>
+<xsl:otherwise>
+<xsl:text>
+#
+# min mapping quality
+#
+MIN_MAPPING_QUALITY=</xsl:text>
+<xsl:value-of select="/project/properties/property[@key='min.mapping.quality']"/>
+<xsl:text>
+</xsl:text>
+</xsl:otherwise>
+
+</xsl:choose>
+<!-- ================================================================================= -->
 
 #
 # file that will be used to lock the SQL-related resources
@@ -306,10 +330,18 @@ bams_unsorted: <xsl:for-each select="sample/sequences/pair"><xsl:apply-templates
 LIST_PHONY_TARGET+= bams_sorted 
 bams_sorted: <xsl:for-each select="sample/sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
 LIST_PHONY_TARGET+= coverage
-coverage: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>
+coverage:$(OUTDIR)/mean_coverage01.pdf
+$(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>)
+	echo "sample	mean-coverage" &gt; $(patsubst %.pdf,%.tsv,$@)
+	cat $^ | sort | grep -v -E  '^(Total|sample_id)'  |\
+		cut -d '	' -f1,3 &gt;&gt; $(patsubst %.pdf,%.tsv,$@)
+	echo 'pdf("$@",paper="A4r"); T&lt;-read.table("$(patsubst %.pdf,%.tsv,$@)",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
+	${R.exe} --no-save
+	
+	
 LIST_PHONY_TARGET+= all_fastqs
 all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templates select="." mode="preprocessed.fastq"/><xsl:text> </xsl:text></xsl:for-each>
-
+	
 
 
 
@@ -337,7 +369,9 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 #
 #
 <xsl:variable name="call.with.samtools.mpileup">	$(call timebegindb,$@,mpileup)
-	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A  -d 8000 </xsl:if> -uD -q 30 -f $(REF) $(filter %.bam,$^) |\
+	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A  -d 8000 </xsl:if> -uD \
+		-q $(MIN_MAPPING_QUALITY) \
+		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -p vcf $@ 
@@ -512,14 +546,17 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
-bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/coverage.tsv.gz
+bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf $(OUTDIR)/coverage.tsv.gz coverage_distribution
 
 #
 # coverage per target
 #
 $(OUTDIR)/coverage.tsv.gz : $(capture.bed)  $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
 	$(call timebegindb,$@,$@)
-	${VARKIT}/beddepth $(foreach S,$(filter %.bam,$^),-f $(S) ) &lt; $&lt; | gzip --best &gt; $@
+	${VARKIT}/beddepth -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,$^),-f $(S) ) &lt; $&lt; |\
+		awk -F '/' '{print $$NF;}'  |\
+		sed 's/_recal.bam//' |\
+		gzip --best &gt; $@
 	$(call timeendb,$@,$@)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -528,7 +565,7 @@ $(OUTDIR)/coverage.tsv.gz : $(capture.bed)  $(call indexed_bam,<xsl:for-each sel
 # create a PDF for bamstats01.tsv
 #
 $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
-	echo 'pdf("$@",paper="A4r"); T&lt;-read.table("$&lt;",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
+	echo 'pdf("$@",paper="A4r"); T&lt;-read.delim("$&lt;",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
@@ -536,7 +573,27 @@ $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
 #
 $(OUTDIR)/bamstats01.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
 	$(call timebegindb,$@,$@)
-	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) > $@
+	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort > $@
+	$(call timeendb,$@,$@)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
+LIST_PHONY_TARGET+= coverage_distribution
+coverage_distribution: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:for-each>
+
+#
+# create a PDF for bamstats03.tsv
+#
+$(OUTDIR)/bamstats03.pdf : $(OUTDIR)/bamstats03.tsv
+	echo 'pdf("$@",paper="A4r"); T&lt;-read.delim("$&lt;",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
+	${R.exe} --no-save
+
+#
+# count of mapped-reads, quality per sample	
+#
+$(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
+	$(call timebegindb,$@,$@)
+	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
 	$(call timeendb,$@,$@)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -610,18 +667,19 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 #
 # Depth of coverage with GATK
 #
-<xsl:apply-templates select="." mode="coverage"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
-	$(call timebegindb,$@,coverage)
+<xsl:apply-templates select="." mode="coverage"/> $(addsuffix .sample_summary,<xsl:apply-templates select="." mode="coverage"/>): $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+	$(call timebegindb,$(firstword $@),coverage)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
 		-L $(filter %.bed,$^) \
 		-S SILENT \
+		--minMappingQuality $(MIN_MAPPING_QUALITY) \
 		-omitBaseOutput \
 		--summaryCoverageThreshold 5 \
 		-I $(filter %.bam,$^) \
-		-o $@
-	$(call timeendb,$@,coverage)
+		-o $(firstword $@)
+	$(call timeendb,$(firstword $@),coverage)
 
 
 
@@ -869,6 +927,20 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 	touch $@
 	
 </xsl:if>
+
+
+##
+# distribution of coverage for sample &quot;<xsl:value-of select="@name"/>&quot;
+#
+<xsl:apply-templates select="." mode="coverage.distribution.merged"/>:  $(call indexed_bam, <xsl:apply-templates select="." mode="merged"/> ) $(capture.bed)
+	$(call timebegindb,$@,depthofcovdist)
+	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
+		grep -v bam | cut -d '	' -f 4 &gt; $(patsubst %.pdf,%.tsv,$@)
+	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(filter %.bam,$^)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
+		${R.exe} --no-save 
+	$(call timeenddb,$@,depthofcovdist)
+	$(call sizedb,$@)
+
 
 ###############################################################
 #
@@ -1200,6 +1272,14 @@ git:.git/config
 	<xsl:apply-templates select="sequences/pair[1]" mode="sorted"/>
 </xsl:otherwise>
 </xsl:choose>
+</xsl:template>
+
+<xsl:template match="sample" mode="coverage.distribution.merged">
+<xsl:text>$(dir </xsl:text>
+<xsl:apply-templates select="." mode="merged"/>
+<xsl:text>)/</xsl:text>
+<xsl:value-of select="concat(@name,'.merged.coverage.pdf')"/>
+<xsl:text> </xsl:text>
 </xsl:template>
 
 

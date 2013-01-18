@@ -22,6 +22,12 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	     <xs:enumeration value="min.mapping.quality">
+	        <xs:annotation>
+	          <xs:documentation>Min read mapping quality used in various program.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
 	     <xs:enumeration value="use.samtools.rmdup">
 	        <xs:annotation>
 	          <xs:documentation>if set to 'yes', will use samtools rmdup instead of picard MarkDuplicates</xs:documentation>
