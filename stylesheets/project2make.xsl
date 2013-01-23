@@ -3,7 +3,8 @@
 <xsl:stylesheet
 	xmlns:xsl='http://www.w3.org/1999/XSL/Transform'
         xmlns:date="http://exslt.org/dates-and-times" 
-        extension-element-prefixes="date" 
+        xmlns:str="http://exslt.org/strings"
+        extension-element-prefixes="date str" 
 	version='1.0'
 	>
 
@@ -105,6 +106,13 @@ WARN_COLOR=\x1b[33;01m
 # fix PATH (tophat needs this)
 #
 export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${R.dir}/bin:/usr/bin
+
+###
+# FIX LOCALE (http://unix.stackexchange.com/questions/61985)
+#
+export LC_ALL:=C
+
+
 #
 #
 # path to GHOSTVIEW
@@ -282,19 +290,24 @@ endef
 # PATTERN RULES DEFINITIONS
 #
 #
-%.amb %.ann %.bwt %.pac %.sa : %.fasta
+<xsl:for-each select="str:tokenize('.fasta .fa', ' ')" >
+
+#index with bwa
+%.amb %.ann %.bwt %.pac %.sa : %<xsl:value-of select="."/>
 	$(BWA) index -a bwtsw $&lt; 
 
-%.fasta.fai : %.fasta
+#index with samtools
+%<xsl:value-of select="."/>.fai : %<xsl:value-of select="."/>
 	$(SAMTOOLS) faidx $&lt;
 
-%.dict: %.fasta
+#picard dictionnary
+%.dict: %<xsl:value-of select="."/>
 	 $(JAVA) -jar $(PICARD)/CreateSequenceDictionary.jar \
 		R=$&lt; \
 		O=$@ \
 		GENOME_ASSEMBLY=$(basename $(notdir $&lt;)) \
 		TRUNCATE_NAMES_AT_WHITESPACE=true
-
+</xsl:for-each>
 
 #
 # treat all files as SECONDARY
@@ -583,17 +596,20 @@ $(OUTDIR)/bamstats01.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl
 
 LIST_PHONY_TARGET+= coverage_distribution
 
-coverage_distribution: coverage_distribution_merged  coverage_distribution_markdup coverage_distribution_recal
+coverage_distribution:  $(OUTDIR)/all.distribution.merged.pdf \
+			$(OUTDIR)/all.distribution.markdup.pdf \
+			$(OUTDIR)/all.distribution.recal.pdf
 
-LIST_PHONY_TARGET+= coverage_distribution_merged
-coverage_distribution_merged : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:for-each>
 
-LIST_PHONY_TARGET+= coverage_distribution_markdup
-coverage_distribution_markdup : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.markdup"/></xsl:for-each>
 
-LIST_PHONY_TARGET+= coverage_distribution_recal
-coverage_distribution_recal : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.recal"/></xsl:for-each>
+$(OUTDIR)/all.distribution.merged.pdf : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:for-each>
+	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
+$(OUTDIR)/all.distribution.markdup.pdf : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.markdup"/></xsl:for-each>
+	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
+
+$(OUTDIR)/all.distribution.recal.pdf : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.recal"/></xsl:for-each>
+	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
 
 #
@@ -682,7 +698,7 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 #
 # Depth of coverage with GATK
 #
-<xsl:apply-templates select="." mode="coverage"/> $(addsuffix .sample_summary,<xsl:apply-templates select="." mode="coverage"/>): $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+<xsl:apply-templates select="." mode="coverage"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
 	$(call timebegindb,$(firstword $@),coverage)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
