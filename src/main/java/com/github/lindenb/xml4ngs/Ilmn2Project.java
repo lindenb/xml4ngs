@@ -48,10 +48,25 @@ public class Ilmn2Project
 				String tokens[]=uscore.split(f.getName());
 				if(tokens[1].equals("Undetermined")) continue;
 			
-				if(tokens.length!=5)
+				if(tokens.length<5)
 					{
 					 System.err.println("Illegal name "+f);
 					continue;
+					}
+				else if(tokens.length>5)
+					{
+					String tokens2[]=new String[5];
+					tokens2[0]=tokens[0];
+					int name_count=(tokens.length-5);
+					for(int i=1;i<= name_count;++i)
+						{
+						tokens2[0]+="_"+tokens[i];
+						}
+					for(int i=name_count+1; i< tokens.length;++i)
+						{
+						tokens2[i-name_count]=tokens[i];
+						}
+					tokens=tokens2;
 					}
 				if(!tokens[2].startsWith("L"))
 					{
