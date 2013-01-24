@@ -698,8 +698,8 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 #
 # Depth of coverage with GATK
 #
-<xsl:apply-templates select="." mode="coverage"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
-	$(call timebegindb,$(firstword $@),coverage)
+$(addsuffix .sample_summary,<xsl:apply-templates select="." mode="coverage"/>) : $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+	$(call timebegindb,<xsl:apply-templates select="." mode="coverage"/>,coverage.gatk)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
@@ -709,8 +709,8 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 		-omitBaseOutput \
 		--summaryCoverageThreshold 5 \
 		-I $(filter %.bam,$^) \
-		-o $(firstword $@)
-	$(call timeendb,$(firstword $@),coverage)
+		-o <xsl:apply-templates select="." mode="coverage"/>
+	$(call timeendb,<xsl:apply-templates select="." mode="coverage"/>,coverage.gatk)
 
 
 
@@ -832,8 +832,9 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 
 </xsl:when>
 <xsl:otherwise>	$(call timebegindb,$@_markdup,markdup)
+	mkdir -p $(addsuffix tmp.rmdup,$(dir $@))
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
-		TMP_DIR=$(OUTDIR) \
+		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
 		INPUT=$(filter %.bam,$^) \
 		O=$@ \
 		MAX_FILE_HANDLES=400 \
@@ -849,19 +850,23 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 		</xsl:choose> \
 		VALIDATION_STRINGENCY=SILENT
 	$(call timeenddb,$@_markdup,markdup)
-	#$(call timebegindb,$@_fixmate,fixmate)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
+	touch $@
+
+<!--
+pas utilisé
+#$(call timebegindb,$@_fixmate,fixmate)
 	#$(JAVA) $(PICARD.jvm) -jar $(PICARD)/FixMateInformation.jar  TMP_DIR=$(OUTDIR) INPUT=$@  VALIDATION_STRINGENCY=SILENT
 	#$(call timendedb,$@_fixmate,fixmate)
 	#$(SAMTOOLS) index $@
 	#$(call timebegindb,$@_validate,validate)
 	#$(JAVA) $(PICARD.jvm) -jar $(PICARD)/ValidateSamFile.jar TMP_DIR=$(OUTDIR) VALIDATE_INDEX=true I=$@  CREATE_INDEX=true VALIDATION_STRINGENCY=SILENT IGNORE_WARNINGS=true
 	#$(call timeenddb,$@_validate,validate)
-	$(DELETEFILE) $&lt; $@.metrics 
-	$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,$^) )
-	$(call delete_and_touch,$(filter %.bai,$^) )
-	touch $@
+
+-->
 
 </xsl:otherwise>
 </xsl:choose>
@@ -1244,10 +1249,10 @@ $(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
 LIST_PHONY_TARGET+= git 
 git:.git/config
 	-git add $(makefile.name)
-	-git commit -m "changes $(makefile.name)" $(makefile.name)
+	-git commit -m "changes $(makefile.name)"
 	
 .git/config:
-	git init ($dir $(makefile.name))
+	git init $(dir $(makefile.name))
 
 </xsl:template>
 
