@@ -578,7 +578,7 @@ $(OUTDIR)/coverage.tsv.gz : $(capture.bed)  $(call indexed_bam,<xsl:for-each sel
 # create a PDF for bamstats01.tsv
 #
 $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
-	echo 'pdf("$@",paper="A4r"); T&lt;-read.delim("$&lt;",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
+	echo 'pdf("$@",paper="A4r"); T&lt;-read.delim("$&lt;",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
@@ -586,7 +586,7 @@ $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
 #
 $(OUTDIR)/bamstats01.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
 	$(call timebegindb,$@,$@)
-	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort > $@
+	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort | sed 's/_recal.bam//' > $@
 	$(call timeendb,$@,$@)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -759,7 +759,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 </xsl:when>
 <xsl:otherwise>
 <xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>) $(OUTDIR)/capture500.bed $(known.sites)
-	$(call timebegindb,$@_countCovariates,covariates)
+	@$(call timebegindb,$@_countCovariates,covariates)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
 		-R $(REF) \
@@ -780,8 +780,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		-cov QualityScoreCovariate \
 		-cov CycleCovariate \
 		-cov ContextCovariate
-	$(call timeenddb,$@_countCovariates,covariates)
-	$(call timebegindb,$@_tableRecalibaration,recalibration)
+	@$(call timeenddb,$@_countCovariates,covariates)
+	@$(call timebegindb,$@_tableRecalibaration,recalibration)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T PrintReads \
 		--disable_bam_indexing \
@@ -798,8 +798,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		</xsl:choose> \
 		-o $@ \
 		-l INFO
-	$(call timeenddb,$@_tableRecalibaration,recalibration)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@_tableRecalibaration,recalibration)
+	@$(call sizedb,$@)
 	rm -f $@.recal_data.grp
 	$(call notempty,$@)
 	$(call delete_and_touch,$(filter %.bam,$^) )
@@ -823,9 +823,9 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 	##ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
 	
 </xsl:when>
-<xsl:when test="/project/properties/property[@key='use.samtools.rmdup']='yes'">	$(call timebegindb,$@_markdup,markdup)
+<xsl:when test="/project/properties/property[@key='use.samtools.rmdup']='yes'">	@$(call timebegindb,$@_markdup,markdup)
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
-	$(call sizedb,$@)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 	$(call delete_and_touch,$(filter %.bam,$^) )
 	$(call delete_and_touch,$(filter %.bai,$^) )
@@ -849,8 +849,8 @@ LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
 		  </xsl:otherwise>
 		</xsl:choose> \
 		VALIDATION_STRINGENCY=SILENT
-	$(call timeenddb,$@_markdup,markdup)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@_markdup,markdup)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 	$(call delete_and_touch,$(filter %.bam,$^) )
 	$(call delete_and_touch,$(filter %.bai,$^) )
@@ -1036,7 +1036,7 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	<xsl:text> </xsl:text>
 	<xsl:apply-templates select="fastq[@index='2']" mode="sai"/>
 	## ALIGN WITH BWA #######################################################################
-	$(call timebegindb,$@,bwasampe)
+	@$(call timebegindb,$@,bwasampe)
 	$(BWA) sampe <xsl:choose>
 	  <xsl:when test="/project/properties/property[@key='bwa.sampe.options']">
 	  	<xsl:value-of select="/project/properties/property[@key='bwa.sampe.options']"/>
@@ -1060,10 +1060,10 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 			<xsl:apply-templates select="." mode="preprocessed.fastq"/>
 		</xsl:if>
 	</xsl:for-each> 
-	$(call timeenddb,$@,bwasampe)
-	$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.sai,$^))
+	@$(call timeenddb,$@,bwasampe)
+	@$(call sizedb,$@)
+	@$(call notempty,$@)
+	@$(call delete_and_touch,$(filter %.sai,$^))
 	touch $@
 
 
@@ -1119,8 +1119,8 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 
 <xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="preprocessed.fastq"/> $(INDEXED_REFERENCE)
 	mkdir -p $(dir $@)
-	$(call timebegindb,$@,sai)
-	$(call sizedb,$&lt;)
+	@$(call timebegindb,$@,sai)
+	@$(call sizedb,$&lt;)
 	$(BWA) aln <xsl:choose>
 	  <xsl:when test="/project/properties/property[@key='bwa.aln.options']">
 	  	<xsl:value-of select="/project/properties/property[@key='bwa.aln.options']"/>
@@ -1129,9 +1129,9 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	  	<!-- no bwa.aln option $(BWA.aln.options)  -->
 	  </xsl:otherwise>
 	</xsl:choose> -f $@ ${REF} $&lt;
-	$(call timeenddb,$@,sai)
-	$(call sizedb,$@)
-	$(call notempty,$@)
+	@$(call timeenddb,$@,sai)
+	@$(call sizedb,$@)
+	@$(call notempty,$@)
 
 
 
