@@ -384,12 +384,13 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 <xsl:variable name="call.with.samtools.mpileup">	$(call timebegindb,$@,mpileup)
 	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A  -d 8000 </xsl:if> -uD \
 		-q $(MIN_MAPPING_QUALITY) \
+		<xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> -l $(OUTDIR)/capture500.bed </xsl:if> \
 		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -p vcf $@ 
-	$(call timeenddb,$@,mpileup)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@,mpileup)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 
 </xsl:variable>
@@ -401,12 +402,21 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 		-T UnifiedGenotyper \
 		-glm BOTH \
 		-S SILENT \
+		<xsl:choose>
+		  <xsl:when test="/project/properties/property[@key='gatk.unified.genotyper.options']">
+		  	<xsl:value-of select="/project/properties/property[@key='gatk.unified.genotyper.options']"/>
+		  </xsl:when>
+		  <xsl:otherwise>
+		  	<!-- no option   -->
+		  </xsl:otherwise>
+		</xsl:choose> \
+		<xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> -L $(OUTDIR)/capture500.bed </xsl:if> \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp $(known.sites) \
 		-o $(basename $@)
 	${TABIX.bgzip} -f $(basename $@)
-	$(call timeendb,$@,UnifiedGenotyper)
-	$(call sizedb,$@)
+	@$(call timeendb,$@,UnifiedGenotyper)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 
 </xsl:variable>
@@ -482,13 +492,13 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 #
 # Allele calling with samtools for sample <xsl:value-of select="@name"/>
 #
-<xsl:apply-templates select="." mode="vcf.samtools.gz"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>)
+<xsl:apply-templates select="." mode="vcf.samtools.gz"/>: <xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> $(OUTDIR)/capture500.bed </xsl:if>  $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>)
 <xsl:value-of select="$call.with.samtools.mpileup"/>
 
 #
 # Allele calling with GATK for sample <xsl:value-of select="@name"/>
 #
-<xsl:apply-templates select="." mode="vcf.gatk.gz"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(known.sites)
+<xsl:apply-templates select="." mode="vcf.gatk.gz"/>: <xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> $(OUTDIR)/capture500.bed </xsl:if>  $(call indexed_bam,<xsl:apply-templates select="." mode="recal"/>) $(known.sites)
 <xsl:value-of select="$call.with.gatk"/>
 
 </xsl:for-each>
@@ -541,13 +551,13 @@ all_predictions: \
 #
 # Allele calling with samtools
 #
-$(OUTDIR)/variations.samtools.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
+$(OUTDIR)/variations.samtools.vcf.gz: <xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> $(OUTDIR)/capture500.bed </xsl:if>  $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
 <xsl:value-of select="$call.with.samtools.mpileup"/>
 
 #
 # Allele calling with GATK
 #
-$(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>) $(known.sites)
+$(OUTDIR)/variations.gatk.vcf.gz: <xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> $(OUTDIR)/capture500.bed </xsl:if>  $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>) $(known.sites)
 <xsl:value-of select="$call.with.gatk"/>
 
 </xsl:otherwise>
@@ -559,20 +569,11 @@ $(OUTDIR)/variations.gatk.vcf.gz: $(call indexed_bam,<xsl:for-each select="sampl
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
-bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf $(OUTDIR)/coverage.tsv.gz coverage_distribution
+bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf beddepth coverage_distribution 
 
-#
-# coverage per target
-#
-$(OUTDIR)/coverage.tsv.gz : $(capture.bed)  $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
-	$(call timebegindb,$@,$@)
-	${VARKIT}/beddepth -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,$^),-f $(S) ) &lt; $&lt; |\
-		awk -F '/' '{print $$NF;}'  |\
-		sed 's/_recal.bam//' |\
-		gzip --best &gt; $@
-	$(call timeendb,$@,$@)
-	$(call sizedb,$@)
-	$(call notempty,$@)
+
+LIST_PHONY_TARGET+= beddepth
+beddepth: <xsl:for-each select="sample"><xsl:apply-templates select="." mode="varkit.beddepth"/></xsl:for-each>
 
 #
 # create a PDF for bamstats01.tsv
@@ -986,6 +987,13 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 
 
 
+<xsl:call-template name="VARKIT_BEDDEDPTH">
+	<xsl:with-param name="target"><xsl:apply-templates select="." mode="varkit.beddepth"/></xsl:with-param>
+	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="recal"/></xsl:with-param>
+</xsl:call-template>
+
+
+
 ###############################################################
 #
 # BEGIN: LOOP OVER EACH PAIR OF FASTQ
@@ -1205,6 +1213,17 @@ $(OUTDIR)/filesize.stats.txt:
 		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
+######################################################################################
+#
+# list target(s) for which processing has been canceled or is still
+# an ongoing process.
+#
+LIST_PHONY_TARGET+= ongoing
+ongoing:
+	lockfile $(LOCKFILE)
+	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+		--sql "select B.file,B.w,E.file,E.w,B.category from begindb as B LEFT JOIN enddb as E on ( B.file=E.file and B.category=E.category ) where E.file is NULL or B.w &gt;= E.w order by B.file ;" 
+	rm -f $(LOCKFILE)	
 
 #####################################################################################
 #
@@ -1437,17 +1456,26 @@ git:.git/config
 #
 </xsl:text>
 <xsl:value-of select="concat(normalize-space($bam),'.bai')"/> <xsl:text>: </xsl:text><xsl:value-of select="$bam"/><xsl:text>
-	$(call timebegindb,$@,bai)
+	@$(call timebegindb,$@,bai)
 	$(SAMTOOLS) index $&lt;
-	$(call timeenddb,$@,bai)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@,bai)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
 
 </xsl:text>
 </xsl:template>
 
+<!-- =======================================
+        BEDDEPTH
+     ======================================= -->
+<xsl:template match="sample" mode="varkit.beddepth">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_beddepth.tsv.gz ')"/>
+</xsl:template>   
 
+
+     
 <!-- ======================================================================================================
      
    	TOPHAT
@@ -1720,13 +1748,13 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:param name="type"/>
 <xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
 	#Annotation of $&lt; with VEP 
-	$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite -i $&lt; -o $(basename $@)
+	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o $(basename $@)
 	#VEP: done.
-	$(call notempty,$(basename $@))
+	@$(call notempty,$(basename $@))
 	${TABIX.bgzip} -f $(basename $@)
-	$(call timeenddb,$@,<xsl:value-of select="$type"/>)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
 </xsl:template>
@@ -1749,5 +1777,21 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 
 </xsl:template>
 
+<xsl:template name="VARKIT_BEDDEDPTH">
+<xsl:param name="target"/>
+<xsl:param name="dependencies"/>
+#
+# coverage using varkit/beddepth
+#
+<xsl:value-of select="$target"/> : $(capture.bed)  $(call indexed_bam,<xsl:value-of select="$dependencies"/> )
+	@$(call timebegindb,$@,$@)
+	${VARKIT}/beddepth -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,$^),-f $(S) ) &lt; $&lt; |\
+		sed 's/_recal.bam//' |\
+		gzip --best &gt; $@
+	@$(call timeendb,$@,$@)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+
+</xsl:template>
 
 </xsl:stylesheet>
