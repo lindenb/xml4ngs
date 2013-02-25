@@ -2,6 +2,7 @@ package com.github.lindenb.xml4ngs;
 
 import com.github.lindenb.xml4ngs.ObjectFactory;
 import java.io.*;
+import java.util.zip.GZIPInputStream;
 import java.util.regex.Pattern;
 import javax.xml.bind.*;
 import javax.xml.namespace.QName;
@@ -20,6 +21,24 @@ public class Ilmn2Project
 	private Ilmn2Project()
 		{
 		
+		}
+	
+	/** test wether the file contains at least one FASTQ record */
+	private boolean isEmptyFastQ(File f) throws IOException
+		{
+		int nLines=0;
+		int c;
+		GZIPInputStream in = new GZIPInputStream( new FileInputStream(f) );
+		while((c=in.read())!=-1)
+			{
+			if(c=='\n')
+				{
+				nLines++;
+				if(nLines>3) break;
+				}
+			}
+		in.close();
+		return nLines<4;
 		}
 
 	private void scan(File dir) throws IOException
@@ -44,10 +63,15 @@ public class Ilmn2Project
 				}
 			else if(f.getName().endsWith(SUFFIX))
 				{
+				if(isEmptyFastQ(f))
+					{
+					System.err.println("WARNING: empty fastq: "+f);
+					continue;
+					}
 				//SAMPLENAME_GATCAG_L007_R2_001.fastq.gz
 				String tokens[]=uscore.split(f.getName());
 				if(tokens[1].equals("Undetermined")) continue;
-			
+				
 				if(tokens.length<5)
 					{
 					 System.err.println("Illegal name "+f);

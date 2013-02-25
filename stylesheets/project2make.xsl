@@ -1751,7 +1751,7 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
 	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o $(basename $@)
 	#VEP: done.
-	@$(call notempty,$(basename $@))
+	touch $(basename $@) <!-- if VCF contains no variant  -->
 	${TABIX.bgzip} -f $(basename $@)
 	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
 	@$(call sizedb,$@)

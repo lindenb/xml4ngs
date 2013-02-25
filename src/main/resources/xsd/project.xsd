@@ -27,6 +27,20 @@
 	          <xs:documentation>Min read mapping quality used in various program.</xs:documentation>
 	        </xs:annotation>
 	      </xs:enumeration>
+	      
+	      
+	       <xs:enumeration value="gatk.unified.genotyper.options">
+	        <xs:annotation>
+	          <xs:documentation>Specific options for GATK Unified Genotyper.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      
+	      <xs:enumeration value="allele.calling.in.capture">
+	        <xs:annotation>
+	          <xs:documentation>if set to 'yes' Only do allele calling in the genic region or the extended captured region. Else to the calling genome-wide</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      
 	     
 	     <xs:enumeration value="use.samtools.rmdup">
 	        <xs:annotation>
