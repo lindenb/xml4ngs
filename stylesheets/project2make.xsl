@@ -61,7 +61,7 @@ include tools.mk  <!-- config.mk -->
 <xsl:text># </xsl:text>
 <xsl:value-of select="@key"/>
 <xsl:text>	&quot;</xsl:text>
-<xsl:value-of select="."/>
+<xsl:value-of select="normalize-space(.)"/>
 <xsl:text>&quot;
 </xsl:text>
 </xsl:for-each>
@@ -359,18 +359,18 @@ all_fastqs: <xsl:for-each select="sample/sequences/pair/fastq"><xsl:apply-templa
 
 
 
-
+<!--
 #
 # Join samtools VEP to diseases database (jensenlab.org)
 # 
-$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools.vep.tsv.gz
+$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools.vep.vcf.gz
 	mkdir -p $(dir $@)
 	curl "http://download.jensenlab.org/human_disease_textmining_full.tsv" | sort -t '	' -k1,1 > $(OUTDIR)/human_disease_textmining_full_01.tsv
 	curl "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/ensGtp.txt.gz" | gunzip -c | awk -F '	' '($$3!="")' | sort -t '	' -k3,3 > $(OUTDIR)/ensGtp_01.txt
 	(echo "Ensembl.Protein	GeneSymbol	disease.ontology.id	disease.ontology.label	jensenlab.zscore	jensenlab.confidence	Gene	Transcript" ; join -t '	' -1 1 -2 3 $(OUTDIR)/human_disease_textmining_full_01.tsv $(OUTDIR)/ensGtp_01.txt )| sort -t '	' -k7,7 > $(OUTDIR)/jeter_01.join
-	gunzip -c $&lt; | sort -t '	' -k4,4 | join -t '	' -1 4 -2 7 - $(OUTDIR)/jeter_01.join | gzip --best > $@ 
+	gunzip -c $&lt; | sort -t '	' -k4,4 | join -t '	' -1 4 -2 7 - $(OUTDIR)/jeter_01.join | gzip \-\-best > $@ 
 	rm -f $(OUTDIR)/human_disease_textmining_full_01.tsv $(OUTDIR)/ensGtp_01.txt $(OUTDIR)/jeter_01.join
-
+-->
 
 
 
@@ -507,16 +507,16 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 
 LIST_PHONY_TARGET+=all_predictions 
 all_predictions: \
-	$(OUTDIR)/variations.samtools.vep.tsv.gz \
+	$(OUTDIR)/variations.samtools.vep.vcf.gz \
 	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
-	$(OUTDIR)/variations.gatk.vep.tsv.gz \
+	$(OUTDIR)/variations.gatk.vep.vcf.gz \
 	$(OUTDIR)/variations.gatk.snpEff.vcf.gz 
 	
 #
 # prediction samtools with Variation Ensembl Prediction API
 #
 <xsl:call-template name="ANNOTATE_WITH_VEP">
-	<xsl:with-param name="target">$(OUTDIR)/variations.samtools.vep.tsv.gz</xsl:with-param>
+	<xsl:with-param name="target">$(OUTDIR)/variations.samtools.vep.vcf.gz</xsl:with-param>
 	<xsl:with-param name="dependencies">$(OUTDIR)/variations.samtools.vcf.gz</xsl:with-param>
 	<xsl:with-param name="type">samtoolsvep</xsl:with-param>
 </xsl:call-template>
@@ -525,7 +525,7 @@ all_predictions: \
 # prediction gatk with Variation Ensembl Prediction API
 #
 <xsl:call-template name="ANNOTATE_WITH_VEP">
-	<xsl:with-param name="target">$(OUTDIR)/variations.gatk.vep.tsv.gz</xsl:with-param>
+	<xsl:with-param name="target">$(OUTDIR)/variations.gatk.vep.vcf.gz</xsl:with-param>
 	<xsl:with-param name="dependencies">$(OUTDIR)/variations.gatk.vcf.gz</xsl:with-param>
 	<xsl:with-param name="type">gatkvep</xsl:with-param>
 </xsl:call-template>
@@ -1437,12 +1437,12 @@ git:.git/config
 
 <xsl:template match="sample" mode="vcf.samtools.vep.gz">
 <xsl:apply-templates select="." mode="dir"/>
-<xsl:value-of select="concat('/',@name,'_variations.samtools.vep.tsv.gz ')"/>
+<xsl:value-of select="concat('/',@name,'_variations.samtools.vep.vcf.gz ')"/>
 </xsl:template>
 
 <xsl:template match="sample" mode="vcf.gatk.vep.gz">
 <xsl:apply-templates select="." mode="dir"/>
-<xsl:value-of select="concat('/',@name,'_variations.gatk.vep.tsv.gz ')"/>
+<xsl:value-of select="concat('/',@name,'_variations.gatk.vep.vcf.gz ')"/>
 </xsl:template>
 
 
@@ -1728,15 +1728,15 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 #
 <xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
 	#Annotation of $&lt; with SNPEFF 
-	$(call timebegindb,$@,<xsl:value-of select="$type"/>)
+	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
 	gunzip -c  $&lt; |\
 	egrep -v '^GL' |\
-	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl |\
+	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) | <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> grep -v ";EFF=INTERGENIC(" |</xsl:if>\
+	$(SNPEFF)/scripts/vcfEffOnePerLine.pl <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> |\
 	${TABIX.bgzip} -c  &gt; $@
 	${TABIX.tabix} -p vcf $@ 
-	$(call timeenddb,$@,<xsl:value-of select="$type"/>)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 
 </xsl:template>
@@ -1749,7 +1749,7 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
 	#Annotation of $&lt; with VEP 
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o $(basename $@)
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> | grep -v "|intergenic_variant|" </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;  $(basename $@) 
 	#VEP: done.
 	touch $(basename $@) <!-- if VCF contains no variant  -->
 	${TABIX.bgzip} -f $(basename $@)
