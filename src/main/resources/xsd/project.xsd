@@ -22,6 +22,20 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	     
+	      <xs:enumeration value="discard.intergenic.variants">
+	        <xs:annotation>
+	          <xs:documentation>If set to 'yes', will discard the intergenic variants in the VCF after annotation</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     
+	     <xs:enumeration value="downstream.vcf.annotation">
+	        <xs:annotation>
+	          <xs:documentation>VCF pipeline that will be added downstream the output of the annotation tool. Input must be a VCF from stdin, output must be the annotated VCF on stdout . The value of this property will be inserted as-is in the pipeline. Example &quot; | grep -v chr1_random &quot;</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
 	     <xs:enumeration value="min.mapping.quality">
 	        <xs:annotation>
 	          <xs:documentation>Min read mapping quality used in various program.</xs:documentation>
