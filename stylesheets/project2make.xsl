@@ -15,6 +15,14 @@
 <xsl:param name="bwathreads">1</xsl:param>
 
 
+<xsl:variable name="set_curl_proxy">
+<xsl:choose>
+	<xsl:when test="/properties/property[@key='http.proxy.host']"> --proxy <xsl:value-of select="concat(/properties/property[@key='http.proxy.host'],':',/properties/property[@key='http.proxy.port'])"/> </xsl:when>
+	<xsl:otherwise><xsl:text> </xsl:text></xsl:otherwise>
+</xsl:choose>
+</xsl:variable>
+
+
 <xsl:template match="/">
 <xsl:if test="number(project/properties/property[@key='simulation.reads'])&gt;0">
 <xsl:message terminate="no">[WARNING] FASTQs will be generated using samtools/wgsim if they don't exist.</xsl:message>
@@ -583,14 +591,10 @@ $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
 	${R.exe} --no-save
 
 #
-# count of mapped-reads, quality per sample	
+# count of mapped-reads	
 #
-$(OUTDIR)/bamstats01.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
-	$(call timebegindb,$@,$@)
-	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort | sed 's/_recal.bam//' > $@
-	$(call timeendb,$@,$@)
-	$(call sizedb,$@)
-	$(call notempty,$@)
+$(OUTDIR)/bamstats01.tsv : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="bamstats01.tsv"/> </xsl:for-each>
+	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
 ## coverage of distribution ###############################################################
@@ -638,7 +642,7 @@ $(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl
 
 $(OUTDIR)/ensembl.exons.bed:
 	$(call timebegindb,$@,$@)
-	curl  -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="]]><xsl:choose>
+	curl <xsl:value-of select="$set_curl_proxy"/> -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="]]><xsl:choose>
 		<xsl:when test="properties/property[@key='ensembl.dataset.name']"><xsl:value-of select="properties/property[@key='ensembl.dataset.name']"/></xsl:when>
 		<xsl:otherwise>hsapiens_gene_ensembl</xsl:otherwise>
 		</xsl:choose><![CDATA[" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>]]>' "http://www.biomart.org/biomart/martservice/result" |\
@@ -944,7 +948,7 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 </xsl:text>
 <xsl:apply-templates select="." mode="merged"/> : <xsl:for-each select="sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
-	$(call timebegindb,$@,merge)
+	@$(call timebegindb,$@,merge)
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ AS=true \
 		<xsl:choose>
 		  <xsl:when test="/project/properties/property[@key='picard.merge.options']">
@@ -957,13 +961,28 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
 	$(DELETEFILE) $^
-	$(call timeenddb,$@,merge)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@,merge)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 	$(call delete_and_touch,$^)
 	touch $@
 	
 </xsl:if>
+
+<!-- bamstats01-->
+
+#
+# bamstats01 for sample: <xsl:value-of select="@name"/>
+#
+<xsl:apply-templates select="." mode="bamstats01.tsv"/> : $(call indexed_bam, <xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+	@$(call timebegindb,$@,bamstats01)
+	mkdir -p $(dir $@)
+	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) | sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
+	@$(call timeendb,$@,bamstats01)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+	
+
 
 
 <!-- distribution of coverage -->
@@ -1443,6 +1462,12 @@ git:.git/config
 <xsl:template match="sample" mode="vcf.gatk.vep.gz">
 <xsl:apply-templates select="." mode="dir"/>
 <xsl:value-of select="concat('/',@name,'_variations.gatk.vep.vcf.gz ')"/>
+</xsl:template>
+
+
+<xsl:template match="sample" mode="bamstats01.tsv">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_bamstats01.tsv ')"/>
 </xsl:template>
 
 
