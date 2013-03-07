@@ -22,6 +22,13 @@
 </xsl:choose>
 </xsl:variable>
 
+<xsl:variable name="set_jvm_proxy">
+<xsl:choose>
+	<xsl:when test="/properties/property[@key='http.proxy.host']"> -Dhttp.proxyHost=<xsl:value-of select="/properties/property[@key='http.proxy.host']"/> -Dhttp.proxyPort=<xsl:value-of select="/properties/property[@key='http.proxy.port']"/> </xsl:when>
+	<xsl:otherwise><xsl:text> </xsl:text></xsl:otherwise>
+</xsl:choose>
+</xsl:variable>
+
 
 <xsl:template match="/">
 <xsl:if test="number(project/properties/property[@key='simulation.reads'])&gt;0">
@@ -597,6 +604,9 @@ $(OUTDIR)/bamstats01.tsv : <xsl:for-each select="sample"><xsl:apply-templates se
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
+
+
+
 ## coverage of distribution ###############################################################
 
 LIST_PHONY_TARGET+= coverage_distribution
@@ -627,13 +637,22 @@ $(OUTDIR)/bamstats03.pdf : $(OUTDIR)/bamstats03.tsv
 #
 # count of mapped-reads, quality per sample	
 #
-$(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)
-	$(call timebegindb,$@,$@)
+$(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)  $(capture.bed) 
+	@$(call timebegindb,$@,$@)
 	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
-	$(call timeendb,$@,$@)
-	$(call sizedb,$@)
+	@$(call timeendb,$@,$@)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 
+#
+# distribution capture
+#
+$(OUTDIR)/bamstats04.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)  $(capture.bed) 
+	@$(call timebegindb,$@,$@)
+	${VARKIT}/bamstats04 -b $(capture.bed) -m $(MIN_MAPPING_QUALITY) $(filter %.bam,$^) | sort  > $@
+	@$(call timeendb,$@,$@)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
 
 ###################################################################################################################################################
 #
