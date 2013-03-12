@@ -271,6 +271,12 @@ define notempty
     test -s $(1) || (echo "$(1) is empty" &amp;&amp; rm -f $(1) &amp;&amp; exit -1) 
 endef
 
+define check_no_sge
+	if  [ "${JOB_ID}" != "" ]; then echo "This process shouldn't be run with SGE. Please invoke the regular make." ; exit -1;  fi
+endef
+
+
+
 CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category));create table if not exists enddb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category));create table if not exists sizedb(file varchar(255) not null,size BIGINT,CONSTRAINT K3 UNIQUE (file));
 
 define timebegindb
@@ -1791,9 +1797,11 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:param name="dependencies"/>
 <xsl:param name="type"/>
 <xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
-	#Annotation of $&lt; with VEP 
+	#Annotation of $&lt; with VEP
+	#VEP doesn't work with SGE
+	$(call check_no_sge)
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> | grep -v "|intergenic_variant|" </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;  $(basename $@) 
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;  $(basename $@) 
 	#VEP: done.
 	touch $(basename $@) <!-- if VCF contains no variant  -->
 	${TABIX.bgzip} -f $(basename $@)

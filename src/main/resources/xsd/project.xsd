@@ -204,9 +204,11 @@
 
   <xs:complexType name="SampleType">
     <xs:sequence>
+      <xs:element name="properties" type="PropertiesType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="sequences" type="SequencesType"/>
     </xs:sequence>
     <xs:attribute name="name" type="xs:token" use="required"/>
+    
   </xs:complexType>
   <xs:complexType name="SequencesType">
     <xs:sequence>
