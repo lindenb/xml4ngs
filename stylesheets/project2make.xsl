@@ -1859,8 +1859,8 @@ $(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sam
 	mv $(addsuffix .tmp,$@) $(basename $@)
 		</xsl:otherwise>
 	</xsl:choose>
-	${TABIX.bgzip} -f $(basename $@)
-	##ILFAUTTRIER###${TABIX.tabix} -f -p vcf $@ 
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 $(basename $@) | ${TABIX.bgzip} -c &gt; $@
+	${TABIX.tabix} -f -p vcf $@ 
 	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -1896,8 +1896,8 @@ $(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sam
 		</xsl:otherwise>
 	</xsl:choose>
 	touch $(basename $@) <!-- if VCF contains no variant  -->
-	${TABIX.bgzip} -f $(basename $@)
-	##ILFAUTTRIER###${TABIX.tabix} -f -p vcf $@ 
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 $(basename $@) | ${TABIX.bgzip} -c &gt; $@
+	${TABIX.tabix} -f -p vcf $@ 
 	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
