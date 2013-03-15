@@ -590,7 +590,7 @@ $(OUTDIR)/variations.gatk.vcf.gz: <xsl:if test="/project/properties/property[@ke
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
-bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf beddepth coverage_distribution 
+bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf $(OUTDIR)/bamstats04.tsv beddepth coverage_distribution 
 
 
 LIST_PHONY_TARGET+= beddepth
@@ -609,6 +609,12 @@ $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
 $(OUTDIR)/bamstats01.tsv : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="bamstats01.tsv"/> </xsl:for-each>
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
+
+#
+# count of distribution of coverage
+#
+$(OUTDIR)/bamstats04.tsv : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="bamstats04.tsv"/> </xsl:for-each>
+	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
 
@@ -655,7 +661,7 @@ $(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl
 #
 $(OUTDIR)/bamstats04.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)  $(capture.bed) 
 	@$(call timebegindb,$@,$@)
-	${VARKIT}/bamstats04 -b $(capture.bed) -m $(MIN_MAPPING_QUALITY) $(filter %.bam,$^) | sort  > $@
+	$(JAVA) $(JVARKIT)/bamstats04.jar -b $(capture.bed) -m $(MIN_MAPPING_QUALITY) $(filter %.bam,$^) | sort  > $@
 	@$(call timeendb,$@,$@)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -917,8 +923,8 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 
 </xsl:when>
 <xsl:otherwise>
-<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed $(known.sites)
-		$(call timebegindb,$@_targetcreator,targetcreator)
+<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed
+		@$(call timebegindb,$@_targetcreator,targetcreator)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
@@ -934,9 +940,16 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 			  </xsl:otherwise>
 			</xsl:choose> \
   			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
-			--known $(known.sites)
-		$(call timeenddb,$@_targetcreator,targetcreator)
-		$(call timebegindb,$@_indelrealigner,indelrealign)
+			--known <xsl:choose>
+			  <xsl:when test="/project/properties/property[@key='known.indels.vcf']">
+			  	<xsl:value-of select="/project/properties/property[@key='known.indels.vcf']"/>
+			  </xsl:when>
+			  <xsl:otherwise>
+			  	<xsl:message terminate="yes">known.indels.vcf undefined</xsl:message>
+			  </xsl:otherwise>
+			</xsl:choose>
+		@$(call timeenddb,$@_targetcreator,targetcreator)
+		@$(call timebegindb,$@_indelrealigner,indelrealign)
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
   			-R $(REF) \
@@ -952,9 +965,16 @@ LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
 			</xsl:choose> \
   			-o $@ \
   			-targetIntervals $(addsuffix .intervals, $(filter %.bam,$^) ) \
-			--knownAlleles $(known.sites)
-		$(call timeenddb,$@_indelrealigner,indelrealign)
-		$(call sizedb,$@)
+			--knownAlleles <xsl:choose>
+			  <xsl:when test="/project/properties/property[@key='known.indels.vcf']">
+			  	<xsl:value-of select="/project/properties/property[@key='known.indels.vcf']"/>
+			  </xsl:when>
+			  <xsl:otherwise>
+			  	<xsl:message terminate="yes">known.indels.vcf undefined</xsl:message>
+			  </xsl:otherwise>
+			</xsl:choose>
+		@$(call timeenddb,$@_indelrealigner,indelrealign)
+		@$(call sizedb,$@)
 		$(call notempty,$@)
 		rm -f $(addsuffix .intervals, $(filter %.bam,$^) )
 		$(call delete_and_touch,$(filter %.bam,$^)  )
@@ -1007,7 +1027,17 @@ LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
-
+#
+# bamstats04 for sample: <xsl:value-of select="@name"/>
+#
+<xsl:apply-templates select="." mode="bamstats04.tsv"/> : $(call indexed_bam, <xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+	@$(call timebegindb,$@,bamstats04)
+	mkdir -p $(dir $@)
+	$(JAVA) -jar ${JVARKIT}/bamstats04.jar -b $(capture.bed) $(filter %.bam,$^) | sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
+	@$(call timeendb,$@,bamstats04)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+	
 
 
 <!-- distribution of coverage -->
@@ -1194,19 +1224,28 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 #
 <xsl:apply-templates select="." mode="preprocessed.fastq"/>: <xsl:apply-templates select="." mode="raw.fastq"/>
 	mkdir -p $(dir $@)
-	$(call timebegindb,$@,cutadapt)
-	$(call sizedb,$&lt;)
+	@$(call timebegindb,$@,cutadapt)
+	@$(call sizedb,$&lt;)
 	$(CUTADAPT) -b <xsl:choose>
-	  <xsl:when test="/project/properties/property[@key='cutadapt.sequence']">
-	  	<xsl:value-of select="/project/properties/property[@key='cutadapt.sequence']"/>
+	  <xsl:when test="/project/properties/property[@key='cutadapt.sequence.for'] and @index='1' ">
+	  	<xsl:value-of select="/project/properties/property[@key='cutadapt.sequence.for']"/>
 	  </xsl:when>
-	  <xsl:otherwise>
+	   <xsl:when test="/project/properties/property[@key='cutadapt.sequence.rev'] and @index='2' ">
+	  	<xsl:value-of select="/project/properties/property[@key='cutadapt.sequence.rev']"/>
+	  </xsl:when>
+	  <xsl:when test="@index='1'">
 	  	<xsl:text>AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC</xsl:text>
+	  </xsl:when>
+	  <xsl:when test="@index='2'">
+	  	<xsl:text>AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT</xsl:text>
+	  </xsl:when> 
+	  <xsl:otherwise>
+	  	<xsl:message terminate="yes">error with xsl:choose statement of cutadapt</xsl:message>
 	  </xsl:otherwise>
 	</xsl:choose> $&lt; -o $(basename $@) > $(addsuffix .report.txt,$@)
 	gzip --best --force $(basename $@)
-	$(call timeenddb,$@,cutadapt)
-	$(call sizedb,$@)
+	@$(call timeenddb,$@,cutadapt)
+	@$(call sizedb,$@)
 	$(call notempty,$@)
 
 </xsl:if>
