@@ -481,6 +481,7 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.samtools.vep.gz"/></xsl:with-param>
 	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:with-param>
 	<xsl:with-param name="type">mpileupvep</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='samtools.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='vep.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -490,6 +491,7 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.gatk.vep.gz"/></xsl:with-param>
 	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.gatk.gz"/></xsl:with-param>
 	<xsl:with-param name="type">gatkvep</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='gatk.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='vep.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -499,6 +501,7 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.samtools.snpeff.gz"/></xsl:with-param>
 	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.samtools.gz"/></xsl:with-param>
 	<xsl:with-param name="type">mpileupsnpeff</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='samtools.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='snpeff.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -508,6 +511,7 @@ variations.gatk.vep: <xsl:for-each select="sample"><xsl:apply-templates select="
 	<xsl:with-param name="target"><xsl:apply-templates select="." mode="vcf.gatk.snpeff.gz"/></xsl:with-param>
 	<xsl:with-param name="dependencies"><xsl:apply-templates select="." mode="vcf.gatk.gz"/></xsl:with-param>
 	<xsl:with-param name="type">gatksnpeff</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='gatk.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='snpeff.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -540,6 +544,7 @@ all_predictions: \
 	<xsl:with-param name="target">$(OUTDIR)/variations.samtools.vep.vcf.gz</xsl:with-param>
 	<xsl:with-param name="dependencies">$(OUTDIR)/variations.samtools.vcf.gz</xsl:with-param>
 	<xsl:with-param name="type">samtoolsvep</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='samtools.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='vep.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -549,6 +554,7 @@ all_predictions: \
 	<xsl:with-param name="target">$(OUTDIR)/variations.gatk.vep.vcf.gz</xsl:with-param>
 	<xsl:with-param name="dependencies">$(OUTDIR)/variations.gatk.vcf.gz</xsl:with-param>
 	<xsl:with-param name="type">gatkvep</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='gatk.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='vep.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -558,6 +564,7 @@ all_predictions: \
 	<xsl:with-param name="target">$(OUTDIR)/variations.samtools.snpEff.vcf.gz</xsl:with-param>
 	<xsl:with-param name="dependencies">$(OUTDIR)/variations.samtools.vcf.gz</xsl:with-param>
 	<xsl:with-param name="type">mpileupsnpeff</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='samtools.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='snpeff.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -567,6 +574,7 @@ all_predictions: \
 	<xsl:with-param name="target">$(OUTDIR)/variations.gatk.snpEff.vcf.gz</xsl:with-param>
 	<xsl:with-param name="dependencies">$(OUTDIR)/variations.gatk.vcf.gz</xsl:with-param>
 	<xsl:with-param name="type">gatksnpeff</xsl:with-param>
+	<xsl:with-param name="gatkvariantfiltration"><xsl:value-of select="/project/properties/property[@key='gatk.vcf.filtration']"/><xsl:text> </xsl:text><xsl:value-of select="/project/properties/property[@key='snpeff.vcf.filtration']"/></xsl:with-param>
 </xsl:call-template>
 
 #
@@ -656,15 +664,6 @@ $(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 
-#
-# distribution capture
-#
-$(OUTDIR)/bamstats04.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)  $(capture.bed) 
-	@$(call timebegindb,$@,$@)
-	$(JAVA) $(JVARKIT)/bamstats04.jar -b $(capture.bed) -m $(MIN_MAPPING_QUALITY) $(filter %.bam,$^) | sort  > $@
-	@$(call timeendb,$@,$@)
-	@$(call sizedb,$@)
-	$(call notempty,$@)
 
 ###################################################################################################################################################
 #
@@ -1534,6 +1533,11 @@ git:.git/config
 <xsl:value-of select="concat('/',@name,'_bamstats01.tsv ')"/>
 </xsl:template>
 
+<xsl:template match="sample" mode="bamstats04.tsv">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_bamstats04.tsv ')"/>
+</xsl:template>
+
 
 <xsl:template name="make.bai">
 <xsl:param name="bam"/>
@@ -1759,6 +1763,25 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:apply-templates select="." mode="dir"/>
 </xsl:template>
 
+<!-- ======================================================================================================
+     
+   	FREEBAYES
+     
+     ====================================================================================================== -->
+<xsl:template match="project" mode="freebayes">
+#
+# FREEBAYES
+#
+LIST_PHONY_TARGET+= freebayes
+
+freebayes:$(OUTDIR)/freebayes.vcf.gz 
+$(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sample" mode="merged"/>)
+	${freebayes.bin} $(foreach B,$(filter %.bam,$^), -b ${B} ) -o $(basename $@) -f ${REF}
+	${TABIX.bgzip} -f $(basename $@)
+	${TABIX.tabix} -f -p vcf $@ 
+</xsl:template>
+
+
 
 
 <!-- ===================================================================================== -->
@@ -1812,18 +1835,32 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:param name="target"/>
 <xsl:param name="dependencies"/>
 <xsl:param name="type"/>
+<xsl:param name="gatkvariantfiltration"/>
 #
 # Annotation of <xsl:value-of select="$dependencies"/>
 #
-<xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
+<xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/> $(REF)
 	#Annotation of $&lt; with SNPEFF 
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
 	gunzip -c  $&lt; |\
 	egrep -v '^GL' |\
-	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) | <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> grep -v ";EFF=INTERGENIC(" |</xsl:if>\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> |\
-	${TABIX.bgzip} -c  &gt; $@
-	${TABIX.tabix} -p vcf $@ 
+	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
+	$(SNPEFF)/scripts/vcfEffOnePerLine.pl  <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> | grep -v ";EFF=INTERGENIC(" </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt; $(addsuffix .tmp,$@)<xsl:choose>
+		<xsl:when test="string-length(normalize-space($gatkvariantfiltration))&gt;0">
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T VariantFiltration \
+  		-R $(REF) \
+  		-o  $(basename $@) \
+  		 --variant $(addsuffix .tmp,$@) \
+ 		<xsl:value-of select="normalize-space($gatkvariantfiltration)"/>
+ 		rm -f $(addsuffix .tmp,$@)
+ 		</xsl:when>
+		<xsl:otherwise>
+	mv $(addsuffix .tmp,$@) $(basename $@)
+		</xsl:otherwise>
+	</xsl:choose>
+	${TABIX.bgzip} -f $(basename $@)
+	##ILFAUTTRIER###${TABIX.tabix} -f -p vcf $@ 
 	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -1835,15 +1872,32 @@ $(OUTDIR)/FASTX/fastx.report.pdf: <xsl:for-each select="sample">
 <xsl:param name="target"/>
 <xsl:param name="dependencies"/>
 <xsl:param name="type"/>
+<xsl:param name="gatkvariantfiltration"/>
+
 <xsl:value-of select="$target"/> : <xsl:value-of select="$dependencies"/>
-	#Annotation of $&lt; with VEP
+	#Annotation with VEP
 	#VEP doesn't work with SGE
 	$(call check_no_sge)
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;  $(basename $@) 
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;   $(addsuffix .tmp,$(basename $@))
 	#VEP: done.
+	touch $(addsuffix .tmp,$(basename $@)) <!-- if VCF contains no variant  --><xsl:choose>
+		<xsl:when test="string-length(normalize-space($gatkvariantfiltration))&gt;0">
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T VariantFiltration \
+  		-R $(REF) \
+  		-o  $(basename $@) \
+  		 --variant $(addsuffix .tmp,$(basename $@)) \
+ 		<xsl:value-of select="normalize-space($gatkvariantfiltration)"/>
+ 		rm -f $(addsuffix .tmp,$@)
+ 		</xsl:when>
+		<xsl:otherwise>
+	mv $(addsuffix .tmp,$(basename $@)) $(basename $@)
+		</xsl:otherwise>
+	</xsl:choose>
 	touch $(basename $@) <!-- if VCF contains no variant  -->
 	${TABIX.bgzip} -f $(basename $@)
+	##ILFAUTTRIER###${TABIX.tabix} -f -p vcf $@ 
 	@$(call timeenddb,$@,<xsl:value-of select="$type"/>)
 	@$(call sizedb,$@)
 	$(call notempty,$@)

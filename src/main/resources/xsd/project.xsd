@@ -22,6 +22,31 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	      <xs:enumeration value="vep.vcf.filtration">
+	        <xs:annotation>
+	          <xs:documentation>GATK variant filtration for VEP</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	      <xs:enumeration value="gatk.vcf.filtration">
+	        <xs:annotation>
+	          <xs:documentation>GATK variant filtration for gatk</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	      <xs:enumeration value="samtools.vcf.filtration">
+	        <xs:annotation>
+	          <xs:documentation>GATK variant filtration for samtools</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	      <xs:enumeration value="snpeff.gatk.vcf.filtration">
+	        <xs:annotation>
+	          <xs:documentation>GATK variant filtration for snpeff</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+
+	     
 	     <xs:enumeration value="known.indels.vcf">
 	        <xs:annotation>
 	          <xs:documentation>path to known Indels VCF for GATK RealignerTargetCreator</xs:documentation>
