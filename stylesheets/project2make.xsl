@@ -1879,7 +1879,7 @@ $(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sam
 	#VEP doesn't work with SGE
 	$(call check_no_sge)
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;   $(addsuffix .tmp,$(basename $@))
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> &gt;   $(addsuffix .tmp,$(basename $@))
 	#VEP: done.
 	touch $(addsuffix .tmp,$(basename $@)) <!-- if VCF contains no variant  --><xsl:choose>
 		<xsl:when test="string-length(normalize-space($gatkvariantfiltration))&gt;0">
