@@ -5,6 +5,9 @@
  <target name="generate-sources">
    <mkdir dir="src/main/generated-sources/xjc"/>
    <exec executable="xjc">
+       <arg value="-extension"/>
+       <arg value="-Xinject-code"/>
+       <arg value="-b"/> <arg value="src/main/resources/xsd/project.jxb"/>
        <arg value="-d"/> <arg value="src/main/generated-sources/xjc"/>
        <arg value="-p"/> <arg value="com.github.lindenb.xml4ngs"/>
        <arg value="src/main/resources/xsd/project.xsd"/>

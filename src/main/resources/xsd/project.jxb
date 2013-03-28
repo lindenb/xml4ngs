@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jxb:bindings 
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:ci="http://jaxb.dev.java.net/plugin/code-injector"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	jxb:extensionBindingPrefixes="ci "
+	jxb:version="2.0"
+	>
+
+<jxb:bindings schemaLocation="project.xsd">
+ 
+ 
+  <jxb:bindings node="/xs:schema/xs:complexType[@name='ProjectType']">
+  <ci:code><![CDATA[
+  
+  @javax.xml.bind.annotation.XmlTransient
+  java.util.Map<String,String> getPropertyMap()
+  	{
+  	if(properties==null) return new java.util.HashMap<String,String>();
+  	return properties.getPropertyMap();
+  	}
+  
+  public void link()
+  	{
+  	for(SampleType o: getSample())
+  		{
+  		o.setProject(this);
+  		o.link();
+  		}
+  	}
+  
+  ]]></ci:code>
+  </jxb:bindings>
+ 
+     <jxb:bindings node="/xs:schema/xs:complexType[@name='PropertiesType']">
+  <ci:code><![CDATA[
+  
+    @javax.xml.bind.annotation.XmlTransient
+    java.util.Map<String,String> getPropertyMap()
+  	{
+  	java.util.Map<String,String> m=new java.util.HashMap<String,String>();
+  	for(PropertyType p: this.getProperty())
+  		{
+  		if(m.containsKey(p.getKey()))
+  			{
+  			System.err.println("Duplicate key:"+p.getKey());
+  			System.exit(-1);
+  			}
+  		m.put(p.getKey(),p.getValue());
+  		}
+  	return m;
+  	}
+  
+  
+  ]]></ci:code>
+  </jxb:bindings>
+ 
+  
+    <jxb:bindings node="/xs:schema/xs:complexType[@name='PropertyType']">
+  <ci:code><![CDATA[
+  
+  
+  @Override
+  public String toString()
+  	{
+  	return getKey()+"="+getValue();
+  	}
+  
+  ]]></ci:code>
+  </jxb:bindings>
+  
+  <jxb:bindings node="/xs:schema/xs:complexType[@name='SampleType']">
+  <ci:code><![CDATA[
+  
+  private ProjectType owner;
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public ProjectType getProject()
+  	{
+  	return this.owner;
+  	}
+  
+  public void setProject(ProjectType owner)
+  	{
+  	this.owner=owner;
+  	}
+  
+  
+    public void link()
+  	{
+  	if(this.sequences!=null)
+  		{
+	  	for(PairType o: this.sequences.getPair())
+	  		{
+	  		o.setSample(this);
+	  		o.link();
+	  		}
+  		}
+  	}
+  
+  
+  @Override
+  public String toString()
+  	{
+  	return getName();
+  	}
+  
+  ]]></ci:code>
+  </jxb:bindings>
+ 
+  <jxb:bindings node="/xs:schema/xs:complexType[@name='SequencesType']">
+  <ci:code><![CDATA[
+  ]]></ci:code>
+  </jxb:bindings> 
+ 
+  <jxb:bindings node="/xs:schema/xs:complexType[@name='PairType']">
+  <ci:code><![CDATA[
+  
+  private SampleType owner;
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public SampleType getSample()
+  	{
+  	return this.owner;
+  	}
+  
+  public void setSample(SampleType owner)
+  	{
+  	this.owner=owner;
+  	}
+  
+  public void link()
+  	{
+  	for(FastqType o: this.getFastq())
+  		{
+  		o.setPair(this);
+  		}
+  		
+  	}
+  
+  
+  ]]></ci:code>
+  </jxb:bindings>  
+ 
+  <jxb:bindings node="/xs:schema/xs:complexType[@name='FastqType']">
+  <ci:code><![CDATA[
+  private PairType owner;
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public PairType getPair()
+  	{
+  	return this.owner;
+  	}
+  
+  public void setPair(PairType owner)
+  	{
+  	this.owner=owner;
+  	}
+  @Override
+  public String toString()
+  	{
+  	return getPath();
+  	}
+  
+  ]]></ci:code>
+  </jxb:bindings>   
+ 
+ </jxb:bindings>
+</jxb:bindings>
