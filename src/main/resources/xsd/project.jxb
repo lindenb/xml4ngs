@@ -133,7 +133,7 @@
   	return this.owner;
   	}
   
-  @javax.xml.bind.annotation.XmlTransient
+   @javax.xml.bind.annotation.XmlTransient
    public int getIndex()
   	{
   	int i=1;
@@ -144,6 +144,46 @@
   		}
   	return i;
   	}
+  
+   @javax.xml.bind.annotation.XmlTransient
+   private Integer generate_id=null;
+   @javax.xml.bind.annotation.XmlTransient
+   public String getGenerateId()
+  	{
+  	if(generate_id==null)
+  		{
+	  	int i=1;
+	  	for(SampleType sample: getSample().getProject().getSample())
+	  		{
+	  		for(PairType p:sample.getSequences().getPair())
+		  		{
+		  		if(p==this)
+		  			{
+		  			generate_id=i;
+		  			break;
+		  			}
+		  		++i;
+		  		}
+		  	if(generate_id!=null) break;
+	  		}
+  		}
+  	return "p"+generate_id;
+  	}
+   
+  
+  
+   @javax.xml.bind.annotation.XmlTransient
+   public FastqType getFormard()
+   	{
+   	return this.getFastq().get(0);
+   	}
+   
+    @javax.xml.bind.annotation.XmlTransient
+   public FastqType getReverse()
+   	{
+   	return this.getFastq().get(1);
+   	}  
+  
   
   public void setSample(SampleType owner)
   	{

@@ -70,7 +70,7 @@ public class Ilmn2Project
 					}
 				//SAMPLENAME_GATCAG_L007_R2_001.fastq.gz
 				String tokens[]=uscore.split(f.getName());
-				if(tokens[1].equals("Undetermined")) continue;
+				if(tokens[0].equals("Undetermined")) continue;
 				
 				if(tokens.length<5)
 					{
