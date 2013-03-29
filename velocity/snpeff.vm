@@ -1,0 +1,26 @@
+
+
+#macro(ANNOTATE_WITH_SNPEFF $target $dependencies $type $variantfiltration)
+#
+# Annotation of <xsl:value-of select="\$dependencies"/>
+#
+${target} : ${dependencies} $(REF)
+	#Annotation of ${dependencies} with SNPEFF 
+	@$(call timebegindb,$@,${type})
+	gunzip -c  $< |\
+	egrep -v '^GL' |\
+	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
+	$(SNPEFF)/scripts/vcfEffOnePerLine.pl  <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> |\
+	grep -v ";EFF=INTERGENIC(" </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/>  | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
+	${TABIX.bgzip} -c > $@
+	${TABIX.tabix} -f -p vcf $@ 
+	##VEP done
+	#GATK_VARIANT_FILTRATION($@,$variantfiltration)
+	@$(call timeenddb,$@,<xsl:value-of select="\$type"/>)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+
+#end
+
+
+

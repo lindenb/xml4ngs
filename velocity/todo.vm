@@ -13,3 +13,208 @@ exons.gtf?=<xsl:choose>
 
 
 <xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
+
+
+
+
+\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+\#
+\# REFERENCE
+\#
+\$(OUTDIR)/Reference/human_g1k_v37.fasta:
+	mkdir -p \$(dir \$@)	
+	curl -o \$(addsuffix .gz,\$@) "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/\$@.gz"
+	\$(call notempty,\$(addsuffix .gz,\$@))
+	gunzip \$(addsuffix .gz,\$@)
+	\$(call notempty,\$@)
+
+
+\#
+\# index reference with bowtie
+\#
+LIST_PHONY_TARGET+= build_bowtie_index 
+build_bowtie_index:\$(BOWTIE_INDEXED_REFERENCE)
+\$(filter-out %.1.bt2,\$(BOWTIE_INDEXED_REFERENCE)): \$(filter  %.1.bt2,\$(BOWTIE_INDEXED_REFERENCE))
+\$(filter  %.1.bt2,\$(BOWTIE_INDEXED_REFERENCE)): \$(REF)
+	\${BOWTIE2.dir}/bowtie2-build  -f \$(REF) \$(basename \$(REF))
+	\${BOWTIE2.dir}/bowtie2-inspect -s \$(basename \$(REF))
+
+\#
+\# download ncbi dbsnp as VCF
+\#
+\$(OUTDIR)/Reference/dbsnp.vcf.gz : \$(OUTDIR)/Reference/dbsnp.vcf.gz.tbi
+	mkdir -p \$(dir \$@)
+	curl  -o \$@ "ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/00-All.vcf.gz"
+	\$(call notempty,\$@)
+
+\$(OUTDIR)/Reference/dbsnp.vcf.gz.tbi :
+	mkdir -p \$(dir \$@)
+	curl  -o \$@ "ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/00-All.vcf.gz.tbi"
+	\$(call notempty,\$@)
+	
+	
+
+<!-- if the simulation.reads is set and greater than 0, the two fastqs will be created -->
+<xsl:if test="number(/project/properties/property[@key='simulation.reads'])>0">
+<xsl:variable name="twofastqs">
+<xsl:apply-templates select="fastq[@index='1']" mode="raw.fastq"/>
+<xsl:text> </xsl:text>
+<xsl:apply-templates select="fastq[@index='2']" mode="raw.fastq"/>
+</xsl:variable>
+\#
+\# It is a simulation mode : generate the FASTQ with samtools
+\#
+<xsl:value-of select="\$twofastqs"/>:
+	mkdir -p <xsl:apply-templates select="../.." mode="dir"/>
+	$(warning  simulation.reads is set : CREATING TWO FASTQ FILES)
+	$(call timebegindb,$@,wgsim)
+	${samtools.dir}/misc/wgsim -N <xsl:value-of select="number(/project/properties/property[@key='simulation.reads'])"/> $(REF) $(basename <xsl:value-of select="\$twofastqs"/>) |\
+		${TABIX.bgzip} > <xsl:apply-templates select="../.." mode="dir"/>/wgsim<xsl:value-of select="generate-id(.)"/>.vcf.gz
+	gzip -f --best  $(basename <xsl:value-of select="\$twofastqs"/>) 
+	$(call timeenddb,$@,wgsim)
+	$(call sizedb,$@)
+
+</xsl:if>
+
+	
+	<xsl:apply-templates select="." mode="tophat"/>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+     
+<!-- ======================================================================================================
+     
+   	TOPHAT
+     
+     ====================================================================================================== -->
+<xsl:template match="sample" mode="tophat.dir">
+<xsl:variable name="p"><xsl:apply-templates select="." mode="dir"/></xsl:variable>
+<xsl:value-of select="concat(\$p,'/TOPHAT/')"/>
+</xsl:template>
+
+<xsl:template match="pair" mode="tophat.dir">
+<xsl:variable name="s1"><xsl:apply-templates select="../.." mode="tophat.dir"/></xsl:variable>
+<xsl:variable name="s2"><xsl:apply-templates select="." mode="pairname"/></xsl:variable>
+<xsl:value-of select="concat(\$s1,\$s2,'/')"/>
+</xsl:template>
+
+<xsl:template match="pair" mode="tophat.accepted_hits.bam">
+<xsl:text>$(addsuffix accepted_hits.bam,</xsl:text>
+<xsl:apply-templates select="." mode="tophat.dir"/>
+<xsl:text>)</xsl:text>
+</xsl:template>
+
+
+<xsl:template match="pair" mode="tophat.transcripts.gtf">
+<xsl:text>$(addsuffix  transcripts.gtf,</xsl:text>
+<xsl:apply-templates select="." mode="tophat.dir"/>
+<xsl:text>)</xsl:text>
+</xsl:template>
+
+<xsl:template match="pair" mode="tophat">
+\#
+\# cufflinks: assemble transcripts for sample '<xsl:value-of select="../../@name"/>'
+\#
+<xsl:apply-templates select="." mode="tophat.transcripts.gtf"/>: <xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/>
+	mkdir -p $(dir $@)
+	$(call timebegindb,$@,tophat_accepted_hits)
+	$(CUFFLINKS.dir)/cufflinks -o $(dir $@) $<
+	$(call timeenddb,$@,tophat_accepted_hits)
+
+\#
+\# tophat: Align the RNA-seq reads to the genome for sample '<xsl:value-of select="../../@name"/>'
+\#
+<xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/> : <xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/> \
+	<xsl:apply-templates select="fastq[@index='2']" mode="preprocessed.fastq"/> \
+	$(BOWTIE_INDEXED_REFERENCE) \
+	$(exons.gtf)
+	mkdir -p $(dir $@)
+	$(call timebegindb,$@,tophat_accepted_hits)
+	\#tophat requires a .fa extension
+	$(foreach F,$(filter %.fasta,$(REF)), if [ ! -f $(basename \$F).fa ]; then ln -s --force \$F $(basename \$F).fa; fi; )
+	${TOPHAT.dir}/tophat2 -G $(exons.gtf) -o $(dir $@) \
+		--rg-id  <xsl:value-of select="generate-id(.)"/> \
+		--rg-library <xsl:value-of select="../../@name"/> \
+		--rg-sample <xsl:value-of select="../../@name"/> \
+		--rg-description <xsl:value-of select="../../@name"/> \
+		--rg-platform-unit <xsl:value-of select="concat('L',@lane)"/> \
+		--rg-center Nantes \
+		--rg-platform Illumina \
+		$(basename $(REF)) \
+		<xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/> \
+		<xsl:apply-templates select="fastq[@index='2']" mode="preprocessed.fastq"/>
+	$(call sizedb,$@)
+	$(call timeenddb,$@,tophat_accepted_hits)
+
+</xsl:template>
+
+
+<xsl:template match="sample" mode="tophat">
+<xsl:apply-templates select="sequences/pair" mode="tophat"/>
+</xsl:template>
+
+
+
+<xsl:template match="project" mode="tophat">
+\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+\#
+\#  BEGIN TOPHAT 
+\#
+\#
+LIST_PHONY_TARGET+= all_tophat
+all_tophat: $(OUTDIR)/diff_out/gene_exp.diff
+
+\#
+\# identify differencially expressed genes and transcripts
+\#
+$(OUTDIR)/diff_out/gene_exp.diff : $(OUTDIR)/merged_asm/merged.gtf \
+	<xsl:for-each select="sample/sequences/pair"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/></xsl:for-each>
+	$(call timebegindb,$@,tophat_cuffdiff)
+	$(CUFFLINKS.dir)/cuffdiff -v -o $(dir $@) \
+		-b $(REF) \
+		-L <xsl:for-each select="sample"><xsl:if test="position()>1">,</xsl:if><xsl:value-of select="@name"/></xsl:for-each> \
+		-u $< \
+		<xsl:for-each select="sample"><xsl:text> </xsl:text><xsl:for-each select="sequences/pair"><xsl:if test="position()>1">,</xsl:if><xsl:apply-templates select="." mode="tophat.accepted_hits.bam"/></xsl:for-each></xsl:for-each>
+	$(call timeenddb,$@,tophat_cuffdiff)	
+
+\#
+\# Run cuffmerge to create a single merged transcription annotation
+\#
+$(OUTDIR)/merged_asm/merged.gtf : $(OUTDIR)/tophat.assemblies.txt $(exons.gtf) $(BOWTIE_INDEXED_REFERENCE)
+	$(call timebegindb,$@,tophat_cuffmerge)
+	$(CUFFLINKS.dir)/cuffmerge -o $(dir $@) -g $(exons.gtf) -s $(REF) $<
+	$(call timeenddb,$@,tophat_cuffmerge)	
+
+\#
+\# assembly file for cuffmerge
+\#
+$(OUTDIR)/tophat.assemblies.txt: <xsl:for-each select="sample/sequences/pair"><xsl:text> </xsl:text><xsl:apply-templates select="." mode="tophat.transcripts.gtf"/></xsl:for-each>
+	mkdir -p $(dir $@)
+	rm -f $@
+	$(foreach F,\$^, echo "\$F" >> $@ ; )
+	
+<xsl:apply-templates select="sample" mode="tophat"/>
+
+
+\#
+\#  END TOPHAT
+\#
+\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+
+</xsl:template>

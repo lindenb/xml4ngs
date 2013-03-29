@@ -1,0 +1,43 @@
+
+<xsl:template name="DISTRIBUTION_OF_COVERAGE">
+<xsl:param name="target"/>
+<xsl:param name="dependencies"/>
+<xsl:param name="type"/>
+\#\#
+\# distribution of coverage for sample &quot;<xsl:value-of select="@name"/>&quot; ( <xsl:value-of select="\$type"/> )
+\#
+<xsl:value-of select="\$target"/>:  $(call indexed_bam, <xsl:value-of select="\$dependencies"/> ) $(capture.bed)
+	$(call timebegindb,$@,<xsl:value-of select="\$type"/>)
+	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,\$^) |\
+		grep -v bam | cut -d '	' -f 4 > $(patsubst %.pdf,%.tsv,$@)
+	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,\$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
+		${R.exe} --no-save 
+	$(call timeenddb,$@,<xsl:value-of select="\$type"/>)
+	$(call sizedb,$@)
+
+</xsl:template>
+
+
+<xsl:template name="GATK_VARIANT_FILTRATION">
+<xsl:param name="vcffile"/>
+<xsl:param name="variantfiltration"/>
+<xsl:if test="string-length(normalize-space(\$variantfiltration))>0">
+<xsl:variable name="tmp">$(addsuffix .tmp.vcf,<xsl:value-of select="\$vcffile"/>)</xsl:variable>
+<xsl:variable name="tmpgz">$(addsuffix .gz,<xsl:value-of select="\$tmp"/>)</xsl:variable>
+	\#filtering with GATK variant filtration
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T VariantFiltration \
+		-R $(REF) \
+		-o <xsl:value-of select="\$tmp"/> \
+		-U LENIENT_VCF_PROCESSING \
+		--variant:vcfinput,VCF <xsl:value-of select="\$vcffile"/> \
+		<xsl:value-of select="normalize-space(\$variantfiltration)"/>
+	\#compress filtered VCF
+	${TABIX.bgzip} -f  <xsl:value-of select="\$tmp"/>
+	\#replace with target
+	mv <xsl:value-of select="\$tmpgz"/> <xsl:text> </xsl:text>  <xsl:value-of select="\$vcffile"/>
+	\#index VCF with tabix
+	${TABIX.tabix} -f -p vcf <xsl:value-of select="\$vcffile"/>
+</xsl:if>
+</xsl:template>
+

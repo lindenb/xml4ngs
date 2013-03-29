@@ -8,6 +8,74 @@
 
 #macro(sample_recal $sample)#sample_dir($sample)/${sample.name}_recal.bam#end
 
+#macro(sample_sorted $sample)#sample_dir($sample)/${sample.name}_sorted.bam#end
 
-#macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#foreach($p in $sample.sequences.pair)#pair_bam_sorted($p)#end#{else}#sample_dir($sample)/${sample.name}_merged.bam#end#end
+#macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#sample_sorted($sample){else}#sample_dir($sample)/${sample.name}_merged.bam#end#end
+
+
+
+
+#macro(sample_coverage $sample)#sample_dir($sample)/${sample.name}_coverage#end
+
+
+
+#macro(sample_vcf_samtools $sample)#sample_dir($sample)/${sample.name}_variations.samtools.vcf.gz #end
+#macro(sample_vcf_gatk $sample)#sample_dir($sample)/${sample.name}_variations.gatk.vcf.gz #end
+
+#macro(sample_vcf_samtools_snpeff $sample)#sample_dir($sample)/${sample.name}_variations.samtools.snpeff.vcf.gz #end
+#macro(sample_vcf_gatk_snpeff $sample)#sample_dir($sample)/${sample.name}_variations.gatk.vcf.snpeff.gz #end
+#macro(sample_vcf_samtools_vep $sample)#sample_dir($sample)/${sample.name}_variations.samtools.vep.vcf.gz #end
+#macro(sample_vcf_gatk_vep $sample)#sample_dir($sample)/${sample.name}_variations.gatk.vcf.vep.gz #end
+
+#macro(sample_bamstat01_tsv $sample)#sample_dir($sample)/${sample.name}_bamstats01.tsv #end
+#macro(sample_bamstat04_tsv $sample)#sample_dir($sample)/${sample.name}_bamstats04.tsv #end
+
+
+
+
+
+
+
+
+<!-- distribution of coverage   -->
+<xsl:template match="sample" mode="coverage.distribution.merged">
+<xsl:text>$(dir </xsl:text>
+<xsl:apply-templates select="." mode="merged"/>
+<xsl:text>)</xsl:text>
+<xsl:value-of select="concat(@name,'.merged.coverage.pdf')"/>
+<xsl:text> </xsl:text>
+</xsl:template>
+
+<xsl:template match="sample" mode="coverage.distribution.markdup">
+<xsl:text>$(dir </xsl:text>
+<xsl:apply-templates select="." mode="markdup"/>
+<xsl:text>)</xsl:text>
+<xsl:value-of select="concat(@name,'.markdup.coverage.pdf')"/>
+<xsl:text> </xsl:text>
+</xsl:template>
+
+<xsl:template match="sample" mode="coverage.distribution.recal">
+<xsl:text>$(dir </xsl:text>
+<xsl:apply-templates select="." mode="recal"/>
+<xsl:text>)</xsl:text>
+<xsl:value-of select="concat(@name,'.recal.coverage.pdf')"/>
+<xsl:text> </xsl:text>
+</xsl:template>
+
+
+
+
+
+
+
+
+
+<!-- =======================================
+        BEDDEPTH
+     ======================================= -->
+<xsl:template match="sample" mode="varkit.beddepth">
+<xsl:apply-templates select="." mode="dir"/>
+<xsl:value-of select="concat('/',@name,'_beddepth.tsv.gz ')"/>
+</xsl:template>   
+
 

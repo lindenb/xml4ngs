@@ -1,0 +1,33 @@
+
+#macro(make_bam_index $bam)
+# 
+# create BAM index for ${bam}
+#
+${bam.trim()}.bai') : ${bam}
+	@$(call timebegindb,$@,bai)
+	$(SAMTOOLS) index $<
+	@$(call timeenddb,$@,bai)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+
+#end
+
+
+
+
+<xsl:template name="VARKIT_BEDDEDPTH">
+<xsl:param name="target"/>
+<xsl:param name="dependencies"/>
+\#
+\# coverage using varkit/beddepth
+\#
+<xsl:value-of select="\$target"/> : $(capture.bed)  $(call indexed_bam,<xsl:value-of select="\$dependencies"/> )
+	@$(call timebegindb,$@,$@)
+	${VARKIT}/beddepth  -D 0 -D 5 -D 10 -D 20 -D 30 -D 40 -D 50  -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,\$^),-f $(S) ) &lt; $< |\
+		sed 's/_recal.bam//' |\
+		gzip --best > $@
+	@$(call timeendb,$@,$@)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+
+</xsl:template>

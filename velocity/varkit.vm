@@ -1,0 +1,17 @@
+#macro(VARKIT_BEDDEDPTH $target $dependencies)
+
+#
+# coverage using varkit/beddepth
+#
+${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
+	@$(call timebegindb,$@,$@)
+	${VARKIT}/beddepth  -D 0 -D 5 -D 10 -D 20 -D 30 -D 40 -D 50  -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,\$^),-f $(S) ) < $< |\
+		sed 's/_recal.bam//' |\
+		gzip --best > $@
+	@$(call timeendb,$@,$@)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+
+
+#end
+
