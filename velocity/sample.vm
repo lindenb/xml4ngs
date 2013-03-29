@@ -1,0 +1,13 @@
+#macro(sample_dir $sample)$(OUTDIR)/Samples/${sample.name}#end
+
+#macro(sample_realigned $sample)#sample_dir($sample)/${sample.name}_realigned.bam#end
+
+#macro(sample_markdup $sample)#sample_dir($sample)/${sample.name}_markdup.bam#end
+
+
+
+#macro(sample_recal $sample)#sample_dir($sample)/${sample.name}_recal.bam#end
+
+
+#macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#foreach($p in $sample.sequences.pair)#pair_bam_sorted($p)#end#{else}#sample_dir($sample)/${sample.name}_merged.bam#end#end
+

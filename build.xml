@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="MyProject" default="all" basedir=".">
-<target name="all" depends="dist/ilmn2project.jar">
+<project name="MyProject" default="all" basedir="."  xmlns:ivy="antlib:org.apache.ivy.ant">
+<property file="build.properties"/>
+
+
+<target name="all" depends="dist/ilmn2project.jar,dist/transformngsproject.jar">
 </target>
+
  <target name="generate-sources">
    <mkdir dir="src/main/generated-sources/xjc"/>
    <exec executable="xjc">
@@ -35,4 +39,57 @@
    
     <delete dir="tmp"/>
  </target>
+ 
+ 
+<target name="dist/transformngsproject.jar" depends="generate-sources,ivy.libs">
+    <mkdir dir="tmp"/>
+   <mkdir dir="dist"/>
+    
+   <javac destdir="tmp" includeAntRuntime="false" debug="true">
+   		<classpath refid="lib.path.id"/>
+   		<src path="src/main/java"/>
+   		<src path="src/main/generated-sources/xjc"/>
+   		<include name="**/TransformProject.java"/>
+   		
+   </javac>
+   <pathconvert property="manifest_cp1" pathsep=" " refid="lib.path.id"/>
+   <jar jarfile="dist/transformngsproject.jar">
+	     <fileset dir="tmp" />
+	     <manifest>
+	       <attribute name="Built-By" value="${user.name}"/>
+	       <attribute name="Main-Class" value="com.github.lindenb.xml4ngs.TransformProject"/>
+	       <attribute name="Class-Path" value="${manifest_cp1}"/>
+	     </manifest>
+ 	</jar>
+   
+    <delete dir="tmp"/>
+ </target>
+ 
+
+<property name="ivy.install.version" value="2.3.0" />
+<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+
+    <target name="download-ivy" unless="skip.download">
+
+        <mkdir dir="${ivy.jar.dir}"/>
+        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+            dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <target name="install-ivy" depends="download-ivy">
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+        </path>
+        <taskdef
+            resource="org/apache/ivy/ant/antlib.xml"
+            uri="antlib:org.apache.ivy.ant"
+            classpathref="ivy.lib.path"/>
+    </target>
+
+
+  <target name="ivy.libs" depends="install-ivy"  description="">
+    <ivy:cachepath pathid="lib.path.id"/>
+  </target>
+
+
 </project>

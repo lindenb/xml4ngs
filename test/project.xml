@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://raw.github.com/lindenb/xml4ngs/master/src/main/resources/xsd/project.xsd">
     <properties>
+        <property key="http.proxy.host">proxy-upgrade.univ-nantes.fr</property>
+        <property key="http.proxy.port">3128</property>
+	
         <property key="output.directory">test.out.dir</property>
         <property key="bwa.aln.options"> -q 15 -t 2 </property>
         <property key="gatk.unified.genotyper.options"> -nt 20 </property>
@@ -8,7 +11,7 @@
         <property key="one.vcf.per.sample">yes</property>
         <property key="genome.reference.path">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/human_g1k_v37.fasta</property>
         <property key="known.sites">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/dbsnp_135.b37.vcf.gz</property>
-	<property key="known.indels.vcf">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/ Mills_and_1000G_gold_standard.indels.b37.vcf.gz</property>
+	<property key="known.indels.vcf">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz</property>
         <property key="downstream.vcf.annotation"> |\
 	$(JAVA) -jar $(JVARKIT)/vcfbigwig.jar -f /commun/data/pubdb/ucsc/hg19/bbi/All_hg19_RS_noprefix.bw -i GERP_SCORE |\
 	$(JAVA) -jar $(JVARKIT)/vcftabixml -f /commun/data/pubdb/vep/vep.xl -x vep2vcf.xsl |\

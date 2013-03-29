@@ -16,10 +16,17 @@
   <ci:code><![CDATA[
   
   @javax.xml.bind.annotation.XmlTransient
-  java.util.Map<String,String> getPropertyMap()
+  public java.util.Map<String,String> getPropertyMap()
   	{
   	if(properties==null) return new java.util.HashMap<String,String>();
   	return properties.getPropertyMap();
+  	}
+  
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public String getGenerateId()
+  	{
+  	return "p1";
   	}
   
   public void link()
@@ -38,7 +45,7 @@
   <ci:code><![CDATA[
   
     @javax.xml.bind.annotation.XmlTransient
-    java.util.Map<String,String> getPropertyMap()
+    public java.util.Map<String,String> getPropertyMap()
   	{
   	java.util.Map<String,String> m=new java.util.HashMap<String,String>();
   	for(PropertyType p: this.getProperty())
@@ -73,7 +80,7 @@
   
   <jxb:bindings node="/xs:schema/xs:complexType[@name='SampleType']">
   <ci:code><![CDATA[
-  
+  @javax.xml.bind.annotation.XmlTransient
   private ProjectType owner;
   
   @javax.xml.bind.annotation.XmlTransient
@@ -117,13 +124,25 @@
  
   <jxb:bindings node="/xs:schema/xs:complexType[@name='PairType']">
   <ci:code><![CDATA[
-  
+  @javax.xml.bind.annotation.XmlTransient
   private SampleType owner;
   
   @javax.xml.bind.annotation.XmlTransient
   public SampleType getSample()
   	{
   	return this.owner;
+  	}
+  
+  @javax.xml.bind.annotation.XmlTransient
+   public int getIndex()
+  	{
+  	int i=1;
+  	for(PairType p:getSample().getSequences().getPair())
+  		{
+  		if(p==this) break;
+  		++i;
+  		}
+  	return i;
   	}
   
   public void setSample(SampleType owner)
@@ -146,6 +165,7 @@
  
   <jxb:bindings node="/xs:schema/xs:complexType[@name='FastqType']">
   <ci:code><![CDATA[
+  @javax.xml.bind.annotation.XmlTransient
   private PairType owner;
   
   @javax.xml.bind.annotation.XmlTransient

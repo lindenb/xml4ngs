@@ -1,0 +1,15 @@
+INDEXED_REFERENCE=\$(foreach S,.amb .ann .bwt .pac .sa .fai,\$(addsuffix \$S,\$(REF))) \$(addsuffix	.dict,\$(basename \$(REF)))
+#
+#genome indexed with bowtie
+#
+BOWTIE_INDEXED_REFERENCE=\$(foreach S,.1.bt2 .2.bt2 .3.bt2 .4.bt2 .rev.1.bt2 .rev.2.bt2, \$(addsuffix \$S,\$(basename  \$(REF))) )
+\#
+\# exons reference for tophat
+\#
+exons.gtf?=<xsl:choose>
+	<xsl:when test="properties/property[@key='exons.gtf.path']"><xsl:value-of select="normalize-space(properties/property[@key='exons.gtf.path'])"/></xsl:when>
+	<xsl:otherwise>\$(OUTDIR)/Reference/Homo_sapiens.GRCh37.69.gtf</xsl:otherwise>
+</xsl:choose>
+
+
+<xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
