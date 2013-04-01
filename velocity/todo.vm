@@ -84,10 +84,23 @@ build_bowtie_index:\$(BOWTIE_INDEXED_REFERENCE)
 	
 	
 	
-	
-	
-	
-	
+
+<xsl:choose>
+<xsl:when test="substring(@path, string-length(@path)- 3)='.bz2'">
+
+\#need to convert from bz2 to gz
+<xsl:apply-templates select="." mode="preprocessed.fastq"/>:<xsl:value-of select="@path"/>
+	mkdir -p <xsl:apply-templates select="." mode="dir"/>
+	bunzip -c $< | <xsl:if test="number(\$limit)>0"> head -n <xsl:value-of select="number(\$limit)*4"/> |</xsl:if> gzip --best > $@
+
+</xsl:when>
+
+<xsl:when test="number(\$limit)>0">
+<xsl:apply-templates select="." mode="preprocessed.fastq"/>:<xsl:value-of select="@path"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/>
+	gunzip -c $< | head  -n <xsl:value-of select="number(\$limit)*4"/> | gzip --best > $@	
+</xsl:when>
+
+</xsl:choose>
 	
 	
 	

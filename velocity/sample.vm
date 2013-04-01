@@ -29,53 +29,13 @@
 
 #macro(sample_bamstat01_tsv $sample)#sample_dir($sample)/${sample.name}_bamstats01.tsv #end
 #macro(sample_bamstat04_tsv $sample)#sample_dir($sample)/${sample.name}_bamstats04.tsv #end
+#macro(sample_beddepth $sample)#sample_dir($sample)/${sample.name}_beddepth.tsv.gz #end
 
 
+#macro(sample_distribution_of_coverage_merged $sample)$dir(#sample_merged($sample))/${sample.name}.merged.coverage.pdf #end
+#macro(sample_distribution_of_coverage_markdup $sample)$dir(#sample_markdup($sample))/${sample.name}.markdup.coverage.pdf #end
+#macro(sample_distribution_of_coverage_recal $sample)$dir(#sample_recal($sample))/${sample.name}.recal.coverage.pdf #end
 
 
-
-
-
-
-<!-- distribution of coverage   -->
-<xsl:template match="sample" mode="coverage.distribution.merged">
-<xsl:text>$(dir </xsl:text>
-<xsl:apply-templates select="." mode="merged"/>
-<xsl:text>)</xsl:text>
-<xsl:value-of select="concat(@name,'.merged.coverage.pdf')"/>
-<xsl:text> </xsl:text>
-</xsl:template>
-
-<xsl:template match="sample" mode="coverage.distribution.markdup">
-<xsl:text>$(dir </xsl:text>
-<xsl:apply-templates select="." mode="markdup"/>
-<xsl:text>)</xsl:text>
-<xsl:value-of select="concat(@name,'.markdup.coverage.pdf')"/>
-<xsl:text> </xsl:text>
-</xsl:template>
-
-<xsl:template match="sample" mode="coverage.distribution.recal">
-<xsl:text>$(dir </xsl:text>
-<xsl:apply-templates select="." mode="recal"/>
-<xsl:text>)</xsl:text>
-<xsl:value-of select="concat(@name,'.recal.coverage.pdf')"/>
-<xsl:text> </xsl:text>
-</xsl:template>
-
-
-
-
-
-
-
-
-
-<!-- =======================================
-        BEDDEPTH
-     ======================================= -->
-<xsl:template match="sample" mode="varkit.beddepth">
-<xsl:apply-templates select="." mode="dir"/>
-<xsl:value-of select="concat('/',@name,'_beddepth.tsv.gz ')"/>
-</xsl:template>   
 
 

@@ -1,24 +1,15 @@
+#macro(annotate_with_vep $target $dependencies $type $variantfiltration)
 
-<xsl:template name="ANNOTATE_WITH_VEP">
-<xsl:param name="target"/>
-<xsl:param name="dependencies"/>
-<xsl:param name="type"/>
-<xsl:param name="variantfiltration"/>
-
-<xsl:value-of select="\$target"/> : <xsl:value-of select="\$dependencies"/>
-	\#Annotation with VEP
-	\#VEP only work as root
-	@$(call timebegindb,$@,<xsl:value-of select="\$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $< -o STDOUT --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  | ${TABIX.bgzip} -c > $@
+${target} : ${dependencies}
+	#Annotation with VEP
+	##VEP only work as root
+	@$(call timebegindb,$@,${type})
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $< -o STDOUT --quiet --vcf #if( ${project.propertyMap["discard.intergenic.variants"]=="yes") --no_intergenic #end ${project.propertyMap["downstream.vcf.annotation"]} |LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  | ${TABIX.bgzip} -c > $@
 	${TABIX.tabix} -f -p vcf $@ 
-	\#\#VEP done <xsl:call-template name="GATK_VARIANT_FILTRATION">
-		<xsl:with-param name="vcffile">$@</xsl:with-param>
-		<xsl:with-param name="variantfiltration"><xsl:value-of select="\$variantfiltration"/></xsl:with-param>
-	</xsl:call-template>
-	@$(call timeenddb,$@,<xsl:value-of select="\$type"/>)
+	###VEP done
+	#gatk_variant_filtration($@,${variantfiltration})
+	@$(call timeenddb,$@,${type})
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
-</xsl:template>
-
-
+#end

@@ -285,7 +285,7 @@ LIST_PHONY_TARGET+= coverage
 coverage:$(OUTDIR)/mean_coverage01.pdf
 $(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage"/></xsl:for-each>)
 	echo "sample	mean-coverage" > $(patsubst %.pdf,%.tsv,$@)
-	cat \$^ | sort | grep -v -E  '^(Total|sample_id)'  |\
+	cat $^ | sort | grep -v -E  '^(Total|sample_id)'  |\
 		cut -d '	' -f1,3 >> $(patsubst %.pdf,%.tsv,$@)
 	echo 'pdf("$@",paper="A4r"); T&lt;-read.table("$(patsubst %.pdf,%.tsv,$@)",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
 	${R.exe} --no-save
@@ -324,7 +324,7 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 	$(SAMTOOLS) mpileup <xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> -A  -d 8000 </xsl:if> -uD \
 		-q $(MIN_MAPPING_QUALITY) \
 		<xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> -l $(OUTDIR)/capture500.bed </xsl:if> \
-		-f $(REF) $(filter %.bam,\$^) |\
+		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c > $@
 	${TABIX.tabix} -p vcf $@ 
@@ -350,7 +350,7 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 		  </xsl:otherwise>
 		</xsl:choose> \
 		<xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> -L $(OUTDIR)/capture500.bed </xsl:if> \
-		$(foreach B,$(filter %.bam,\$^), -I \$B ) \
+		$(foreach B,$(filter %.bam,$^), -I \$B ) \
 		--dbsnp:vcfinput,VCF $(known.sites) \
 		-o $(basename $@)
 	${TABIX.bgzip} -f $(basename $@)
@@ -533,14 +533,14 @@ $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
 \# count of mapped-reads	
 \#
 $(OUTDIR)/bamstats01.tsv : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="bamstats01.tsv"/> </xsl:for-each>
-	cat \$^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
+	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
 \#
 \# count of distribution of coverage
 \#
 $(OUTDIR)/bamstats04.tsv : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="bamstats04.tsv"/> </xsl:for-each>
-	cat \$^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
+	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
 
@@ -556,13 +556,13 @@ coverage_distribution:  $(OUTDIR)/all.distribution.merged.pdf \
 
 
 $(OUTDIR)/all.distribution.merged.pdf : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.merged"/></xsl:for-each>
-	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,\$^)
+	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
 $(OUTDIR)/all.distribution.markdup.pdf : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.markdup"/></xsl:for-each>
-	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,\$^)
+	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
 $(OUTDIR)/all.distribution.recal.pdf : <xsl:for-each select="sample"><xsl:apply-templates select="." mode="coverage.distribution.recal"/></xsl:for-each>
-	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,\$^)
+	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
 
 \#
@@ -577,7 +577,7 @@ $(OUTDIR)/bamstats03.pdf : $(OUTDIR)/bamstats03.tsv
 \#
 $(OUTDIR)/bamstats03.tsv : $(call indexed_bam,<xsl:for-each select="sample"><xsl:apply-templates select="." mode="recal"/></xsl:for-each>)  $(capture.bed) 
 	@$(call timebegindb,$@,$@)
-	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,\$^) | awk -F '/' '{print \$\$NF;}'  | sort  > $@
+	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print \$\$NF;}'  | sort  > $@
 	@$(call timeendb,$@,$@)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -659,12 +659,12 @@ $(addsuffix .sample_summary,<xsl:apply-templates select="." mode="coverage"/>) :
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
-		-L $(filter %.bed,\$^) \
+		-L $(filter %.bed,$^) \
 		-S SILENT \
 		--minMappingQuality $(MIN_MAPPING_QUALITY) \
 		-omitBaseOutput \
 		--summaryCoverageThreshold 5 \
-		-I $(filter %.bam,\$^) \
+		-I $(filter %.bam,$^) \
 		-o <xsl:apply-templates select="." mode="coverage"/>
 	$(call timeendb,<xsl:apply-templates select="." mode="coverage"/>,coverage.gatk)
 
@@ -692,8 +692,8 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 <xsl:when  test="/project/properties/property[@key='disable.recalibration']='yes'">
 <xsl:apply-templates select="." mode="recal"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="markdup"/>)
 	\#just create a symbolic link
-	$(call create_symbolic_link,$(filter %.bam,\$^),$@)
-	\#\#ln -s --force $(filter %.bai,\$^) $(addsuffix .bai,$@)
+	$(call create_symbolic_link,$(filter %.bam,$^),$@)
+	\#\#ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
 
 </xsl:when>
 <xsl:otherwise>
@@ -702,7 +702,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
 		-R $(REF) \
-		-I $(filter %.bam,\$^) \
+		-I $(filter %.bam,$^) \
 		-l INFO \
 		<xsl:choose>
 			  <xsl:when test="/project/properties/property[@key='gatk.base.recalibrator.options']">
@@ -714,7 +714,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 			</xsl:choose> \
 		-o $@.recal_data.grp \
 		-knownSites:vcfinput,VCF $(known.sites) \
-		-L $(filter %.bed,\$^) \
+		-L $(filter %.bed,$^) \
 		-cov ReadGroupCovariate \
 		-cov QualityScoreCovariate \
 		-cov CycleCovariate \
@@ -726,7 +726,7 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 		--disable_bam_indexing \
 		-R $(REF) \
 		-BQSR $@.recal_data.grp \
-		-I $(filter %.bam,\$^) \
+		-I $(filter %.bam,$^) \
 		<xsl:choose>
 		  <xsl:when test="/project/properties/property[@key='gatk.recalibration.print.reads.options']">
 		  	<xsl:value-of select="/project/properties/property[@key='gatk.recalibration.print.reads.options']"/>
@@ -741,202 +741,156 @@ LIST_BAM_RECAL+=<xsl:apply-templates select="." mode="recal"/><xsl:text>
 	@$(call sizedb,$@)
 	rm -f $@.recal_data.grp
 	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,\$^) )
-	$(call delete_and_touch,$(filter %.bai,\$^) )
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
 	touch $@
 
 </xsl:otherwise>
 </xsl:choose>
 
-\#
-\#
-\# Mark duplicates for Sample: <xsl:value-of select="@name"/>
-\#
-LIST_BAM_MARKDUP+=<xsl:apply-templates select="." mode="markdup"/><xsl:text>
-</xsl:text>
-<xsl:apply-templates select="." mode="markdup"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="realigned"/>)
-<xsl:choose>
-<xsl:when  test="/project/properties/property[@key='disable.mark.duplicates']='yes' or /project/properties/property[@key='is.haloplex']='yes'">
-<xsl:message>[WARNING] Mark Duplicate Disabled.</xsl:message>	\#just create a symbolic link
-	$(call create_symbolic_link,$(filter %.bam,\$^),$@)
-	\#\#ln -s --force $(filter %.bai,\$^) $(addsuffix .bai,$@)
-	
-</xsl:when>
-<xsl:when test="/project/properties/property[@key='use.samtools.rmdup']='yes'">	@$(call timebegindb,$@_markdup,markdup)
-	$(SAMTOOLS) rmdup $(filter %.bam,\$^) $@
-	@$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,\$^) )
-	$(call delete_and_touch,$(filter %.bai,\$^) )
+#
+#
+# Mark duplicates for Sample: ${sample.name}
+#
+LIST_BAM_MARKDUP+=#sample_markdup(${sample})
 
-</xsl:when>
-<xsl:otherwise>	$(call timebegindb,$@_markdup,markdup)
+#sample_markdup(${sample}) : $(call indexed_bam, #sample_realigned(${sample}) )
+#if(${project.propertyMap["disable.mark.duplicates"]}=="yes" || ${project.propertyMap["is.haloplex"]}=="yes")
+	#just create a symbolic link ${utils.warning("Mark Duplicate Disabled")}
+	$(call create_symbolic_link,$(filter %.bam,$^),$@)
+	# ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
+	
+#elseif( ${project.propertyMap["use.samtools.rmdup"} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
+	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
+	$(call sizedb,$@)
+	$(call notempty,$@)
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
+
+#else	$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(addsuffix tmp.rmdup,$(dir $@))
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
-		INPUT=$(filter %.bam,\$^) \
+		INPUT=$(filter %.bam,$^) \
 		O=$@ \
 		MAX_FILE_HANDLES=400 \
 		M=$@.metrics \
 		AS=true \
-		<xsl:choose>
-		  <xsl:when test="/project/properties/property[@key='picard.mark.duplicates.options']">
-		  	<xsl:value-of select="/project/properties/property[@key='picard.mark.duplicates.options']"/>
-		  </xsl:when>
-		  <xsl:otherwise>
-		  	<!-- no option   -->
-		  </xsl:otherwise>
-		</xsl:choose> \
+		#if(${project.propertyMap.containsKey("picard.mark.duplicates.options")}
+			) ${project.propertyMap["picard.mark.duplicates.options"] } #end \
 		VALIDATION_STRINGENCY=SILENT
 	@$(call timeenddb,$@_markdup,markdup)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,\$^) )
-	$(call delete_and_touch,$(filter %.bai,\$^) )
+	$(call delete_and_touch,$(filter %.bam,$^) )
+	$(call delete_and_touch,$(filter %.bai,$^) )
 	touch $@
 
-<!--
-pas utilisé
-\#$(call timebegindb,$@_fixmate,fixmate)
-	\#$(JAVA) $(PICARD.jvm) -jar $(PICARD)/FixMateInformation.jar  TMP_DIR=$(OUTDIR) INPUT=$@  VALIDATION_STRINGENCY=SILENT
-	\#$(call timendedb,$@_fixmate,fixmate)
-	\#$(SAMTOOLS) index $@
-	\#$(call timebegindb,$@_validate,validate)
-	\#$(JAVA) $(PICARD.jvm) -jar $(PICARD)/ValidateSamFile.jar TMP_DIR=$(OUTDIR) VALIDATE_INDEX=true I=$@  CREATE_INDEX=true VALIDATION_STRINGENCY=SILENT IGNORE_WARNINGS=true
-	\#$(call timeenddb,$@_validate,validate)
+#end
 
--->
+#
+#
+# IndelRealignments for Sample ${sample.name}
+#
+#
+LIST_BAM_REALIGN+= #sample_realigned(${sample})
+#if(${project.propertyMap["disable.indelrealigner"]}=="yes")
 
-</xsl:otherwise>
-</xsl:choose>
+#sample_realigned(${sample}) : $(call indexed_bam, #sample_merged(${sample}) )
+	#just create a symbolic link
+	$(call create_symbolic_link,$(filter %.bam,$^),$@)
+	##ln --force -s $(filter %.bai,$^) $(addsuffix .bai,$@)
 
-\#
-\#
-\# IndelRealignments for Sample &quot;<xsl:value-of select="@name"/>&quot;
-\#
-\#
-LIST_BAM_REALIGN+=<xsl:apply-templates select="." mode="realigned"/><xsl:text>
-</xsl:text>
-<xsl:choose>
-<xsl:when  test="/project/properties/property[@key='disable.indelrealigner']='yes'">
-<xsl:apply-templates select="." mode="realigned"/> : $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>)
-	\#just create a symbolic link
-	$(call create_symbolic_link,$(filter %.bam,\$^),$@)
-	\#\#ln --force -s $(filter %.bai,\$^) $(addsuffix .bai,$@)
+#else 
 
-</xsl:when>
-<xsl:otherwise>
-<xsl:apply-templates select="." mode="realigned"/>: $(call indexed_bam,<xsl:apply-templates select="." mode="merged"/>) $(OUTDIR)/capture500.bed
+#sample_realigned(${sample}) : $(call indexed_bam, #sample_merged(${sample}) ) $(OUTDIR)/capture500.bed
 		@$(call timebegindb,$@_targetcreator,targetcreator)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
-			-L $(filter %.bed,\$^) \
-  			-I $(filter %.bam,\$^) \
+			-L $(filter %.bed,$^) \
+  			-I $(filter %.bam,$^) \
 			-S SILENT \
-			<xsl:choose>
-			  <xsl:when test="/project/properties/property[@key='gatk.realigner.target.creator.options']">
-			  	<xsl:value-of select="/project/properties/property[@key='gatk.realigner.target.creator.options']"/>
-			  </xsl:when>
-			  <xsl:otherwise>
-			  	<!-- no option   -->
-			  </xsl:otherwise>
-			</xsl:choose> \
-  			-o $(addsuffix .intervals, $(filter %.bam,\$^) ) \
-			--known:vcfinput,VCF <xsl:choose>
-			  <xsl:when test="/project/properties/property[@key='known.indels.vcf']">
-			  	<xsl:value-of select="/project/properties/property[@key='known.indels.vcf']"/>
-			  </xsl:when>
-			  <xsl:otherwise>
-			  	<xsl:message terminate="yes">known.indels.vcf undefined</xsl:message>
-			  </xsl:otherwise>
-			</xsl:choose>
+			#if(${project.propertyMap.containsKey("gatk.realigner.target.creator.options")}
+			) ${project.propertyMap["gatk.realigner.target.creator.options"] } #end \
+			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
+			--known:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
+			 ) ${project.propertyMap["known.indels.vcf"] } #else  
+			  ${utils.error("known.indels.vcf undefined")}	 
+			#end 
 		@$(call timeenddb,$@_targetcreator,targetcreator)
 		@$(call timebegindb,$@_indelrealigner,indelrealign)
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
   			-R $(REF) \
-  			-I $(filter %.bam,\$^) \
+  			-I $(filter %.bam,$^) \
 			-S SILENT \
-			<xsl:choose>
-			  <xsl:when test="/project/properties/property[@key='gatk.indel.realigner.options']">
-			  	<xsl:value-of select="/project/properties/property[@key='gatk.indel.realigner.options']"/>
-			  </xsl:when>
-			  <xsl:otherwise>
-			  	<!-- no option   -->
-			  </xsl:otherwise>
-			</xsl:choose> \
+			#if(${project.propertyMap.containsKey("gatk.indel.realigner.options")}
+			) ${project.propertyMap["gatk.indel.realigner.options"] } #end \
   			-o $@ \
-  			-targetIntervals $(addsuffix .intervals, $(filter %.bam,\$^) ) \
-			--knownAlleles:vcfinput,VCF <xsl:choose>
-			  <xsl:when test="/project/properties/property[@key='known.indels.vcf']">
-			  	<xsl:value-of select="/project/properties/property[@key='known.indels.vcf']"/>
-			  </xsl:when>
-			  <xsl:otherwise>
-			  	<xsl:message terminate="yes">known.indels.vcf undefined</xsl:message>
-			  </xsl:otherwise>
-			</xsl:choose>
+  			-targetIntervals $(addsuffix .intervals, $(filter %.bam,$^) ) \
+			--knownAlleles:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
+			 ) ${project.propertyMap["known.indels.vcf"] } #else  
+			  ${utils.error("known.indels.vcf undefined")}	 
+			#end 
 		@$(call timeenddb,$@_indelrealigner,indelrealign)
 		@$(call sizedb,$@)
 		$(call notempty,$@)
-		rm -f $(addsuffix .intervals, $(filter %.bam,\$^) )
-		$(call delete_and_touch,$(filter %.bam,\$^)  )
-		$(call delete_and_touch,$(filter %.bam.bai,\$^)  )
+		rm -f $(addsuffix .intervals, $(filter %.bam,$^) )
+		$(call delete_and_touch,$(filter %.bam,$^)  )
+		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
 		touch $@
 
-</xsl:otherwise>
-</xsl:choose>
+#end
 
-<xsl:if test="count(sequences/pair)>1">
-\#
-\#
-\# Merge all Bams for Sample &quot;<xsl:value-of select="@name"/>&quot;
-\#
-\#
-LIST_BAM_MERGED+=<xsl:apply-templates select="." mode="merged"/><xsl:text>
-</xsl:text>
-<xsl:apply-templates select="." mode="merged"/> : <xsl:for-each select="sequences/pair"><xsl:apply-templates select="." mode="sorted"/></xsl:for-each>
+#if(${sample.sequences.pair.size()} > 1 )
+
+#
+#
+# Merge all Bams for ${sample.name}
+#
+#
+LIST_BAM_MERGED+=  #sample_merged(${sample})
+
+#sample_merged(${sample}) : #foreach($pair in ${sample.sequences.pair} ) #pair_sorted(${pair}) #end
+	
 	@$(call timebegindb,$@,merge)
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ AS=true \
-		<xsl:choose>
-		  <xsl:when test="/project/properties/property[@key='picard.merge.options']">
-		  	<xsl:value-of select="/project/properties/property[@key='picard.merge.options']"/>
-		  </xsl:when>
-		  <xsl:otherwise>
-		  	<!-- picard.merge.options   -->
-		  </xsl:otherwise>
-		</xsl:choose> VALIDATION_STRINGENCY=SILENT \
-		COMMENT="Merged from \$^" \
-		$(foreach B,\$^, I=$(B) )
-	$(DELETEFILE) \$^
+		#if(${project.propertyMap.containsKey("picard.merge.options")}
+			 ) ${project.propertyMap["picard.merge.options"] } #end \
+		VALIDATION_STRINGENCY=SILENT \
+		COMMENT="Merged from $^" \
+		$(foreach B,$^, I=$(B) )
+	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,\$^)
+	$(call delete_and_touch,$^)
 	touch $@
 	
-</xsl:if>
+#end
 
-<!-- bamstats01-->
 
-\#
-\# bamstats01 for sample: <xsl:value-of select="@name"/>
-\#
-<xsl:apply-templates select="." mode="bamstats01.tsv"/> : $(call indexed_bam, <xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+#
+# bamstats01 for sample: ${sample.name}
+#
+#sample_bamstat01_tsv($sample) : $(call indexed_bam, #sample_recal($sample) ) $(capture.bed)
 	@$(call timebegindb,$@,bamstats01)
 	mkdir -p $(dir $@)
-	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,\$^) | sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,\$^))%%" > $@
+	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) |\
+		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
 	@$(call timeendb,$@,bamstats01)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
-\#
-\# bamstats04 for sample: <xsl:value-of select="@name"/>
-\#
-<xsl:apply-templates select="." mode="bamstats04.tsv"/> : $(call indexed_bam, <xsl:apply-templates select="." mode="recal"/>) $(capture.bed)
+#
+# bamstats04 for sample: <xsl:value-of select="@name"/>
+#
+#sample_bamstat04_tsv($sample) : $(call indexed_bam, #sample_recal($sample) ) $(capture.bed)
 	@$(call timebegindb,$@,bamstats04)
 	mkdir -p $(dir $@)
-	$(JAVA) -jar ${JVARKIT}/bamstats04.jar -b $(capture.bed) $(filter %.bam,\$^) | sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,\$^))%%" > $@
+	$(JAVA) -jar ${JVARKIT}/bamstats04.jar -b $(capture.bed) $(filter %.bam,$^) |\
+		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
 	@$(call timeendb,$@,bamstats04)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -1046,7 +1000,7 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 	@$(call timeenddb,$@,bwasampe)
 	@$(call sizedb,$@)
 	@$(call notempty,$@)
-	@$(call delete_and_touch,$(filter %.sai,\$^))
+	@$(call delete_and_touch,$(filter %.sai,$^))
 	touch $@
 
 
@@ -1057,25 +1011,9 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 ##
 #foreach($fastq in ${pair.fastq})
 
-<xsl:choose>
-<xsl:when test="substring(@path, string-length(@path)- 3)='.bz2'">
-
-\#need to convert from bz2 to gz
-<xsl:apply-templates select="." mode="preprocessed.fastq"/>:<xsl:value-of select="@path"/>
-	mkdir -p <xsl:apply-templates select="." mode="dir"/>
-	bunzip -c $< | <xsl:if test="number(\$limit)>0"> head -n <xsl:value-of select="number(\$limit)*4"/> |</xsl:if> gzip --best > $@
-
-</xsl:when>
-
-<xsl:when test="number(\$limit)>0">
-<xsl:apply-templates select="." mode="preprocessed.fastq"/>:<xsl:value-of select="@path"/><xsl:text> </xsl:text><xsl:apply-templates select="." mode="dir"/>
-	gunzip -c $< | head  -n <xsl:value-of select="number(\$limit)*4"/> | gzip --best > $@	
-</xsl:when>
-
-</xsl:choose>
 
 
-<xsl:apply-templates select="." mode="sai"/>:<xsl:apply-templates select="." mode="preprocessed.fastq"/> $(INDEXED_REFERENCE)
+<xsl:apply-templates select="." mode="sai"/> : #fastq_preprocessed($fastq) $(INDEXED_REFERENCE)
 	mkdir -p $(dir $@)
 	@$(call timebegindb,$@,sai)
 	@$(call sizedb,$<)
@@ -1170,12 +1108,14 @@ hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 
 $(OUTDIR)/durations.stats.txt:
 	lockfile $(LOCKFILE)
+	mkdir -p $(dirname $(HSQLSTATS) )
 	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category$(foreach T,SECOND MINUTE HOUR DAY, ,AVG(TIMESTAMPDIFF(SQL_TSI_${T},B.W,E.W)) as duration_${T}) from begindb as B ,enddb as E where B.file=E.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
 $(OUTDIR)/filesize.stats.txt:
 	lockfile $(LOCKFILE)
+	mkdir -p $(dirname $(HSQLSTATS) )
 	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
@@ -1188,6 +1128,7 @@ $(OUTDIR)/filesize.stats.txt:
 LIST_PHONY_TARGET+= ongoing
 ongoing:
 	lockfile $(LOCKFILE)
+	mkdir -p $(dirname $(HSQLSTATS) )
 	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.file,B.w,E.file,E.w,B.category from begindb as B LEFT JOIN enddb as E on ( B.file=E.file and B.category=E.category ) where E.file is NULL or B.w >= E.w order by B.file ;" 
 	rm -f $(LOCKFILE)	
@@ -1217,27 +1158,6 @@ git:.git/config
 
 
 
-<xsl:template name="ANNOTATE_WITH_VEP">
-<xsl:param name="target"/>
-<xsl:param name="dependencies"/>
-<xsl:param name="type"/>
-<xsl:param name="variantfiltration"/>
-
-<xsl:value-of select="\$target"/> : <xsl:value-of select="\$dependencies"/>
-	\#Annotation with VEP
-	\#VEP only work as root
-	@$(call timebegindb,$@,<xsl:value-of select="\$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $< -o STDOUT --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  | ${TABIX.bgzip} -c > $@
-	${TABIX.tabix} -f -p vcf $@ 
-	\#\#VEP done <xsl:call-template name="GATK_VARIANT_FILTRATION">
-		<xsl:with-param name="vcffile">$@</xsl:with-param>
-		<xsl:with-param name="variantfiltration"><xsl:value-of select="\$variantfiltration"/></xsl:with-param>
-	</xsl:call-template>
-	@$(call timeenddb,$@,<xsl:value-of select="\$type"/>)
-	@$(call sizedb,$@)
-	$(call notempty,$@)
-	
-</xsl:template>
 
 <xsl:template name="GATK_VARIANT_FILTRATION">
 <xsl:param name="vcffile"/>
@@ -1267,14 +1187,14 @@ git:.git/config
 <xsl:param name="target"/>
 <xsl:param name="dependencies"/>
 <xsl:param name="type"/>
-\#\#
-\# distribution of coverage for sample &quot;<xsl:value-of select="@name"/>&quot; ( <xsl:value-of select="\$type"/> )
-\#
+##
+# distribution of coverage for sample &quot;<xsl:value-of select="@name"/>&quot; ( <xsl:value-of select="\$type"/> )
+#
 <xsl:value-of select="\$target"/>:  $(call indexed_bam, <xsl:value-of select="\$dependencies"/> ) $(capture.bed)
 	$(call timebegindb,$@,<xsl:value-of select="\$type"/>)
-	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,\$^) |\
+	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
 		grep -v bam | cut -d '	' -f 4 > $(patsubst %.pdf,%.tsv,$@)
-	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,\$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
+	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
 		${R.exe} --no-save 
 	$(call timeenddb,$@,<xsl:value-of select="\$type"/>)
 	$(call sizedb,$@)
