@@ -15,6 +15,20 @@ exons.gtf?=<xsl:choose>
 <xsl:if test="properties/property[@key='is.rnaseq']='yes'"> all_tophat</xsl:if>
 
 
+\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+\#
+\# EXONS GTF for tophat
+\#
+$(OUTDIR)/Reference/Homo_sapiens.GRCh37.69.gtf:
+	$(call timebegindb,$@,$@)
+	mkdir -p $(dir $@)
+	curl -o $@.gz "ftp://ftp.ensembl.org/pub/current_gtf/homo_sapiens/$(basename $@).gz"
+	$(call notempty,$@.gz)
+	gunzip $@.gz
+	$(call timeendb,$@,$@)
+	$(call sizedb,$@)
+	$(call notempty,$@)
+
 
 
 \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
@@ -231,3 +245,21 @@ $(OUTDIR)/tophat.assemblies.txt: <xsl:for-each select="sample/sequences/pair"><x
 \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 
 </xsl:template>
+
+
+	
+<!--
+\#
+\# Join samtools VEP to diseases database (jensenlab.org)
+\# 
+$(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools.vep.vcf.gz
+	mkdir -p $(dir $@)
+	curl "http://download.jensenlab.org/human_disease_textmining_full.tsv" | sort -t '	' -k1,1 > $(OUTDIR)/human_disease_textmining_full_01.tsv
+	curl "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/ensGtp.txt.gz" | gunzip -c | awk -F '	' '(\$\$3!="")' | sort -t '	' -k3,3 > $(OUTDIR)/ensGtp_01.txt
+	(echo "Ensembl.Protein	GeneSymbol	disease.ontology.id	disease.ontology.label	jensenlab.zscore	jensenlab.confidence	Gene	Transcript" ; join -t '	' -1 1 -2 3 $(OUTDIR)/human_disease_textmining_full_01.tsv $(OUTDIR)/ensGtp_01.txt )| sort -t '	' -k7,7 > $(OUTDIR)/jeter_01.join
+	gunzip -c $< | sort -t '	' -k4,4 | join -t '	' -1 4 -2 7 - $(OUTDIR)/jeter_01.join | gzip \-\-best > $@ 
+	rm -f $(OUTDIR)/human_disease_textmining_full_01.tsv $(OUTDIR)/ensGtp_01.txt $(OUTDIR)/jeter_01.join
+-->
+
+
+

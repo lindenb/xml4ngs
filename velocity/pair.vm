@@ -1,23 +1,7 @@
-#macro(pair_dir $pair)#sample_dir($pair.sample)#end
-#macro(pair_name $pair)${pair.sample.name}__pair${pair.index}#end
+#macro(pair_dir $pair)#sample_dir(${pair.sample})#end
+#macro(pair_name $pair)${pair.sample.name}_pair${pair.index}#end
 #macro(pair_bam_sorted $pair)#pair_dir($pair)/#pair_name($pair)_sorted.bam#end
 #macro(pair_bam_unsorted $pair)#pair_dir($pair)/#pair_name($pair)_unsorted.bam#end
 
 
-
-
-
-<xsl:template match="pair" mode="fragmentSize">
-<xsl:choose>
-  <xsl:when test="@fragmentSize"><xsl:value-of select="@fragmentSize"/></xsl:when>
-  <xsl:when test="/project/fragmentSize"><xsl:value-of select="/project/fragmentSize"/></xsl:when>
-  <xsl:otherwise>500</xsl:otherwise>
-</xsl:choose>
-</xsl:template>
-
-<xsl:template match="pair" mode="sorted">
-<xsl:variable name="p"><xsl:apply-templates select="." mode="pairname"/></xsl:variable>
-<xsl:text>$(OUTDIR)/</xsl:text><xsl:value-of select="concat(../../@name,'/$(TMPREFIX)',\$p,'_sorted.bam ')"/>
-</xsl:template>
-
-
+#macro(pair_fragment_size $pair)500#end

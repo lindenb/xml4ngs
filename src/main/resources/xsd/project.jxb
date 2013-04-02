@@ -173,7 +173,7 @@
   
   
    @javax.xml.bind.annotation.XmlTransient
-   public FastqType getFormard()
+   public FastqType getForward()
    	{
    	return this.getFastq().get(0);
    	}

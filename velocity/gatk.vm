@@ -30,5 +30,5 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	#replace with target
 	mv ${tmp} ${vcffile}
 	#index VCF with tabix
-	${TABIX.tabix} -f -p vcf ${vcffile}#end#endf
+	${TABIX.tabix} -f -p vcf ${vcffile}#end#end
 

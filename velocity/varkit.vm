@@ -5,7 +5,7 @@
 #
 ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 	@$(call timebegindb,$@,$@)
-	${VARKIT}/beddepth  -D 0 -D 5 -D 10 -D 20 -D 30 -D 40 -D 50  -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,\$^),-f $(S) ) < $< |\
+	${VARKIT}/beddepth  -D 0 -D 5 -D 10 -D 20 -D 30 -D 40 -D 50  -m $(MIN_MAPPING_QUALITY) $(foreach S,$(filter %.bam,$^),-f $(S) ) < $< |\
 		sed 's/_recal.bam//' |\
 		gzip --best > $@
 	@$(call timeendb,$@,$@)
@@ -15,3 +15,18 @@ ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 
 #end
 
+#macro(DISTRIBUTION_OF_COVERAGE $target $dependencies $type)
+
+##
+# distribution of coverage for sample "$target" ( $type )
+#
+${target}:  $(call indexed_bam, $dependencies ) $(capture.bed)
+	$(call timebegindb,$@,$type)
+	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
+		grep -v bam | cut -d '	' -f 4 > $(patsubst %.pdf,%.tsv,$@)
+	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
+		${R.exe} --no-save 
+	$(call timeenddb,$@,$type)
+	$(call sizedb,$@)
+
+#end
