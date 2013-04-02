@@ -21,6 +21,12 @@
   	if(properties==null) return new java.util.HashMap<String,String>();
   	return properties.getPropertyMap();
   	}
+  	
+  public String getPropertyByName(String key,String def)
+  	{
+  	String v=getPropertyMap().get(key);
+  	return v==null?def:v;
+  	}
   
   
   @javax.xml.bind.annotation.XmlTransient
@@ -106,7 +112,25 @@
 	  		}
   		}
   	}
+ 
+ 
+  @javax.xml.bind.annotation.XmlTransient
+  public java.util.Map<String,String> getPropertyMap()
+  	{
+  	java.util.Map<String,String> p=new java.util.HashMap<String,String>();
+  	p.putAll(getProject().getPropertyMap());
+  	if(properties!=null)
+  		{
+  		p.putAll(properties.getPropertyMap());
+  		}
+  	return p;
+  	}
   
+    public String getPropertyByName(String key,String def)
+  	{
+  	String v=getPropertyMap().get(key);
+  	return v==null?def:v;
+  	}
   
   @Override
   public String toString()

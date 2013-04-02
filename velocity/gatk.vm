@@ -1,4 +1,4 @@
-#macro(GATK_VARIANT_FILTRATION $target $dependencies $type )
+#macro(gatk_distribution_of_coverage $target $dependencies $type )
 ##
 # distribution of coverage for ${dependencies}
 #
@@ -14,7 +14,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 #end
 
 
-#macro(GATK_VARIANT_FILTRATION $vcffile $variantfiltration)#if( ${variantfiltration.trim().size()} >0
+#macro(gatk_variant_filtration $vcffile $variantfiltration)#if( ${variantfiltration.trim().length()} >0
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"
 	)#set( $tmpgz = "$(addsuffix .gz,"+${tmp}+")"
 	)#filtering with GATK variant filtration

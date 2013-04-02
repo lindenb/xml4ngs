@@ -1130,8 +1130,9 @@ LIST_BAM_UNSORTED+=<xsl:apply-templates select="." mode="unsorted"/><xsl:text>
 	  	<xsl:apply-templates select="." mode="fragmentSize"/> 
 	  	<xsl:text> </xsl:text>
 	  </xsl:otherwise>
-	</xsl:choose> ${REF} \
+	</xsl:choose>  \
 		-r "@RG	ID:<xsl:value-of select="generate-id(.)"/>	LB:<xsl:value-of select="../../@name"/>	SM:<xsl:value-of select="../../@name"/>	PL:ILLUMINA	PU:<xsl:value-of select="@lane"/>" \
+		${REF} \
 		<xsl:apply-templates select="fastq[@index='1']" mode="sai"/> \
 		<xsl:apply-templates select="fastq[@index='2']" mode="sai"/> \
 		<xsl:apply-templates select="fastq[@index='1']" mode="preprocessed.fastq"/> \

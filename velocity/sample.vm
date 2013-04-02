@@ -10,7 +10,7 @@
 
 #macro(sample_sorted $sample)#sample_dir($sample)/${sample.name}_sorted.bam#end
 
-#macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#sample_sorted($sample){else}#sample_dir($sample)/${sample.name}_merged.bam#end#end
+#macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#foreach($p in ${sample.sequences.pair})#pair_bam_sorted($p)#end#else#sample_dir($sample)/${sample.name}_merged.bam#end#end
 
 
 

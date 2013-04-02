@@ -3,7 +3,7 @@
 # 
 # create BAM index for ${bam}
 #
-${bam.trim()}.bai' : ${bam}
+${bam.trim()}.bai : ${bam}
 	@$(call timebegindb,$@,bai)
 	$(SAMTOOLS) index $<
 	@$(call timeenddb,$@,bai)
