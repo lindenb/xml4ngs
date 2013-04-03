@@ -19,11 +19,6 @@
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
 
-
-
-
-
-
 #
 # this is the name of the current Makefile
 # should be always here,  before' include'
@@ -110,8 +105,7 @@ MIN_MAPPING_QUALITY=$project.propertyMap["min.mapping.quality"]
 # file that will be used to lock the SQL-related resources
 #
 LOCKFILE=$(OUTDIR)/_tmp.${project.generateId}.lock
-XMLSTATS=$(OUTDIR)/pipeline.stats.xml
-HSQLSTATS=$(OUTDIR)/hsqldb.stats
+HSQLSTATS=$(OUTDIR)/Statistics/hsqldb.stats
 
 
 
@@ -126,12 +120,6 @@ capture.bed=$(OUTDIR)/ensembl.exons.bed
 capture.bed=${project.propertyMap["capture.bed.path"]}
 #end
 
-
-#if(! $project.propertyMap.containsKey("snpEff.build") )
-SNPEFFBUILD=hg19
-#else
-SNPEFFBUILD=${project.propertyMap["snpEff.build"]}
-#end
 
 
 #if(! $project.propertyMap.containsKey("known.sites") )
@@ -162,7 +150,7 @@ DELETEFILE=echo
 endif
 
 define bai_files
-    $(foreach B,$(filter %.bam,$(1)),  $(addsuffix .bai,$B) )
+    $(foreach B,$(filter %.bam,$(1)),  $(patsubst %.bam,%.bai,$B) )
 endef
 
 
@@ -188,19 +176,22 @@ CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not 
 
 define timebegindb
 	lockfile $(LOCKFILE)
-	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);"
+	mkdir -p $(dir $(HSQLSTATS))
+	$(JAVA) -jar $(HSQLDB.sqltool) --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);"
 	rm -f $(LOCKFILE)
 endef
 
 define timeenddb
 	lockfile $(LOCKFILE)
+	mkdir -p $(dir $(HSQLSTATS))
 	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);"
 	rm -f $(LOCKFILE)
 endef
 
 
 define sizedb
-	stat -c "%s" $(1) | while read L; do lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','\$\$L');" ; rm -f $(LOCKFILE);done
+	mkdir -p $(dir $(HSQLSTATS))
+	stat -c "%s" $(1) | while read L; do lockfile $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
 endef
 
 
@@ -215,6 +206,18 @@ endef
 # PATTERN RULES DEFINITIONS
 #
 #
+
+
+# 
+# create BAM index for ${bam}
+#
+%.bai : %.bam
+	@$(call timebegindb,$@,bai)
+	#some indexes are created by picard, no need to recreate it, or just check the timestamp
+	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
+	@$(call timeenddb,$@,bai)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
 
 #macro(call_index_genome_rules $extension)
 
@@ -296,9 +299,10 @@ $(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in 
 #
 #
 #macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup)
-	$(SAMTOOLS) mpileup #if($project.propertyMap["is.haloplex"]=="yes") -A  -d 8000 #end -uD \
+	mkdir -p $(dir $@)
+	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end -uD \
 		-q $(MIN_MAPPING_QUALITY) \
-		#if($project.propertyMap["allele.calling.in.capture"]=="yes") -l $(OUTDIR)/capture500.bed #end \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -l $(OUTDIR)/capture500.bed #end \
 		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	$(TABIX.bgzip) -c > $@
@@ -311,14 +315,15 @@ $(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in 
 
 
 #macro(call_with_gatk)		$(call timebegindb,$@,UnifiedGenotyper)
+	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T UnifiedGenotyper \
 		-glm BOTH \
 		-S SILENT \
 		#if($project.propertyMap.containsKey("gatk.unified.genotyper.options")
-			) ${project.propertyMap["gatk.unified.genotyper.options"]} #end \
-		#if($project.propertyMap["allele.calling.in.capture"]=="yes") -L $(OUTDIR)/capture500.bed #end \
+			) ${project.getPropertyByName("gatk.unified.genotyper.options","")} #end \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -L:capture,BED $(OUTDIR)/capture500.bed #end \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp:vcfinput,VCF $(known.sites) \
 		-o $(basename $@)
@@ -523,6 +528,7 @@ bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf $(OUTDIR)/bams
 LIST_PHONY_TARGET+= beddepth
 beddepth:  #foreach($sample in $project.sample) #sample_beddepth(${sample}) #end
 
+
 #
 # create a PDF for bamstats01.tsv
 #
@@ -534,6 +540,7 @@ $(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
 # count of mapped-reads	
 #
 $(OUTDIR)/bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat01_tsv($sample) #end
+
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
@@ -541,6 +548,7 @@ $(OUTDIR)/bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat0
 # count of distribution of coverage
 #
 $(OUTDIR)/bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
+
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
@@ -555,6 +563,7 @@ coverage_distribution:  $(OUTDIR)/all.distribution.recal.pdf
 
 
 $(OUTDIR)/all.distribution.recal.pdf : #foreach($sample in $project.sample) #sample_distribution_of_coverage_recal($sample) #end
+
 	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
 
@@ -570,7 +579,7 @@ $(OUTDIR)/bamstats03.pdf : $(OUTDIR)/bamstats03.tsv
 #
 $(OUTDIR)/bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample) #end)  $(capture.bed) 
 	@$(call timebegindb,$@,$@)
-	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print \$\$NF;}'  | sort  > $@
+	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
 	@$(call timeendb,$@,$@)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -584,7 +593,7 @@ $(OUTDIR)/bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sampl
 $(OUTDIR)/ensembl.exons.bed:
 	$(call timebegindb,$@,$@)
 	curl ${set_curl_proxy} -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
-		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>' "http://www.biomart.org/biomart/martservice/result" |\
+		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
 	awk -F '	' '(int($$2) < int($$3))' |\
 	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
@@ -606,6 +615,7 @@ endif
 # an extended version of the capture, will be used for recalibration
 #
 $(OUTDIR)/capture500.bed: $(capture.bed)
+	mkdir -p $(dir $@)
 	cut -d '	' -f1,2,3 $< |\
 	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-int(x); if(S<0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
 	sort -t '	' -k1,1 -k2,2n -k3,3n |\
@@ -633,31 +643,22 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 #
 $(addsuffix .sample_summary,#sample_coverage($sample) ) : $(call indexed_bam, #sample_recal( ${sample} ) ) $(capture.bed)
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
+	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
-		-L $(filter %.bed,$^) \
+		-L:capture,BED $(filter %.bed,$^) \
 		-S SILENT \
 		--minMappingQuality $(MIN_MAPPING_QUALITY) \
-		-omitBaseOutput \
 		--summaryCoverageThreshold 5 \
 		-I $(filter %.bam,$^) \
-		-o #sample_coverage(${sample}) 
-	
+		-o #sample_coverage(${sample}) \
+		-omitBaseOutput
 	$(call timeendb,#sample_coverage(${sample}),coverage.gatk)
 
 
 
-#make_bam_index( "#sample_realigned( $sample )" )
-
-#make_bam_index( "#sample_markdup( $sample )" )
-
-#make_bam_index( "#sample_recal( $sample )" )
-
-#if( ${sample.sequences.pair.size()} > 1 )
-#make_bam_index( "#sample_merged($sample)" )
-#end
-
+#if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
 
 #
 #
@@ -665,66 +666,70 @@ $(addsuffix .sample_summary,#sample_coverage($sample) ) : $(call indexed_bam, #s
 #
 #
 LIST_BAM_RECAL+=#sample_recal( ${sample} )
-#if( $project.propertyMap["disable.recalibration"]=="yes")
 
-#sample_recal( ${sample} )  : $(call indexed_bam, #sample_markdup( ${sample} ))
-	#just create a symbolic link
-	$(call create_symbolic_link,$(filter %.bam,$^),$@)
-	##ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
 
-#else
+	
+#sample_recal( ${sample} )  : $(call indexed_bam, #sample_markdup(${sample}) ) \
+		$(OUTDIR)/capture500.bed \
+		$(known.sites) \
+		$(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )
+	@$(call timebegindb,$@_tableRecalibaration,recalibration)
+	mkdir -p $(dir $@)
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T PrintReads \
+		-R $(REF) \
+		-BQSR $(filter %.grp,$^) \
+		-I $(filter %.bam,$^) \
+		#if( $project.propertyMap.containsKey("gatk.recalibration.print.reads.options")
+			) ${project.getPropertyByName("gatk.recalibration.print.reads.options","")} #end \
+		-o $@ \
+		--validation_strictness LENIENT \
+		-l INFO
+	@$(call timeenddb,$@_tableRecalibaration,recalibration)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+	touch $@
 
-#sample_recal( ${sample} )  : $(call indexed_bam, #sample_markdup(${sample}) ) $(OUTDIR)/capture500.bed $(known.sites)
-	@$(call timebegindb,$@_countCovariates,covariates)
+
+$(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam, #sample_markdup(${sample}) ) \
+			$(OUTDIR)/capture500.bed \
+			$(known.sites)
+	@$(call timebegindb,#sample_recal(${sample}),covariates)
+	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
+		--validation_strictness LENIENT \
 		-R $(REF) \
 		-I $(filter %.bam,$^) \
 		-l INFO \
 		#if( $project.propertyMap.containsKey("gatk.base.recalibrator.options")
-			) ${project.propertyMap["gatk.base.recalibrator.options"]} #end \
-		-o $@.recal_data.grp \
+			) ${project.getPropertyByName("gatk.base.recalibrator.options","")} #end \
+		-o $@ \
 		-knownSites:vcfinput,VCF $(known.sites) \
-		-L $(filter %.bed,$^) \
+		-L:capture,BED $(filter %.bed,$^) \
 		-cov ReadGroupCovariate \
 		-cov QualityScoreCovariate \
 		-cov CycleCovariate \
 		-cov ContextCovariate
-	@$(call timeenddb,$@_countCovariates,covariates)
-	@$(call timebegindb,$@_tableRecalibaration,recalibration)
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
-		-T PrintReads \
-		--disable_bam_indexing \
-		-R $(REF) \
-		-BQSR $@.recal_data.grp \
-		-I $(filter %.bam,$^) \
-		#if( $project.propertyMap.containsKey("gatk.recalibration.print.reads.options")
-			) ${project.propertyMap["gatk.recalibration.print.reads.options"]} #end \
-		-o $@ \
-		-l INFO
-	@$(call timeenddb,$@_tableRecalibaration,recalibration)
-	@$(call sizedb,$@)
-	rm -f $@.recal_data.grp
-	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,$^) )
-	$(call delete_and_touch,$(filter %.bai,$^) )
-	touch $@
+	@$(call timeenddb,#sample_recal(${sample}),covariates)
+
 
 #end
+
+
+
+
+#if(!(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes"))
 
 #
 #
 # Mark duplicates for Sample: ${sample.name}
 #
-LIST_BAM_MARKDUP+=#sample_markdup(${sample})
+
 
 #sample_markdup(${sample}) : $(call indexed_bam, #sample_realigned(${sample}) )
-#if(${project.propertyMap["disable.mark.duplicates"]}=="yes" || ${project.propertyMap["is.haloplex"]}=="yes")
-	#just create a symbolic link ${utils.warning("Mark Duplicate Disabled")}
-	$(call create_symbolic_link,$(filter %.bam,$^),$@)
-	# ln -s --force $(filter %.bai,$^) $(addsuffix .bai,$@)
-	
-#elseif( ${project.propertyMap["use.samtools.rmdup"]} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
+#if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
+	mkdir -p $(dir $@)
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -732,6 +737,7 @@ LIST_BAM_MARKDUP+=#sample_markdup(${sample})
 	$(call delete_and_touch,$(filter %.bai,$^) )
 
 #else	$(call timebegindb,$@_markdup,markdup)
+	mkdir -p $(dir $@)
 	mkdir -p $(addsuffix tmp.rmdup,$(dir $@))
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
@@ -752,58 +758,66 @@ LIST_BAM_MARKDUP+=#sample_markdup(${sample})
 
 #end
 
+#end
+
+
+#if(${project.getPropertyByName("disable.indelrealigner","no")}!="yes")
+
 #
 #
 # IndelRealignments for Sample ${sample.name}
 #
 #
+
+
 LIST_BAM_REALIGN+= #sample_realigned(${sample})
-#if(${project.propertyMap["disable.indelrealigner"]}=="yes")
 
-#sample_realigned(${sample}) : $(call indexed_bam, #sample_merged(${sample}) )
-	#just create a symbolic link
-	$(call create_symbolic_link,$(filter %.bam,$^),$@)
-	##ln --force -s $(filter %.bai,$^) $(addsuffix .bai,$@)
 
-#else 
+#sample_realigned(${sample}) :	$(call indexed_bam, #sample_merged(${sample}) ) \
+				$(addsuffix .intervals,#sample_merged(${sample})) \
+				$(OUTDIR)/capture500.bed 		
+		@$(call timebegindb,$@_indelrealigner,indelrealign)
+		mkdir -p $(dir $@)
+		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
+  			-T IndelRealigner \
+  			-R $(REF) \
+  			-I $(filter %.bam,$^) \
+			#if(${project.propertyMap.containsKey("gatk.indel.realigner.options")}
+			) ${project.propertyMap["gatk.indel.realigner.options"]} #end \
+  			-o $@ \
+  			-targetIntervals $(filter %.intervals,$^)  \
+			--knownAlleles:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
+			 ) ${project.getPropertyByName("known.indels.vcf","")} #else  
+			  ${utils.error("known.indels.vcf undefined")}	 
+			#end \
+			-S SILENT 
+		@$(call timeenddb,$@_indelrealigner,indelrealign)
+		@$(call sizedb,$@)
+		$(call notempty,$@)
+		$(call delete_and_touch,$(filter %.bam,$^)  )
+		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
+		touch $@
 
-#sample_realigned(${sample}) : $(call indexed_bam, #sample_merged(${sample}) ) $(OUTDIR)/capture500.bed
+
+$(addsuffix .intervals,#sample_merged(${sample})) : $(call indexed_bam, #sample_merged(${sample}) ) $(OUTDIR)/capture500.bed
 		@$(call timebegindb,$@_targetcreator,targetcreator)
+		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
 			-L $(filter %.bed,$^) \
   			-I $(filter %.bam,$^) \
-			-S SILENT \
 			#if(${project.propertyMap.containsKey("gatk.realigner.target.creator.options")}
 			) ${project.propertyMap.get("gatk.realigner.target.creator.options")} #end \
 			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
 			--known:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
-			 ) ${project.propertyMap.get("known.indels.vcf")} #else  
+			 ) ${project.getPropertyByName("known.indels.vcf","")} #else  
 			  ${utils.error("known.indels.vcf undefined")}	 
-			#end 
+			#end \
+			-S SILENT 
 		@$(call timeenddb,$@_targetcreator,targetcreator)
-		@$(call timebegindb,$@_indelrealigner,indelrealign)
-		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
-  			-T IndelRealigner \
-  			-R $(REF) \
-  			-I $(filter %.bam,$^) \
-			-S SILENT \
-			#if(${project.propertyMap.containsKey("gatk.indel.realigner.options")}
-			) ${project.propertyMap["gatk.indel.realigner.options"]} #end \
-  			-o $@ \
-  			-targetIntervals $(addsuffix .intervals, $(filter %.bam,$^) ) \
-			--knownAlleles:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
-			 ) ${project.propertyMap["known.indels.vcf"]} #else  
-			  ${utils.error("known.indels.vcf undefined")}	 
-			#end 
-		@$(call timeenddb,$@_indelrealigner,indelrealign)
-		@$(call sizedb,$@)
-		$(call notempty,$@)
-		rm -f $(addsuffix .intervals, $(filter %.bam,$^) )
-		$(call delete_and_touch,$(filter %.bam,$^)  )
-		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
-		touch $@
+
+
 
 #end
 
@@ -816,12 +830,13 @@ LIST_BAM_REALIGN+= #sample_realigned(${sample})
 #
 LIST_BAM_MERGED+=  #sample_merged(${sample})
 
-#sample_merged(${sample}) : #foreach($pair in ${sample.sequences.pair} ) #pair_sorted(${pair}) #end
+#sample_merged(${sample}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted(${pair}) #end
 	
 	@$(call timebegindb,$@,merge)
-	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ AS=true \
+	mkdir -p $(dir $@)	
+	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
-			 ) ${project.propertyMap["picard.merge.options"]} #end \
+			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		VALIDATION_STRINGENCY=SILENT \
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
@@ -906,6 +921,7 @@ LIST_BAM_SORTED+=#pair_bam_sorted($pair)
 #pair_bam_sorted($pair) : #pair_bam_unsorted($pair)
 
 	$(call timebegindb,$@,sort)
+	mkdir -p $(dir $@)
 	$(SAMTOOLS) sort #if($project.propertyMap.containsKey("samtools.sort.options")
 		) ${project.propertyMap["samtools.sort.options"]} #end $< $(basename $@)
 	$(DELETEFILE) $<
@@ -929,6 +945,7 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 	${REF}
 	# ALIGN WITH BWA #################################################
 	@$(call timebegindb,$@,bwasampe)
+	mkdir -p $(dir $@)
 	$(BWA) sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
 		) ${project.propertyMap["bwa.sampe.options"]}  #else  -a 500  #end \
 		-r "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
@@ -937,8 +954,9 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 		#fastq_sai(${pair.reverse}) \
 		#fastq_preprocessed(${pair.forward}) \
 		#fastq_preprocessed(${pair.reverse}) |\
-	$(SAMTOOLS) view -S -b -o $@ -T ${REF} -
+		$(SAMTOOLS) view -S -b -o $@ -T ${REF} -
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
+	
 	@$(call timeenddb,$@,bwasampe)
 	@$(call sizedb,$@)
 	@$(call notempty,$@)
@@ -957,10 +975,10 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 
 #fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF)
 	mkdir -p $(dir $@)
-	@$(call timebegindb,$@,sai)
-	@$(call sizedb,$<)
+	$(call timebegindb,$@,sai)
+	$(call sizedb,$<)
 	$(BWA) aln #if($project.propertyMap.containsKey("bwa.aln.options")
-		) ${project.propertyMap["bwa.aln.options"]} #end \
+		) ${project.getPropertyByName("bwa.aln.options","")} #end \
 		 -f $@ $(REF) $<
 	@$(call timeenddb,$@,sai)
 	@$(call sizedb,$@)
@@ -1035,14 +1053,14 @@ hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 
 $(OUTDIR)/durations.stats.txt:
 	lockfile $(LOCKFILE)
-	mkdir -p $(dirname $(HSQLSTATS) )
+	mkdir -p $(dir $(HSQLSTATS) )
 	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category$(foreach T,SECOND MINUTE HOUR DAY, ,AVG(TIMESTAMPDIFF(SQL_TSI_${T},B.W,E.W)) as duration_${T}) from begindb as B ,enddb as E where B.file=E.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
 $(OUTDIR)/filesize.stats.txt:
 	lockfile $(LOCKFILE)
-	mkdir -p $(dirname $(HSQLSTATS) )
+	mkdir -p $(dir $(HSQLSTATS) )
 	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
@@ -1055,7 +1073,7 @@ $(OUTDIR)/filesize.stats.txt:
 LIST_PHONY_TARGET+= ongoing
 ongoing:
 	lockfile $(LOCKFILE)
-	mkdir -p $(dirname $(HSQLSTATS) )
+	mkdir -p $(dir $(HSQLSTATS) )
 	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.file,B.w,E.file,E.w,B.category from begindb as B LEFT JOIN enddb as E on ( B.file=E.file and B.category=E.category ) where E.file is NULL or B.w >= E.w order by B.file ;" 
 	rm -f $(LOCKFILE)	

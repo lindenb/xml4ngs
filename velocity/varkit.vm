@@ -22,6 +22,7 @@ ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 #
 ${target}:  $(call indexed_bam, $dependencies ) $(capture.bed)
 	$(call timebegindb,$@,$type)
+	mkdir -p $(dir $@)
 	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
 		grep -v bam | cut -d '	' -f 4 > $(patsubst %.pdf,%.tsv,$@)
 	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\

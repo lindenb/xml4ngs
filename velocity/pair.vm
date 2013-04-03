@@ -1,4 +1,4 @@
-#macro(pair_dir $pair)#sample_dir(${pair.sample})#end
+#macro(pair_dir $pair)#sample_BAM(${pair.sample})#end
 #macro(pair_name $pair)${pair.sample.name}_pair${pair.index}#end
 #macro(pair_bam_sorted $pair)#pair_dir($pair)/#pair_name($pair)_sorted.bam#end
 #macro(pair_bam_unsorted $pair)#pair_dir($pair)/#pair_name($pair)_unsorted.bam#end

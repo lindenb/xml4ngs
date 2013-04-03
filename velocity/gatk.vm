@@ -4,6 +4,7 @@
 #
 ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	$(call timebegindb,$@,${type})
+	mkdir -p $(dir $@)
 	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
 		grep -v bam | cut -d '	' -f 4 > $(patsubst %.pdf,%.tsv,$@)
 	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
@@ -18,6 +19,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"
 	)#set( $tmpgz = "$(addsuffix .gz,"+${tmp}+")"
 	)#filtering with GATK variant filtration
+	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T VariantFiltration \
 		-R $(REF) \
@@ -29,6 +31,6 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	${TABIX.bgzip} -f  ${tmp}
 	#replace with target
 	mv ${tmp} ${vcffile}
-	#index VCF with tabix
-	${TABIX.tabix} -f -p vcf ${vcffile}#end#end
+	#index VCF with tabix.
+	${TABIX.tabix} -f -p vcf ${vcffile}  #end#end
 
