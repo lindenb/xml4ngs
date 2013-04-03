@@ -43,6 +43,44 @@
   		o.link();
   		}
   	}
+  private java.util.List<String> _chromosomes=null;
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public java.util.List<String> getRefChromosomes() throws java.io.IOException
+  	{
+  	if(_chromosomes==null)
+  		{
+	  	String f=this.getPropertyMap().get("genome.reference.path");
+	  	if(f==null) throw new java.io.IOException("Undefined property \"genome.reference.path\"");
+	  	java.io.File fai=new java.io.File(f.trim()+".fai");
+	  	if(!fai.exists()) throw new java.io.IOException("file missing:"+fai+". Is it indexed with \"samtools faidx\" ?");
+	  	java.io.BufferedReader in=new java.io.BufferedReader(new java.io.FileReader(fai));
+	  	String line;
+	  	java.util.List<String> L= new java.util.ArrayList<String>();
+	  	while((line=in.readLine())!=null)
+	  		{
+	  		if(line.isEmpty()) continue;
+	  		String tokens[]=line.split("[\t]");
+	  		this._chromosomes.add(tokens[0]);
+	  		}
+	  	in.close();
+  		}
+  	return _chromosomes;
+  	}
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public String getUnmappedChromosomeName()
+  	{
+  	return "Unmapped";
+  	}
+  
+  @javax.xml.bind.annotation.XmlTransient
+  public java.util.List<String> getAllChromosomes() throws java.io.IOException
+  	{
+  	java.util.List<String> L= new java.util.ArrayList<String>(this.getRefChromosomes());
+  	L.add(this.getUnmappedChromosomeName());
+  	return L;
+  	}
   
   ]]></ci:code>
   </jxb:bindings>

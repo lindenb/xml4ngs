@@ -55,6 +55,15 @@ OUTDIR=$project.propertyMap["output.directory"]
 #
 LIST_PHONY_TARGET=
 
+#
+# Chromosomes 
+#
+
+REF_CHROMOSOMES=#foreach($c in ${project.refChromosomes}) $c #end
+
+
+ALL_CHROMOSOMES=#foreach($c in ${project.allChromosomes}) $c #end
+
 
 #
 # fix PATH (tophat needs this)
@@ -937,6 +946,11 @@ LIST_BAM_SORTED+=#pair_bam_sorted($pair)
 #
 #
 LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
+
+LIST_PHONY_TARGET+=${sample.name}_sampe_chromosomes
+
+$(foreach C,$(ALL_CHROMOSOMES), ${sample.name}.$(C).unsorted.bam ) : ${sample.name}_sampe_chromosomes
+
 
 #pair_bam_unsorted($pair) : \
 	#fastq_preprocessed(${pair.forward}) \
