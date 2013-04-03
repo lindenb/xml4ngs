@@ -522,7 +522,7 @@ $(OUTDIR)/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.in.ca
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
-bam_statistics: $(OUTDIR)/bamstats01.pdf $(OUTDIR)/bamstats03.pdf $(OUTDIR)/bamstats04.tsv beddepth coverage_distribution 
+bam_statistics: $(OUTDIR)/#output_files_prefix()bamstats01.pdf $(OUTDIR)/#output_files_prefix()bamstats03.pdf $(OUTDIR)/#output_files_prefix()bamstats04.tsv beddepth coverage_distribution 
 
 
 LIST_PHONY_TARGET+= beddepth
@@ -532,14 +532,14 @@ beddepth:  #foreach($sample in $project.sample) #sample_beddepth(${sample}) #end
 #
 # create a PDF for bamstats01.tsv
 #
-$(OUTDIR)/bamstats01.pdf : $(OUTDIR)/bamstats01.tsv
+$(OUTDIR)/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/#output_files_prefix()bamstats01.tsv
 	echo 'pdf("$@",paper="A4r"); T&lt;-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
 # count of mapped-reads	
 #
-$(OUTDIR)/bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat01_tsv($sample) #end
+$(OUTDIR)/#output_files_prefix()bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat01_tsv($sample) #end
 
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
@@ -547,7 +547,7 @@ $(OUTDIR)/bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat0
 #
 # count of distribution of coverage
 #
-$(OUTDIR)/bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
+$(OUTDIR)/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
 
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
@@ -570,14 +570,14 @@ $(OUTDIR)/all.distribution.recal.pdf : #foreach($sample in $project.sample) #sam
 #
 # create a PDF for bamstats03.tsv
 #
-$(OUTDIR)/bamstats03.pdf : $(OUTDIR)/bamstats03.tsv
+$(OUTDIR)/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/#output_files_prefix()bamstats03.tsv
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
 # count of mapped-reads, quality per sample	
 #
-$(OUTDIR)/bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample) #end)  $(capture.bed) 
+$(OUTDIR)/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample) #end)  $(capture.bed) 
 	@$(call timebegindb,$@,$@)
 	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
 	@$(call timeendb,$@,$@)
@@ -975,8 +975,8 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 
 #fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF)
 	mkdir -p $(dir $@)
-	$(call timebegindb,$@,sai)
-	$(call sizedb,$<)
+	@$(call timebegindb,$@,sai)
+	@$(call sizedb,$<)
 	$(BWA) aln #if($project.propertyMap.containsKey("bwa.aln.options")
 		) ${project.getPropertyByName("bwa.aln.options","")} #end \
 		 -f $@ $(REF) $<
@@ -987,7 +987,7 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 
 
 
-#if($project.propertyMap["is.haloplex"]=="yes")
+#if(${project.getPropertyByName("is.haloplex","no")}=="yes")
 
 #
 # Preprocess FASTQ

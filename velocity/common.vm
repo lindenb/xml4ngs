@@ -1,6 +1,4 @@
-
-
-
+#macro(output_files_prefix)${project.getPropertyByName("files.prefix","").trim()}#end
 #macro(VARKIT_BEDDEDPTH $target $dependencies)
 
 #
@@ -18,3 +16,4 @@ ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 	$(call notempty,$@)
 
 #end
+

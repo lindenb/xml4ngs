@@ -1,4 +1,4 @@
 #macro(fastq_raw $fastq)${fastq.path}#end
-#macro(fastq_preprocessed $fastq)#if($project.propertyMap["is.haloplex"])#sample_dir(${fastq.pair.sample})/FASTQ/#pair_name(${fastq.pair})_preproc_${fastq.index}.fastq.gz #else#fastq_raw($fastq)#end#end
-#macro(fastq_sai $fastq)#sample_dir(${fastq.pair.sample})/SAI/#pair_name(${fastq.pair})_${fastq.index}.sai#end
+#macro(fastq_preprocessed $fastq)#if(${project.getPropertyByName("is.haloplex","no")}=="yes")#sample_dir(${fastq.pair.sample})/FASTQ/#output_files_prefix()#pair_name(${fastq.pair})_preproc_${fastq.index}.fastq.gz #else#fastq_raw($fastq)#end#end
+#macro(fastq_sai $fastq)#sample_dir(${fastq.pair.sample})/SAI/#output_files_prefix()#pair_name(${fastq.pair})_${fastq.index}.sai#end
 

@@ -7,6 +7,7 @@
 ${target} : ${dependencies} $(REF)
 	#Annotation of ${dependencies} with SNPEFF 
 	@$(call timebegindb,$@,${type})
+	mkdir -p $(dir $@)
 	gunzip -c  $< |\
 	egrep -v '^GL' |\
 	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  #if(! $project.propertyMap.containsKey("snpEff.build") )hg19#else${project.propertyMap["snpEff.build"]}#end |\
