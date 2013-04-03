@@ -837,6 +837,7 @@ LIST_BAM_MERGED+=  #sample_merged(${sample})
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
+		CREATE_INDEX=true \
 		VALIDATION_STRINGENCY=SILENT \
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
