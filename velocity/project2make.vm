@@ -943,7 +943,6 @@ LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 	#fastq_sai(${pair.forward}) \
 	#fastq_sai(${pair.reverse}) \
 	${REF}
-	# ALIGN WITH BWA #################################################
 	@$(call timebegindb,$@,bwasampe)
 	mkdir -p $(dir $@)
 	$(BWA) sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
