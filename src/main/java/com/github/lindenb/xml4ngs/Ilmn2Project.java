@@ -70,7 +70,6 @@ public class Ilmn2Project
 					}
 				//SAMPLENAME_GATCAG_L007_R2_001.fastq.gz
 				String tokens[]=uscore.split(f.getName());
-				if(tokens[0].equals("Undetermined")) continue;
 				
 				if(tokens.length<5)
 					{
@@ -92,6 +91,14 @@ public class Ilmn2Project
 						}
 					tokens=tokens2;
 					}
+
+				if(tokens[0].equalsIgnoreCase("Undetermined") ||  tokens[1].equalsIgnoreCase("Undetermined"))
+					{
+					 System.err.println("Ignoring "+f);
+					continue;
+					}
+
+
 				if(!tokens[2].startsWith("L"))
 					{
 					System.err.println("Illegal lane");

@@ -280,24 +280,6 @@ all: ${LIST_PHONY_TARGET} all_predictions fastx hsqldb_statistics
 
 
 
-LIST_PHONY_TARGET+= bams_realigned 
-bams_realigned:#foreach($sample in $project.sample) #sample_realigned($sample) #end
-
-LIST_PHONY_TARGET+= bams_markdup 
-bams_markdup: #foreach($sample in $project.sample) #sample_markdup($sample) #end
-
-LIST_PHONY_TARGET+= bams_merged 
-bams_merged: #foreach($sample in $project.sample) #sample_merged($sample) #end
-
-LIST_PHONY_TARGET+= bams_recalibrated 
-bams_recalibrated: #foreach($sample in $project.sample) #sample_recal($sample) #end
-
-LIST_PHONY_TARGET+= bams_unsorted 
-bams_unsorted: #foreach($sample in $project.sample) #foreach($pair in $sample.sequences.pair)#pair_bam_unsorted($pair)#end#end
-
-LIST_PHONY_TARGET+= bams_sorted 
-bams_sorted: #foreach($sample in $project.sample) #foreach($pair in $sample.sequences.pair)#pair_bam_sorted($pair) #end#end
-
 LIST_PHONY_TARGET+= coverage
 coverage:$(OUTDIR)/Statistics/mean_coverage01.pdf
 $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in $project.sample) #sample_coverage($sample) #end)
@@ -602,7 +584,7 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/Statistics
 #
 # count of mapped-reads, quality per sample	
 #
-$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample) #end)  $(capture.bed) 
+$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_final_bam($sample) #end)  $(capture.bed) 
 	@$(call timebegindb,$@,$@)
 	mkdir -p $(dir $@)
 	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
@@ -674,7 +656,7 @@ LIST_PHONY_TARGET+= ${sample.name}_coverage_with_gatk
 $(addprefix #sample_coverage($sample), .sample_cumulative_coverage_counts .sample_cumulative_coverage_proportions .sample_interval_statistics .sample_interval_summary .sample_statistics .sample_summary) : ${sample.name}_coverage_with_gatk
 
 
-${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_recal( ${sample} ) ) $(capture.bed)
+${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(capture.bed)
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
 	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -691,21 +673,46 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_recal( ${sample
 
 
 
-#if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
+#
+# make TOP bam, merging all chromosomes
+#
 
+#sample_final_bam(${sample} ${chrom}) : #foreach($chrom in ${project.allChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end
+	
+	@$(call timebegindb,$@,merge_chroms)
+	mkdir -p $(dir $@)	
+	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
+		#if(${project.propertyMap.containsKey("picard.merge.options")}
+			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
+		CREATE_INDEX=true \
+		VALIDATION_STRINGENCY=SILENT \
+		COMMENT="Merged from $^" \
+		$(foreach B,$^, I=$(B) )
+	$(DELETEFILE) $^
+	@$(call timeenddb,$@,merge_chroms)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+	$(call delete_and_touch,$^)
+	touch $@
+
+
+
+
+#if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
+#foreach($chrom in ${project.allChromosomes})
 #
 #
 # Recalibrate alignments for Sample ${sample.name}
 #
 #
-LIST_BAM_RECAL+=#sample_recal( ${sample} )
+LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 
 
 	
-#sample_recal( ${sample} )  : $(call indexed_bam, #sample_markdup(${sample}) ) \
+#sample_recal_chrom( ${sample} ${chrom})  : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
 		$(extended_capture_bed) \
 		$(known.sites) \
-		$(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )
+		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )
 	@$(call timebegindb,$@_tableRecalibaration,recalibration)
 	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -724,10 +731,10 @@ LIST_BAM_RECAL+=#sample_recal( ${sample} )
 	touch $@
 
 
-$(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam, #sample_markdup(${sample}) ) \
+$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
 			$(extended_capture_bed) \
 			$(known.sites)
-	@$(call timebegindb,#sample_recal(${sample}),covariates)
+	@$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
@@ -744,15 +751,16 @@ $(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam,
 		-cov QualityScoreCovariate \
 		-cov CycleCovariate \
 		-cov ContextCovariate
-	@$(call timeenddb,#sample_recal(${sample}),covariates)
+	@$(call timeenddb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 
-
+#end
 #end
 
 
 
 
 #if(!(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes"))
+#foreach($chrom in ${project.allChromosomes})
 
 #
 #
@@ -760,7 +768,7 @@ $(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam,
 #
 
 
-#sample_markdup(${sample}) : $(call indexed_bam, #sample_realigned(${sample}) )
+#sample_markdup_chrom(${sample}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
 #if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@)
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
@@ -792,9 +800,11 @@ $(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam,
 #end
 
 #end
+#end
 
 
 #if(${project.getPropertyByName("disable.indelrealigner","no")}!="yes")
+#foreach($chrom in ${project.allChromosomes})
 
 #
 #
@@ -803,11 +813,8 @@ $(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam,
 #
 
 
-LIST_BAM_REALIGN+= #sample_realigned(${sample})
-
-
-#sample_realigned(${sample}) :	$(call indexed_bam, #sample_merged(${sample}) ) \
-				$(addsuffix .intervals,#sample_merged(${sample})) \
+#sample_realigned_chrom(${sample} ${chrom}) :	$(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
+				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) \
 				$(extended_capture_bed) 		
 		@$(call timebegindb,$@_indelrealigner,indelrealign)
 		mkdir -p $(dir $@)
@@ -832,7 +839,7 @@ LIST_BAM_REALIGN+= #sample_realigned(${sample})
 		touch $@
 
 
-$(addsuffix .intervals,#sample_merged(${sample})) : $(call indexed_bam, #sample_merged(${sample}) ) $(extended_capture_bed)
+$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) $(extended_capture_bed)
 		@$(call timebegindb,$@_targetcreator,targetcreator)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -851,19 +858,20 @@ $(addsuffix .intervals,#sample_merged(${sample})) : $(call indexed_bam, #sample_
 		@$(call timeenddb,$@_targetcreator,targetcreator)
 
 
-
+#end
 #end
 
-#if(${sample.sequences.pair.size()} > 1 )
+#if( ${sample.sequences.pair.size()} > 1)
+#foreach($chrom in ${project.allChromosomes})
 
 #
 #
-# Merge all Bams for ${sample.name}
+# Merge all Bams for ${sample.name} for chromosome ${chrom}
 #
 #
-LIST_BAM_MERGED+=  #sample_merged(${sample})
+LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 
-#sample_merged(${sample}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted(${pair}) #end
+#sample_merged_chrom(${sample} ${chrom}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted_chrom(${pair} ${chrom}) #end
 	
 	@$(call timebegindb,$@,merge)
 	mkdir -p $(dir $@)	
@@ -872,7 +880,7 @@ LIST_BAM_MERGED+=  #sample_merged(${sample})
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
 		VALIDATION_STRINGENCY=SILENT \
-		COMMENT="Merged from $^" \
+		COMMENT="Merged for chromosome ${chrom} from $^" \
 		$(foreach B,$^, I=$(B) )
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge)
@@ -882,7 +890,7 @@ LIST_BAM_MERGED+=  #sample_merged(${sample})
 	touch $@
 	
 #end
-
+#end
 
 #
 # bamstats01 for sample: ${sample.name}
@@ -942,48 +950,26 @@ LIST_BAM_MERGED+=  #sample_merged(${sample})
 #foreach($pair in $sample.sequences.pair)
 
 
-#make_bam_index("#pair_bam_sorted($pair)")
-
-
-
-#
-#
-# Sort BAM 
-#
-LIST_BAM_SORTED+=#pair_bam_sorted($pair)
-
-#pair_bam_sorted($pair) : #pair_bam_unsorted($pair)
-
-	$(call timebegindb,$@,sort)
-	mkdir -p $(dir $@)
-	$(SAMTOOLS) sort #if($project.propertyMap.containsKey("samtools.sort.options")
-		) ${project.propertyMap["samtools.sort.options"]} #end $< $(basename $@)
-	$(DELETEFILE) $<
-	$(call timeenddb,$@,sort)
-	$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$<)
-	touch $@
 
 #
 # Call BWA sampe
 #
 #
-LIST_BAM_UNSORTED+=#pair_bam_unsorted($pair)
 
 LIST_PHONY_TARGET+=${sample.name}_sampe_chromosomes
 
-$(foreach C,$(ALL_CHROMOSOMES), ${sample.name}.$(C).unsorted.bam ) : ${sample.name}_sampe_chromosomes
+#foreach($c in ${project.allChromosomes})#pair_bam_sorted_chrom($pair $c ) #end : ${sample.name}_sampe_pair${pair.index}_chromosomes
 
 
-#pair_bam_unsorted($pair) : \
+${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	#fastq_preprocessed(${pair.forward}) \
 	#fastq_preprocessed(${pair.reverse}) \
 	#fastq_sai(${pair.forward}) \
 	#fastq_sai(${pair.reverse}) \
 	${REF}
 	@$(call timebegindb,$@,bwasampe)
-	mkdir -p $(dir $@)
+	mkdir -p #sample_BAM(${pair.sample})
+	
 	$(BWA) sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
 		) ${project.propertyMap["bwa.sampe.options"]}  #else  -a 500  #end \
 		-r "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
@@ -992,14 +978,11 @@ $(foreach C,$(ALL_CHROMOSOMES), ${sample.name}.$(C).unsorted.bam ) : ${sample.na
 		#fastq_sai(${pair.reverse}) \
 		#fastq_preprocessed(${pair.forward}) \
 		#fastq_preprocessed(${pair.reverse}) |\
-		$(SAMTOOLS) view -S -b -o $@ -T ${REF} -
+		$(JAVA) -jar $(JVARKIT)/splitbam.jar --mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	
 	@$(call timeenddb,$@,bwasampe)
-	@$(call sizedb,$@)
-	@$(call notempty,$@)
 	@$(call delete_and_touch,$(filter %.sai,$^))
-	touch $@
 
 
 

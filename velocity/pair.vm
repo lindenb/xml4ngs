@@ -1,7 +1,7 @@
 #macro(pair_dir $pair)#sample_BAM(${pair.sample})#end
+#macro(pair_dir_chrom $pair $chrom)#sample_BAM_chrom(${pair.sample} ${chrom})#end
 #macro(pair_name $pair)${pair.sample.name}_pair${pair.index}#end
-#macro(pair_bam_sorted $pair)#pair_dir($pair)/#output_files_prefix()#pair_name($pair)_sorted.bam#end
-#macro(pair_bam_unsorted $pair)#pair_dir($pair)/#output_files_prefix()#pair_name($pair)_unsorted.bam#end
+#macro(pair_bam_sorted_chrom $pair $chrom)#pair_dir_chrom($pair $chrom)/#output_files_prefix()#pair_name($pair)_sorted.${chrom}.bam#end
 
 
 #macro(pair_fragment_size $pair)500#end
