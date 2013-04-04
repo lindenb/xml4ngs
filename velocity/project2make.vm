@@ -26,11 +26,15 @@
 #
 makefile.name := $(lastword $(MAKEFILE_LIST))
 
+#if($project.propertyMap.containsKey("make.include"))
+
 #
-# tools.mk define the path to the application
+# define the path to the application
 # config.mk are user-specific values
 #
-include tools.mk
+include ${project.propertyMap["make.include"]}
+
+#end
 
 ############################################
 #

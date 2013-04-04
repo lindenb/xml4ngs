@@ -57,7 +57,7 @@
 	  	if(!fai.exists()) throw new java.io.IOException("file missing:"+fai+". Is it indexed with \"samtools faidx\" ?");
 	  	java.io.BufferedReader in=new java.io.BufferedReader(new java.io.FileReader(fai));
 	  	String line;
-	  	java.util.List<String> L= new java.util.ArrayList<String>();
+	  	this._chromosomes= new java.util.ArrayList<String>();
 	  	while((line=in.readLine())!=null)
 	  		{
 	  		if(line.isEmpty()) continue;
