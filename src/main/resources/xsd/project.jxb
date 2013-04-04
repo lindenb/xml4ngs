@@ -43,6 +43,7 @@
   		o.link();
   		}
   	}
+  @javax.xml.bind.annotation.XmlTransient
   private java.util.List<String> _chromosomes=null;
   
   @javax.xml.bind.annotation.XmlTransient

@@ -740,7 +740,7 @@ $(addsuffix .sample_summary,<xsl:apply-templates select="." mode="coverage"/>) :
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
-		-L $(filter %.bed,$^) \
+		-L:capture,BED $(filter %.bed,$^) \
 		-S SILENT \
 		--minMappingQuality $(MIN_MAPPING_QUALITY) \
 		-omitBaseOutput \

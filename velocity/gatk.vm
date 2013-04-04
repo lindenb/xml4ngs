@@ -30,7 +30,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	#compress filtered VCF
 	${TABIX.bgzip} -f  ${tmp}
 	#replace with target
-	mv ${tmp} ${vcffile}
+	mv -f ${tmpgz} ${vcffile}
 	#index VCF with tabix.
 	${TABIX.tabix} -f -p vcf ${vcffile}  #end#end
 

@@ -114,7 +114,7 @@ MIN_MAPPING_QUALITY=$project.propertyMap["min.mapping.quality"]
 # file that will be used to lock the SQL-related resources
 #
 LOCKFILE=$(OUTDIR)/_tmp.${project.generateId}.lock
-HSQLSTATS=$(OUTDIR)/Statistics/hsqldb.stats
+HSQLSTATS=$(OUTDIR)/HSQLDB/hsqldb.stats
 
 
 
@@ -124,12 +124,16 @@ SAMPLES=#foreach($sample in $project.sample)${sample.name} #end
 
 #if(! $project.propertyMap.containsKey("capture.bed.path") )
 ${utils.warning("'capture.bed.path' undefined in project.")}
-capture.bed=$(OUTDIR)/ensembl.exons.bed
+capture.bed=$(OUTDIR)/BED/ensembl.exons.bed
 #else
 capture.bed=${project.propertyMap["capture.bed.path"]}
 #end
 
 
+#
+# extended capture
+# 
+extended_capture_bed=$(OUTDIR)/BED/capture500.bed
 
 #if(! $project.propertyMap.containsKey("known.sites") )
 ${utils.error("'known.sites' undefined in project.")}
@@ -291,12 +295,13 @@ LIST_PHONY_TARGET+= bams_sorted
 bams_sorted: #foreach($sample in $project.sample) #foreach($pair in $sample.sequences.pair)#pair_bam_sorted($pair) #end#end
 
 LIST_PHONY_TARGET+= coverage
-coverage:$(OUTDIR)/mean_coverage01.pdf
-$(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in $project.sample)#sample_distribution_of_coverage_recal($sample)#end)
+coverage:$(OUTDIR)/Statistics/mean_coverage01.pdf
+$(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in $project.sample) #sample_coverage($sample) #end)
+	mkdir -p $(dir $@)
 	echo "sample	mean-coverage" > $(patsubst %.pdf,%.tsv,$@)
 	cat $^ | sort | grep -v -E  '^(Total|sample_id)'  |\
 		cut -d '	' -f1,3 >> $(patsubst %.pdf,%.tsv,$@)
-	echo 'pdf("$@",paper="A4r"); T&lt;-read.table("$(patsubst %.pdf,%.tsv,$@)",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
+	echo 'pdf("$@",paper="A4r"); T<-read.table("$(patsubst %.pdf,%.tsv,$@)",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
 	${R.exe} --no-save
 	
 
@@ -311,7 +316,7 @@ $(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in 
 	mkdir -p $(dir $@)
 	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end -uD \
 		-q $(MIN_MAPPING_QUALITY) \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -l $(OUTDIR)/capture500.bed #end \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -l $(extended_capture_bed) #end \
 		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	$(TABIX.bgzip) -c > $@
@@ -332,7 +337,7 @@ $(OUTDIR)/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in 
 		-S SILENT \
 		#if($project.propertyMap.containsKey("gatk.unified.genotyper.options")
 			) ${project.getPropertyByName("gatk.unified.genotyper.options","")} #end \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -L:capture,BED $(OUTDIR)/capture500.bed #end \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -L:capture,BED $(extended_capture_bed) #end \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp:vcfinput,VCF $(known.sites) \
 		-o $(basename $@)
@@ -444,14 +449,14 @@ variations.gatk.vep: #foreach($sample in $project.sample) #sample_vcf_gatk_vep($
 # Allele calling with samtools for sample ${sample.name}
 #
 
-#sample_vcf_samtools($sample) : #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(OUTDIR)/capture500.bed #end  $(call indexed_bam,#sample_recal($sample) )
+#sample_vcf_samtools($sample) : #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#sample_recal($sample) )
 #call_with_samtools_mpileup()
 
 #
 # Allele calling with GATK for sample <xsl:value-of select="@name"/>
 #
 
-#sample_vcf_gatk($sample): #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(OUTDIR)/capture500.bed #end  $(call indexed_bam,#sample_recal($sample)) $(known.sites)
+#sample_vcf_gatk($sample): #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#sample_recal($sample)) $(known.sites)
 #call_with_gatk()
 
 #end
@@ -462,18 +467,18 @@ variations.gatk.vep: #foreach($sample in $project.sample) #sample_vcf_gatk_vep($
 
 LIST_PHONY_TARGET+=all_predictions 
 all_predictions: \
-	$(OUTDIR)/variations.samtools.vep.vcf.gz \
-	$(OUTDIR)/variations.samtools.snpEff.vcf.gz \
-	$(OUTDIR)/variations.gatk.vep.vcf.gz \
-	$(OUTDIR)/variations.gatk.snpEff.vcf.gz 
+	$(OUTDIR)/VCF/variations.samtools.vep.vcf.gz \
+	$(OUTDIR)/VCF/variations.samtools.snpEff.vcf.gz \
+	$(OUTDIR)/VCF/variations.gatk.vep.vcf.gz \
+	$(OUTDIR)/VCF/variations.gatk.snpEff.vcf.gz 
 	
 #
 # prediction samtools with Variation Ensembl Prediction API
 #
 #set($filterparam=${project.propertyMap["samtools.vcf.filtration"]}+" "+${project.propertyMap["vep.vcf.filtration"]})
 #annotate_with_vep(
-	"$(OUTDIR)/variations.samtools.vep.vcf.gz"
-	"$(OUTDIR)/variations.samtools.vcf.gz"
+	"$(OUTDIR)/VCF/variations.samtools.vep.vcf.gz"
+	"$(OUTDIR)/VCF/variations.samtools.vcf.gz"
 	"samtoolsvep"
 	"$filterparam"
 	)
@@ -483,8 +488,8 @@ all_predictions: \
 #
 #set($filterparam=${project.propertyMap["gatk.vcf.filtration"]}+" "+${project.propertyMap["vep.vcf.filtration"]})
 #annotate_with_vep(
-	"$(OUTDIR)/variations.gatk.vep.vcf.gz"
-	"$(OUTDIR)/variations.gatk.vcf.gz"
+	"$(OUTDIR)/VCF/variations.gatk.vep.vcf.gz"
+	"$(OUTDIR)/VCF/variations.gatk.vcf.gz"
 	"gatkvep"
 	"$filterparam"
 	)
@@ -494,8 +499,8 @@ all_predictions: \
 #
 #set($filterparam=${project.propertyMap["samtools.vcf.filtration"]}+" "+${project.propertyMap["snpeff.vcf.filtration"]})
 #annotate_with_snpeff(
-	"$(OUTDIR)/variations.samtools.snpEff.vcf.gz"
-	"$(OUTDIR)/variations.samtools.vcf.gz"
+	"$(OUTDIR)/VCF/variations.samtools.snpEff.vcf.gz"
+	"$(OUTDIR)/VCF/variations.samtools.vcf.gz"
 	"mpileupsnpeff"
 	"$filterparam"
 	)
@@ -505,8 +510,8 @@ all_predictions: \
 #
 #set($filterparam=${project.propertyMap["gatk.vcf.filtration"]}+" "+${project.propertyMap["snpeff.vcf.filtration"]})
 #annotate_with_snpeff(
-	"$(OUTDIR)/variations.gatk.snpEff.vcf.gz"
-	"$(OUTDIR)/variations.gatk.vcf.gz"
+	"$(OUTDIR)/VCF/variations.gatk.snpEff.vcf.gz"
+	"$(OUTDIR)/VCF/variations.gatk.vcf.gz"
 	"gatksnpeff"
 	"$filterparam"
 	)
@@ -514,13 +519,13 @@ all_predictions: \
 #
 # Allele calling with samtools
 #
-$(OUTDIR)/variations.samtools.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(OUTDIR)/capture500.bed #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end)
+$(OUTDIR)/VCF/variations.samtools.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end)
 #call_with_samtools_mpileup()
 
 #
 # Allele calling with GATK
 #
-$(OUTDIR)/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(OUTDIR)/capture500.bed #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end ) $(known.sites)
+$(OUTDIR)/VCF/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end ) $(known.sites)
 #call_with_gatk()
 
 #end
@@ -531,7 +536,10 @@ $(OUTDIR)/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.in.ca
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
-bam_statistics: $(OUTDIR)/#output_files_prefix()bamstats01.pdf $(OUTDIR)/#output_files_prefix()bamstats03.pdf $(OUTDIR)/#output_files_prefix()bamstats04.tsv beddepth coverage_distribution 
+bam_statistics: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
+	$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf \
+	$(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv \
+	beddepth coverage_distribution 
 
 
 LIST_PHONY_TARGET+= beddepth
@@ -541,23 +549,26 @@ beddepth:  #foreach($sample in $project.sample) #sample_beddepth(${sample}) #end
 #
 # create a PDF for bamstats01.tsv
 #
-$(OUTDIR)/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/#output_files_prefix()bamstats01.tsv
-	echo 'pdf("$@",paper="A4r"); T&lt;-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
+$(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv
+	mkdir -p $(dir $@)
+	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
 # count of mapped-reads	
 #
-$(OUTDIR)/#output_files_prefix()bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat01_tsv($sample) #end
+$(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat01_tsv($sample) #end
 
+	mkdir -p $(dir $@)
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
 #
 # count of distribution of coverage
 #
-$(OUTDIR)/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
+$(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
 
+	mkdir -p $(dir $@)
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
@@ -567,11 +578,11 @@ $(OUTDIR)/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sa
 
 LIST_PHONY_TARGET+= coverage_distribution
 
-coverage_distribution:  $(OUTDIR)/all.distribution.recal.pdf
+coverage_distribution:  $(OUTDIR)/Statistics/#output_files_prefix()all.distribution.recal.pdf
 
 
 
-$(OUTDIR)/all.distribution.recal.pdf : #foreach($sample in $project.sample) #sample_distribution_of_coverage_recal($sample) #end
+$(OUTDIR)/Statistics/#output_files_prefix()all.distribution.recal.pdf : #foreach($sample in $project.sample) #sample_distribution_of_coverage_recal($sample) #end
 
 	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=$@ $(filter %.pdf,$^)
 
@@ -579,15 +590,17 @@ $(OUTDIR)/all.distribution.recal.pdf : #foreach($sample in $project.sample) #sam
 #
 # create a PDF for bamstats03.tsv
 #
-$(OUTDIR)/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/#output_files_prefix()bamstats03.tsv
+$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv
+	mkdir -p $(dir $@)
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
 # count of mapped-reads, quality per sample	
 #
-$(OUTDIR)/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample) #end)  $(capture.bed) 
+$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample) #end)  $(capture.bed) 
 	@$(call timebegindb,$@,$@)
+	mkdir -p $(dir $@)
 	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
 	@$(call timeendb,$@,$@)
 	@$(call sizedb,$@)
@@ -599,8 +612,9 @@ $(OUTDIR)/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sa
 # Capture
 #
 
-$(OUTDIR)/ensembl.exons.bed:
+$(OUTDIR)/BED/ensembl.exons.bed:
 	$(call timebegindb,$@,$@)
+	mkdir -p $(dir $@)
 	curl ${set_curl_proxy} -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
 		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
@@ -623,7 +637,7 @@ endif
 #
 # an extended version of the capture, will be used for recalibration
 #
-$(OUTDIR)/capture500.bed: $(capture.bed)
+$(extended_capture_bed): $(capture.bed)
 	mkdir -p $(dir $@)
 	cut -d '	' -f1,2,3 $< |\
 	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-int(x); if(S<0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
@@ -650,7 +664,13 @@ $(OUTDIR)/capture500.bed: $(capture.bed)
 #
 # Depth of coverage with GATK
 #
-$(addsuffix .sample_summary,#sample_coverage($sample) ) : $(call indexed_bam, #sample_recal( ${sample} ) ) $(capture.bed)
+
+LIST_PHONY_TARGET+= ${sample.name}_coverage_with_gatk 
+
+$(addprefix #sample_coverage($sample), .sample_cumulative_coverage_counts .sample_cumulative_coverage_proportions .sample_interval_statistics .sample_interval_summary .sample_statistics .sample_summary) : ${sample.name}_coverage_with_gatk
+
+
+${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_recal( ${sample} ) ) $(capture.bed)
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
 	mkdir -p $(dir $@)
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -679,7 +699,7 @@ LIST_BAM_RECAL+=#sample_recal( ${sample} )
 
 	
 #sample_recal( ${sample} )  : $(call indexed_bam, #sample_markdup(${sample}) ) \
-		$(OUTDIR)/capture500.bed \
+		$(extended_capture_bed) \
 		$(known.sites) \
 		$(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )
 	@$(call timebegindb,$@_tableRecalibaration,recalibration)
@@ -701,7 +721,7 @@ LIST_BAM_RECAL+=#sample_recal( ${sample} )
 
 
 $(addsuffix .recal_data.grp,#sample_recal( ${sample} ) )   : $(call indexed_bam, #sample_markdup(${sample}) ) \
-			$(OUTDIR)/capture500.bed \
+			$(extended_capture_bed) \
 			$(known.sites)
 	@$(call timebegindb,#sample_recal(${sample}),covariates)
 	mkdir -p $(dir $@)
@@ -784,7 +804,7 @@ LIST_BAM_REALIGN+= #sample_realigned(${sample})
 
 #sample_realigned(${sample}) :	$(call indexed_bam, #sample_merged(${sample}) ) \
 				$(addsuffix .intervals,#sample_merged(${sample})) \
-				$(OUTDIR)/capture500.bed 		
+				$(extended_capture_bed) 		
 		@$(call timebegindb,$@_indelrealigner,indelrealign)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
@@ -808,13 +828,13 @@ LIST_BAM_REALIGN+= #sample_realigned(${sample})
 		touch $@
 
 
-$(addsuffix .intervals,#sample_merged(${sample})) : $(call indexed_bam, #sample_merged(${sample}) ) $(OUTDIR)/capture500.bed
+$(addsuffix .intervals,#sample_merged(${sample})) : $(call indexed_bam, #sample_merged(${sample}) ) $(extended_capture_bed)
 		@$(call timebegindb,$@_targetcreator,targetcreator)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
-			-L $(filter %.bed,$^) \
+			-L:capture,BED $(filter %.bed,$^) \
   			-I $(filter %.bam,$^) \
 			#if(${project.propertyMap.containsKey("gatk.realigner.target.creator.options")}
 			) ${project.propertyMap.get("gatk.realigner.target.creator.options")} #end \
@@ -993,7 +1013,9 @@ $(foreach C,$(ALL_CHROMOSOMES), ${sample.name}.$(C).unsorted.bam ) : ${sample.na
 	@$(call sizedb,$<)
 	$(BWA) aln #if($project.propertyMap.containsKey("bwa.aln.options")
 		) ${project.getPropertyByName("bwa.aln.options","")} #end \
-		 -f $@ $(REF) $<
+		 -f $@ \
+		 $(REF) \
+		 $<
 	@$(call timeenddb,$@,sai)
 	@$(call sizedb,$@)
 	@$(call notempty,$@)
