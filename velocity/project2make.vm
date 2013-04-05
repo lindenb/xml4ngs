@@ -350,7 +350,9 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 #sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.allChromosomes}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
 	
 	mkdir -p $(dir $@)
-	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ | $(TABIX.bgzip) -c > $@ 
+	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ |\
+	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-sort |\
+	$(TABIX.bgzip) -c > $@ 
 	$(TABIX.tabix) -f -p vcf $@
 	
 
@@ -424,16 +426,16 @@ ${utils.error("unknown annotator [${annotator}]")}
 #else
 
 LIST_PHONY_TARGET+=all_predictions 
-all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variations.${$genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${$genotyper}.${annotator}.vcf.gz  #end #end
+all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz  #end #end
 	
 
 #foreach($genotyper in $genotypeMethods)
 
 #
-# Create VCF for all samples with ${$genotyper} 
+# Create VCF for all samples with ${genotyper} 
 #
 
-$(OUTDIR)/VCF/variations.${$genotyper}.vcf.gz : #foreach($c in ${project.allChromosomes}) #sample_final_bam( ${sample} ) #end \
+$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end \
 		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 	
 #if( $genotyper == "samtools")
@@ -452,19 +454,23 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 
 #foreach($annotator in $annotationMethods)
 
-$(OUTDIR)/VCF/variations.${$genotyper}.${annotator}.vcf.gz : $(OUTDIR)/VCF/variations.${$genotyper}.vcf.gz
+#set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
+#set($annotatorfilterproperty=${annotator}+".vcf.filtration")
+#set($filterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
+
+
 #if( $annotator == "vep")
 #annotate_with_vep(
-	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
-	"#sample_vcf_genotyper($sample $genotyper) "
+	"$(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz"
+	"$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz "
 	"${genotyper}${annotator}"
 	"$filterparam"
 	)
 
 #elseif(  $annotator == "snpeff" )
 #annotate_with_snpeff(
-	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
-	"#sample_vcf_genotyper($sample $genotyper) "
+	"$(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz"
+	"$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz "
 	"${genotyper}${annotator}"
 	"$filterparam"
 	)

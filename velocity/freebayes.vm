@@ -1,23 +1,14 @@
 
 
+## # #$(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sample" mode="merged"/>)
 
-<!-- ======================================================================================================
-     
-   	FREEBAYES
-     
-     ====================================================================================================== -->
-<xsl:template match="project" mode="freebayes">
-\#
-\# FREEBAYES
-\#
-LIST_PHONY_TARGET+= freebayes
-
-freebayes:$(OUTDIR)/freebayes.vcf.gz 
-$(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sample" mode="merged"/>)
-	${freebayes.bin} $(foreach B,$(filter %.bam,\$^), -b ${B} ) -o $(basename $@) -f ${REF}
+#macro(call_with_freebayes)	$(call timebegindb,$@,freebayes)
+	mkdir -p $(dir $@)
+	$(freebayes.bin) $(foreach B,$(filter %.bam,\$^), -b ${B} ) -o $(basename $@) -f ${REF}
 	${TABIX.bgzip} -f $(basename $@)
 	${TABIX.tabix} -f -p vcf $@ 
-</xsl:template>
+	$(call timeenddb,$@,freebayes)
+	$(call sizedb,$@)
 
 
-
+#end
