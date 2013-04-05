@@ -21,7 +21,7 @@
 
 #macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#foreach($p in ${sample.sequences.pair})#pair_bam_sorted($p)#end#else#sample_BAM($sample)/#output_files_prefix()${sample.name}_merged.bam#end#end
 
-#macro(sample_merged_chrom $sample $chrom)#if($sample.sequences.pair.size() <= 1)#foreach($p in ${sample.sequences.pair})#pair_bam_sorted_chrom(${pair} ${chrom})#end#else#sample_BAM_chrom($sample $chrom)/#output_files_prefix()${sample.name}_merged.${chrom}.bam#end#end
+#macro(sample_merged_chrom $sample $chrom)#if($sample.sequences.pair.size() <= 1)#foreach($pair in ${sample.sequences.pair})#pair_bam_sorted_chrom(${pair} ${chrom})#end#else#sample_BAM_chrom($sample $chrom)/#output_files_prefix()${sample.name}_merged.${chrom}.bam#end#end
 
 
 #macro(sample_coverage $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}_coverage#end
@@ -45,6 +45,11 @@
 #macro(sample_distribution_of_coverage_markdup $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}.markdup.coverage.pdf #end
 #macro(sample_distribution_of_coverage_recal $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}.recal.coverage.pdf #end
 
+
+
+#macro(sample_vcf_genotyper $sample $genotyper)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.${genotyper}.vcf.gz #end
+#macro(sample_vcf_genotyper_chrom $sample $genotyper $chrom)#sample_VCF_chrom($sample $chrom)/#output_files_prefix()${sample.name}_variations.${genotyper}.${chrom}.vcf.gz #end
+#macro(sample_vcf_genotyper_annotator $sample $genotyper $annotator)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.${genotyper}.${annotator}.gz #end
 
 
 

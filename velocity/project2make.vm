@@ -15,6 +15,7 @@
 #parse("gatk.vm")
 #parse("vep.vm")
 #parse("snpeff.vm")
+#parse("samtools.vm")
 ## PROXY SETTING 
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
@@ -298,152 +299,123 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 # ALLELES CALLING
 #
 #
-#macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup)
-	mkdir -p $(dir $@)
-	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end -uD \
-		-q $(MIN_MAPPING_QUALITY) \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -l $(extended_capture_bed) #end \
-		-f $(REF) $(filter %.bam,$^) |\
-	$(BCFTOOLS) view -vcg - |\
-	$(TABIX.bgzip) -c > $@
-	$(TABIX.tabix) -p vcf $@ 
-	@$(call timeenddb,$@,mpileup)
-	@$(call sizedb,$@)
-	$(call notempty,$@)
-
-#end
-
-
-#macro(call_with_gatk)		$(call timebegindb,$@,UnifiedGenotyper)
-	mkdir -p $(dir $@)
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
-		-R $(REF) \
-		-T UnifiedGenotyper \
-		-glm BOTH \
-		-S SILENT \
-		#if($project.propertyMap.containsKey("gatk.unified.genotyper.options")
-			) ${project.getPropertyByName("gatk.unified.genotyper.options","")} #end \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -L:capture,BED $(extended_capture_bed) #end \
-		$(foreach B,$(filter %.bam,$^), -I $B ) \
-		--dbsnp:vcfinput,VCF $(known.sites) \
-		-o $(basename $@)
-	$(TABIX.bgzip) -f $(basename $@)
-	@$(call timeendb,$@,UnifiedGenotyper)
-	@$(call sizedb,$@)
-	$(call notempty,$@)
-
-#end
 
 
 
 
-#if( $project.propertyMap["one.vcf.per.sample"]=="yes")
+#set( $genotypeMethods = ["samtools", "gatk"] )
+#set( $annotationMethods = ["snpeff", "vep"] )
+ 
+
+#if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes")
 
 LIST_PHONY_TARGET+= all_predictions
-all_predictions: \
-	variations.samtools \
-	variations.gatk \
-	variations.samtools.snpeff \
-	variations.gatk.snpeff \
-	variations.samtools.vep \
-	variations.gatk.vep
+all_predictions: #foreach($genotyper in $genotypeMethods) variations.${genotyper} #foreach($annotator in $annotationMethods) variations.${genotyper}.${annotator} #end #end
 
 
-LIST_PHONY_TARGET+= variations.samtools 
-variations.samtools: #foreach($sample in $project.sample) #sample_vcf_samtools($sample) #end
-LIST_PHONY_TARGET+= variations.gatk 
-variations.gatk: #foreach($sample in $project.sample) #sample_vcf_gatk($sample) #end
+#foreach($genotyper in $genotypeMethods)
+
+LIST_PHONY_TARGET+= variations.${genotyper}
+
+variations.${genotyper} : #foreach($sample in $project.sample) #sample_vcf_genotyper($sample $genotyper) #end
 
 
-LIST_PHONY_TARGET+= variations.samtools.snpeff 
-variations.samtools.snpeff: #foreach($sample in $project.sample) #sample_vcf_samtools_snpeff($sample) #end
+#foreach($annotator in $annotationMethods)
 
-LIST_PHONY_TARGET+= variations.gatk.snpeff  
-variations.gatk.snpeff: #foreach($sample in $project.sample) #sample_vcf_gatk_snpeff($sample) #end
+LIST_PHONY_TARGET+= variations.${genotyper}.${annotator}
+ 
+variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotator($sample $genotyper ${annotator} ) #end
 
-LIST_PHONY_TARGET+= variations.samtools.vep  
-variations.samtools.vep: #foreach($sample in $project.sample) #sample_vcf_samtools_vep($sample) #end
+## END LOOP OVER ANNOTATOR
 
-LIST_PHONY_TARGET+= variations.gatk.vep  
-variations.gatk.vep: #foreach($sample in $project.sample) #sample_vcf_gatk_vep($sample) #end
+#end
+
+## END LOOP OVER GENOTYPER
+
+#end 
+
 
 
 
 #foreach($sample in $project.sample)
+#foreach($genotyper in $genotypeMethods)
 
 
-#
-# prediction samtools with Variation Ensembl Prediction API for  sample ${sample.name}
-#
-
-#set($filterparam=${project.getPropertyByName("samtools.vcf.filtration","")}+" "+${project.getPropertyByName("vep.vcf.filtration","")})
-
-#annotate_with_vep(
-	"#sample_vcf_samtools_vep($sample)"
-	"#sample_vcf_samtools($sample)"
-	"mpileupvep"
-	"$filterparam"
-	)
 
 
-#
-# prediction gatk with Variation Ensembl Prediction API for  sample ${sample.name}
+# 
+# merge all the chromosomes for sample ${sample.name}
 #
 
-#set($filterparam=${project.getPropertyByName("gatk.vcf.filtration","")}+" "+${project.getPropertyByName("vep.vcf.filtration","")})
+#sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.allChromosomes}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
+	
+	mkdir -p $(dir $@)
+	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ | $(TABIX.bgzip) -c > $@ 
+	$(TABIX.tabix) -f -p vcf $@
+	
 
-#annotate_with_vep(
-	"#sample_vcf_gatk_vep($sample)"
-	"#sample_vcf_gatk($sample)"
-	"gatkvep"
-	"$filterparam"
-	)
+#foreach($c in ${project.allChromosomes})
 
+#sample_vcf_genotyper_chrom($sample $genotyper $c): #sample_final_bam( ${sample} ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 
-
-
-
-#
-# Annotation samtools with SNPEFF for  sample ${sample.name}
-#
-
-#set($filterparam=${project.getPropertyByName("samtools.vcf.filtration","")}+" "+${project.getPropertyByName("snpeff.vcf.filtration","")})
-
-#annotate_with_snpeff(
-	"#sample_vcf_samtools_snpeff($sample)"
-	"#sample_vcf_samtools($sample)"
-	"mpileupsnpeff"
-	"$filterparam"
-	)
-
-
-#
-# Annotation gatk with SNPEFF for  sample ${sample.name}
-#
-
-#set($filterparam=${project.getPropertyByName("gatk.vcf.filtration","")}+" "+${project.getPropertyByName("snpeff.vcf.filtration","")})
-
-#annotate_with_snpeff(
-	"#sample_vcf_gatk_snpeff($sample)"
-	"#sample_vcf_gatk($sample)"
-	"gatksnpeff"
-	"$filterparam"
-	)
-
-
-#
-# Allele calling with samtools for sample ${sample.name}
-#
-
-#sample_vcf_samtools($sample) : #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#sample_recal($sample) )
+#if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
 
+#elseif( $genotyper == "gatk")
+#call_with_gatk()
+
+#else
+
+${utils.error("unknown genotyper [${genotyper}]")}
+
+## end if genotyper
+
+#end 
+
+## end for-each chromosomes
+
+#end
+
+
+
+#foreach($annotator in $annotationMethods)
+
 #
-# Allele calling with GATK for sample <xsl:value-of select="@name"/>
+# predictions ${genotyper} with ${annotator} for  sample ${sample.name}
 #
 
-#sample_vcf_gatk($sample): #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#sample_recal($sample)) $(known.sites)
-#call_with_gatk()
+#set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
+#set($annotatorfilterproperty=${annotator}+".vcf.filtration")
+#set($filterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
+
+
+#if( $annotator == "vep")
+
+#annotate_with_vep(
+	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
+	"#sample_vcf_genotyper($sample $genotyper) "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#elseif(  $annotator == "snpeff" )
+
+#annotate_with_snpeff(
+	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
+	"#sample_vcf_genotyper($sample $genotyper) "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#else
+
+${utils.error("unknown annotator [${annotator}]")}
+
+#end
+
+#end
+
+#end
 
 #end
 
@@ -452,67 +424,66 @@ variations.gatk.vep: #foreach($sample in $project.sample) #sample_vcf_gatk_vep($
 #else
 
 LIST_PHONY_TARGET+=all_predictions 
-all_predictions: \
-	$(OUTDIR)/VCF/variations.samtools.vep.vcf.gz \
-	$(OUTDIR)/VCF/variations.samtools.snpEff.vcf.gz \
-	$(OUTDIR)/VCF/variations.gatk.vep.vcf.gz \
-	$(OUTDIR)/VCF/variations.gatk.snpEff.vcf.gz 
+all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variations.${$genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${$genotyper}.${annotator}.vcf.gz  #end #end
 	
-#
-# prediction samtools with Variation Ensembl Prediction API
-#
-#set($filterparam=${project.propertyMap["samtools.vcf.filtration"]}+" "+${project.propertyMap["vep.vcf.filtration"]})
-#annotate_with_vep(
-	"$(OUTDIR)/VCF/variations.samtools.vep.vcf.gz"
-	"$(OUTDIR)/VCF/variations.samtools.vcf.gz"
-	"samtoolsvep"
-	"$filterparam"
-	)
+
+#foreach($genotyper in $genotypeMethods)
 
 #
-# prediction gatk with Variation Ensembl Prediction API
+# Create VCF for all samples with ${$genotyper} 
 #
-#set($filterparam=${project.propertyMap["gatk.vcf.filtration"]}+" "+${project.propertyMap["vep.vcf.filtration"]})
-#annotate_with_vep(
-	"$(OUTDIR)/VCF/variations.gatk.vep.vcf.gz"
-	"$(OUTDIR)/VCF/variations.gatk.vcf.gz"
-	"gatkvep"
-	"$filterparam"
-	)
 
-#
-# annotate samtools vcf with snpEff
-#
-#set($filterparam=${project.propertyMap["samtools.vcf.filtration"]}+" "+${project.propertyMap["snpeff.vcf.filtration"]})
-#annotate_with_snpeff(
-	"$(OUTDIR)/VCF/variations.samtools.snpEff.vcf.gz"
-	"$(OUTDIR)/VCF/variations.samtools.vcf.gz"
-	"mpileupsnpeff"
-	"$filterparam"
-	)
-
-#
-# annotate GATK vcf with snpEff
-#
-#set($filterparam=${project.propertyMap["gatk.vcf.filtration"]}+" "+${project.propertyMap["snpeff.vcf.filtration"]})
-#annotate_with_snpeff(
-	"$(OUTDIR)/VCF/variations.gatk.snpEff.vcf.gz"
-	"$(OUTDIR)/VCF/variations.gatk.vcf.gz"
-	"gatksnpeff"
-	"$filterparam"
-	)
-
-#
-# Allele calling with samtools
-#
-$(OUTDIR)/VCF/variations.samtools.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end)
+$(OUTDIR)/VCF/variations.${$genotyper}.vcf.gz : #foreach($c in ${project.allChromosomes}) #sample_final_bam( ${sample} ) #end \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
+	
+#if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
 
-#
-# Allele calling with GATK
-#
-$(OUTDIR)/VCF/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end ) $(known.sites)
+#elseif( $genotyper == "gatk")
 #call_with_gatk()
+
+#else
+
+${utils.error("unknown genotyper [${genotyper}]")}
+
+## end if genotyper
+
+#end 
+
+#foreach($annotator in $annotationMethods)
+
+$(OUTDIR)/VCF/variations.${$genotyper}.${annotator}.vcf.gz : $(OUTDIR)/VCF/variations.${$genotyper}.vcf.gz
+#if( $annotator == "vep")
+#annotate_with_vep(
+	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
+	"#sample_vcf_genotyper($sample $genotyper) "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#elseif(  $annotator == "snpeff" )
+#annotate_with_snpeff(
+	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
+	"#sample_vcf_genotyper($sample $genotyper) "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#else
+
+${utils.error("unknown annotator [${annotator}]")}
+
+#end
+
+
+## enf of loop over annotator
+
+#end
+
+## enf of loop over genotypers
+
+#end
+
 
 #end
 
