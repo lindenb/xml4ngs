@@ -60,6 +60,12 @@ OUTDIR=$project.propertyMap["output.directory"]
 #
 LIST_PHONY_TARGET=
 
+
+#
+# LIST_OF_PHONY_TARGET
+#
+TOP_TARGETS=
+
 #
 # Chromosomes 
 #
@@ -269,9 +275,9 @@ ${extension}.fai : %$extension
 
 toptarget:
 	@echo "This is the top target. Please select a specific target"
-	@echo "e.g: ${LIST_PHONY_TARGET} "
+	@echo "e.g: ${TOP_TARGETS} "
 
-all: ${LIST_PHONY_TARGET} all_predictions fastx hsqldb_statistics 
+all: ${TOP_TARGETS} all_predictions fastx hsqldb_statistics 
 
 
 
@@ -282,6 +288,8 @@ all: ${LIST_PHONY_TARGET} all_predictions fastx hsqldb_statistics
 
 
 LIST_PHONY_TARGET+= coverage
+TOP_TARGETS+= coverage
+
 coverage:$(OUTDIR)/Statistics/mean_coverage01.pdf
 $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in $project.sample) #sample_coverage($sample) #end)
 	mkdir -p $(dir $@)
@@ -310,12 +318,14 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes")
 
 LIST_PHONY_TARGET+= all_predictions
+TOP_TARGETS+= all_predictions
 all_predictions: #foreach($genotyper in $genotypeMethods) variations.${genotyper} #foreach($annotator in $annotationMethods) variations.${genotyper}.${annotator} #end #end
 
 
 #foreach($genotyper in $genotypeMethods)
 
 LIST_PHONY_TARGET+= variations.${genotyper}
+TOP_TARGETS+= variations.${genotyper}
 
 variations.${genotyper} : #foreach($sample in $project.sample) #sample_vcf_genotyper($sample $genotyper) #end
 
@@ -323,7 +333,7 @@ variations.${genotyper} : #foreach($sample in $project.sample) #sample_vcf_genot
 #foreach($annotator in $annotationMethods)
 
 LIST_PHONY_TARGET+= variations.${genotyper}.${annotator}
- 
+TOP_TARGETS+= variations.${genotyper}.${annotator}
 variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotator($sample $genotyper ${annotator} ) #end
 
 ## END LOOP OVER ANNOTATOR
@@ -425,7 +435,9 @@ ${utils.error("unknown annotator [${annotator}]")}
 
 #else
 
-LIST_PHONY_TARGET+=all_predictions 
+LIST_PHONY_TARGET+=all_predictions
+TOP_TARGETS+=all_predictions
+
 all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz  #end #end
 	
 
@@ -434,6 +446,8 @@ all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variatio
 #
 # Create VCF for all samples with ${genotyper} 
 #
+
+TOP_TARGETS+= $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz 
 
 $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end \
 		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
@@ -499,6 +513,8 @@ ${utils.error("unknown annotator [${annotator}]")}
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
+TOP_TARGETS+= bam_statistics 
+
 bam_statistics: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
 	$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf \
 	$(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv \
@@ -506,12 +522,15 @@ bam_statistics: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
 
 
 LIST_PHONY_TARGET+= beddepth
+TOP_TARGETS+= beddepth
 beddepth:  #foreach($sample in $project.sample) #sample_beddepth(${sample}) #end
 
 
 #
 # create a PDF for bamstats01.tsv
 #
+TOP_TARGETS+= $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf
+
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv
 	mkdir -p $(dir $@)
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
@@ -529,6 +548,9 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv : #foreach($sample in 
 #
 # count of distribution of coverage
 #
+
+TOP_TARGETS+= $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv
+
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
 
 	mkdir -p $(dir $@)
@@ -540,6 +562,7 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv : #foreach($sample in 
 ## coverage of distribution ############################################################################################
 
 LIST_PHONY_TARGET+= coverage_distribution
+TOP_TARGETS+= coverage_distribution
 
 coverage_distribution:  $(OUTDIR)/Statistics/#output_files_prefix()all.distribution.recal.pdf
 
@@ -578,7 +601,7 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#
 $(OUTDIR)/BED/ensembl.exons.bed:
 	$(call timebegindb,$@,$@)
 	mkdir -p $(dir $@)
-	curl ${set_curl_proxy} -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
+	curl ${set_curl_proxy} -d 'query=<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
 		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
 	awk -F '	' '(int($$2) < int($$3))' |\
@@ -650,11 +673,13 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 
 
 
+
+
 #
 # make TOP bam, merging all chromosomes
 #
 
-#sample_final_bam(${sample} ${chrom}) : #foreach($chrom in ${project.allChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end
+#sample_final_bam(${sample}) : #foreach($chrom in ${project.allChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end
 	
 	@$(call timebegindb,$@,merge_chroms)
 	mkdir -p $(dir $@)	
@@ -1049,6 +1074,9 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 ##############################################################################
 
 LIST_PHONY_TARGET+= hsqldb_statistics 
+
+TOP_TARGETS+= hsqldb_statistics 
+
 hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 
 $(OUTDIR)/durations.stats.txt:
@@ -1071,6 +1099,9 @@ $(OUTDIR)/filesize.stats.txt:
 # an ongoing process.
 #
 LIST_PHONY_TARGET+= ongoing
+
+TOP_TARGETS+= ongoing
+
 ongoing:
 	lockfile $(LOCKFILE)
 	mkdir -p $(dir $(HSQLSTATS) )
@@ -1087,6 +1118,8 @@ ongoing:
 #
 #
 LIST_PHONY_TARGET+= git 
+TOP_TARGETS+= git
+
 git:.git/config
 	-git add $(makefile.name)
 	-git commit -m "changes $(makefile.name)"
@@ -1094,6 +1127,7 @@ git:.git/config
 .git/config:
 	git init $(dir $(makefile.name))
 
+#parse("contaminations.vm")
 
 #
 # END
