@@ -20,6 +20,9 @@
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
 
+.SUFFIXES:            # Delete the default suffixes
+.SUFFIXES: .bam .bai   # Define our suffix list
+
 #
 # this is the name of the current Makefile
 # should be always here,  before' include'
@@ -235,7 +238,7 @@ endef
 # 
 # create BAM index for ${bam}
 #
-%.bai : %.bam
+.bam.bai:
 	@$(call timebegindb,$@,bai)
 	#some indexes are created by picard, no need to recreate it, or just check the timestamp
 	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
@@ -687,6 +690,7 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
+		USE_THREADING=true \
 		VALIDATION_STRINGENCY=SILENT \
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
@@ -694,10 +698,10 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 	@$(call timeenddb,$@,merge_chroms)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,$^)
-	touch $@
 
 
+
+#fake_index_bam_with_samtools("#sample_final_bam(${sample})")
 
 
 #if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
@@ -730,8 +734,9 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 	@$(call timeenddb,$@_tableRecalibaration,recalibration)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	touch $@
 
+
+#index_bam_with_samtools("#sample_recal_chrom( ${sample} ${chrom})")
 
 $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
 			$(extended_capture_bed) \
@@ -766,18 +771,17 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 #
 #
-# Mark duplicates for Sample: ${sample.name}
+# Mark duplicates for Sample: ${sample.name} and chromosome ${chrom}.
 #
 
 
-#sample_markdup_chrom(${sample}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
+#sample_markdup_chrom(${sample} ${chrom}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
 #if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@)
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
 	$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,$^) )
-	$(call delete_and_touch,$(filter %.bai,$^) )
+	
 
 #else	$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@)
@@ -791,15 +795,16 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		AS=true \
 		#if(${project.propertyMap.containsKey("picard.mark.duplicates.options")}
 			) ${project.propertyMap.get("picard.mark.duplicates.options")} #end \
-		VALIDATION_STRINGENCY=SILENT
+		VALIDATION_STRINGENCY=SILENT \
+		CREATE_INDEX=true
 	@$(call timeenddb,$@_markdup,markdup)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,$^) )
-	$(call delete_and_touch,$(filter %.bai,$^) )
-	touch $@
 
 #end
+
+
+#index_bam_with_samtools("#sample_markdup_chrom(${sample} ${chrom})")
 
 #end
 #end
@@ -836,9 +841,9 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		@$(call timeenddb,$@_indelrealigner,indelrealign)
 		@$(call sizedb,$@)
 		$(call notempty,$@)
-		$(call delete_and_touch,$(filter %.bam,$^)  )
-		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
-		touch $@
+
+
+#fake_index_bam_with_samtools("#sample_realigned_chrom(${sample} ${chrom})")
 
 
 $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) $(extended_capture_bed)
@@ -863,8 +868,9 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 #end
 #end
 
-#if( ${sample.sequences.pair.size()} > 1)
+
 #foreach($chrom in ${project.allChromosomes})
+#if( ${sample.sequences.pair.size()} > 1)
 
 #
 #
@@ -882,17 +888,29 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
 		VALIDATION_STRINGENCY=SILENT \
+		USE_THREADING=true \
 		COMMENT="Merged for chromosome ${chrom} from $^" \
 		$(foreach B,$^, I=$(B) )
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,$^)
-	touch $@
-	
+
+#fake_index_bam_with_samtools("#sample_merged_chrom(${sample} ${chrom})")
+
+
+#else 
+
+
+#foreach($pair in ${sample.sequences.pair} )
+#index_bam_with_samtools("#pair_bam_sorted_chrom(${pair} ${chrom})")
+#end
+
+
 #end
 #end
+
+
 
 #
 # bamstats01 for sample: ${sample.name}
@@ -958,9 +976,10 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #
 #
 
-LIST_PHONY_TARGET+=${sample.name}_sampe_chromosomes
 
 #foreach($c in ${project.allChromosomes})#pair_bam_sorted_chrom($pair $c ) #end : ${sample.name}_sampe_pair${pair.index}_chromosomes
+
+LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 
 
 ${sample.name}_sampe_pair${pair.index}_chromosomes : \
@@ -984,7 +1003,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	
 	@$(call timeenddb,$@,bwasampe)
-	@$(call delete_and_touch,$(filter %.sai,$^))
+
 
 
 

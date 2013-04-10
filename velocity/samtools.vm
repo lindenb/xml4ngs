@@ -12,3 +12,31 @@
 	$(call notempty,$@)
 
 #end
+
+#macro(index_bam_with_samtools $bam)
+
+#
+# index BAM "${bam}" with samtools.
+#
+
+$(patsubst %.bam,%.bai,${bam}):${bam}
+
+	@$(call timebegindb,$@,bai)
+	#some indexes are created by picard, no need to recreate it, or just check the timestamp
+	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
+	@$(call timeenddb,$@,bai)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+#end
+
+
+#macro(fake_index_bam_with_samtools $bam)
+
+#
+# index BAM "${bam}" with samtools.
+#
+
+$(patsubst %.bam,%.bai,${bam}):${bam}
+	# index bam:  nothing to do. at this point, an index should have been created by the picard-API
+	
+#end
