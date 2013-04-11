@@ -1,5 +1,5 @@
 digraph G{
-
+node[fillcolor=pink,style=filled]; 
 part1_F_fastq -> part1_unsorted_bam;
 part1_R_fastq -> part1_unsorted_bam;
 part2_F_fastq -> part2_unsorted_bam;

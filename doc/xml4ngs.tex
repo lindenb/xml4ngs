@@ -5,7 +5,7 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{xcolor}
-\lstset{frame=single,backgroundcolor=\color{lightgray}}
+\lstset{frame=single,backgroundcolor=\color{pink}}
 \newcommand{\sge}{\href{http://gridscheduler.sourceforge.net}{\em{SGE}}}
 \newcommand{\git}{\href{https://github.com/}{\em{git}}}
 \newcommand{\qmake}{\href{http://gridscheduler.sourceforge.net/htmlman/htmlman1/qmake.html}{\em{qmake}}}
@@ -13,6 +13,7 @@
 \newcommand{\velocity}{\href{http://velocity.apache.org/}{\em{velocity}}}
 \newcommand{\bwa}{\href{http:/todo.org/}{\em{bwa}}}
 \newcommand{\VCF}{VCF}
+\newcommand{\redspan}[1]{\textcolor{red}{#1}}
 
 \author{Pierre Lindenbaum PhD\\\href{https://twitter.com/yokofakun}{@yokofakun}\\ \href{mailto:plindenbaum@yahoo.fr}{pierre.lindenbaum@univ-nantes.fr}\\ \url{http://plindenbaum.blogspot.com}\\Institut du Thorax. Nantes. France}
 \title{xml4ngs}
@@ -56,8 +57,51 @@ The tools require the following packages/softwares to be compiled:
 Pull xml4ngs from github: \url{https://github.com/lindenb/xml4ngs}
 Edit the file build.properties if needed.
 
+type 'ant' to generate the tools.
+\begin{lstlisting}[language=bash]
+$ ant
 
- 
+
+Buildfile: /home/lindenb/src/xml4ngs/build.xml
+
+
+generate-sources:
+     [exec] parsing a schema...
+     [exec] compiling a schema...
+     [exec] com/github/lindenb/xml4ngs/FastqType.java
+     [exec] com/github/lindenb/xml4ngs/LanesType.java
+     [exec] com/github/lindenb/xml4ngs/ObjectFactory.java
+     [exec] com/github/lindenb/xml4ngs/PairType.java
+     [exec] com/github/lindenb/xml4ngs/ProjectType.java
+     [exec] com/github/lindenb/xml4ngs/PropertiesType.java
+     [exec] com/github/lindenb/xml4ngs/PropertyType.java
+     [exec] com/github/lindenb/xml4ngs/SampleType.java
+     [exec] com/github/lindenb/xml4ngs/SequencesType.java
+
+dist/ilmn2project.jar:
+    [mkdir] Created dir: /home/lindenb/src/xml4ngs/tmp
+    [javac] Compiling 1 source file to /home/lindenb/src/xml4ngs/tmp
+      [jar] Building jar: /home/lindenb/src/xml4ngs/dist/ilmn2project.jar
+   [delete] Deleting directory /home/lindenb/src/xml4ngs/tmp
+
+download-ivy:
+   (...)
+
+install-ivy:
+
+ivy.libs:
+   (...)
+
+dist/transformngsproject.jar:
+    [mkdir] Created dir: /home/lindenb/src/xml4ngs/tmp
+    [javac] Compiling 1 source file to /home/lindenb/src/xml4ngs/tmp
+      [jar] Building jar: /home/lindenb/src/xml4ngs/dist/transformngsproject.jar
+   [delete] Deleting directory /home/lindenb/src/xml4ngs/tmp
+
+all:
+
+
+\end{lstlisting}
 
 \section{The Project XML Schema}
 The schema is available at: todo
@@ -157,8 +201,41 @@ The newer version split by chromosome  '\bwa{} sampe'. The workflow generates mu
 \includegraphics[scale=0.3,angle=90]{workflow03.png}
 \end{center}
 
+\section{Property files.}
+Hack: the XML property files used by 'ilmn2project.jar', specific for each type of analysis can be softly generated using \href{http://www.w3.org/TR/xinclude/}{x:include}.
+\begin{center}
+\includegraphics[scale=0.4]{workflow06.png}
+\end{center}
+For example 'template\_all.xml' could be:
+\begin{lstlisting}[language=XML]
+<?xml version="1.0"?>
+<properties>
+ <property key='bwa.aln.options'> -q 15 -t 2 </property>
+ <property key='gatk.unified.genotyper.options'> -nt 20 </property>
+ <property key='allele.calling.in.capture'>yes</property>
+ <property key='one.vcf.per.sample'>yes</property>
+ <property key="make.include">/commun/data/packages/tools.mk</property>
+</properties>
+\end{lstlisting}
+and 'template\_human.xml' (it includes template\_all.xml )
+\begin{lstlisting}[language=XML,escapeinside={!}{!}]
+<?xml version="1.0"?>
+<properties xmlns:xi="http://www.w3.org/2001/XInclude">
+ !\redspan{ \textless{}xi:include href="template\_all.xml" xpointer="xpointer(/properties/property)" /\textgreater{} }!
+ <property key='genome.reference.path'>/path/to/human_g1k_v37.fasta</property>
+ <property key='known.sites'>/path/to/dbsnp_135.b37.vcf.gz</property>
+</properties>
+\end{lstlisting}
+etc..\\
+One can generate all the property files using \href{http://xmlsoft.org/xmllint.html}{xmllint}.
+\begin{lstlisting}[language=bash]
+$ xmllint --xinclude --format \
+   templates/template_human_wholegenome.xml > \
+   human_wholegenome.xml
+\end{lstlisting} 
 \section{Conclusion}
 great
 \section{Ackwnoledgements}
-thank you
+I'd like to thank the following persons:  Audrey Bihouée, Solena Le Scouarnec, Richard Redon, Raluca Teusan, Laetitia Duboscq-Bidot.
+
 \end{document}
