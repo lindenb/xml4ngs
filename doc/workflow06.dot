@@ -1,0 +1,22 @@
+digraph G {
+TALL[label="template_all.xml",shape=note,fillcolor=orange,style=filled]; 
+TEX[label="template_human_exome.xml",shape=note,fillcolor=orange,style=filled];
+THALOPLEX[label="template_human_haloplex.xml",shape=note,fillcolor=orange,style=filled]; 
+THUMAN[label="template_human.xml",shape=note,fillcolor=orange,style=filled]; 
+TWG[label="template_human_wholegenome.xml",shape=note,fillcolor=orange,style=filled]; 
+     
+ 
+ 
+EX[label="human_exome.xml",shape=note,fillcolor=green,style=filled];
+HALOPLEX[label="human_haloplex.xml",shape=note,fillcolor=green,style=filled]; 
+WG[label="human_wholegenome.xml",shape=note,fillcolor=green,style=filled]; 
+
+TALL ->   THUMAN [label="x:include"];
+
+THUMAN ->      TEX [label="x:include"];
+TEX -> EX [label="x:include"];  
+THUMAN ->      THALOPLEX [label="x:include"];
+THALOPLEX -> HALOPLEX [label="x:include"];
+THUMAN ->      TWG [label="x:include"];
+TWG-> WG[label="x:include"]; 
+}
