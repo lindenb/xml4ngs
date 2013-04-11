@@ -634,6 +634,11 @@ $(extended_capture_bed): $(capture.bed)
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
 
+#foreach($chrom in ${project.allChromosomes})
+#MAKE_XCAPTURE_CHROM($chrom)
+#end
+
+
 
 ##############################################################################
 #
@@ -716,7 +721,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 
 	
 #sample_recal_chrom( ${sample} ${chrom})  : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
-		$(extended_capture_bed) \
+		#XCAPTURE_CHROM(${chrom}) \
 		$(known.sites) \
 		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )
 	@$(call timebegindb,$@_tableRecalibaration,recalibration)
@@ -739,7 +744,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 #index_bam_with_samtools("#sample_recal_chrom( ${sample} ${chrom})")
 
 $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
-			$(extended_capture_bed) \
+			#XCAPTURE_CHROM(${chrom}) \
 			$(known.sites)
 	@$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 	mkdir -p $(dir $@)
@@ -821,8 +826,8 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 
 #sample_realigned_chrom(${sample} ${chrom}) :	$(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
-				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) \
-				$(extended_capture_bed) 		
+				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) 
+		
 		@$(call timebegindb,$@_indelrealigner,indelrealign)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
@@ -846,7 +851,9 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 #fake_index_bam_with_samtools("#sample_realigned_chrom(${sample} ${chrom})")
 
 
-$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) $(extended_capture_bed)
+$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
+		#XCAPTURE_CHROM(${chrom})
+		
 		@$(call timebegindb,$@_targetcreator,targetcreator)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -856,7 +863,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
   			-I $(filter %.bam,$^) \
 			#if(${project.propertyMap.containsKey("gatk.realigner.target.creator.options")}
 			) ${project.propertyMap.get("gatk.realigner.target.creator.options")} #end \
-			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
+			-o $@ \
 			--known:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
 			 ) ${project.getPropertyByName("known.indels.vcf","")} #else  
 			  ${utils.error("known.indels.vcf undefined")}	 

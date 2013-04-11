@@ -12,7 +12,7 @@
 #macro(sample_contaminations_tsv $sample)#sample_CONTAMINATIONS($sample)/#output_files_prefix()${sample.name}_contaminations.tsv#end
 #macro(sample_final_bam $sample)#sample_BAM($sample)/#output_files_prefix()${sample.name}_final.bam#end
 
-#macro(sample_markdup_chrom $sample $chrom)#if(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes")#sample_realigned_chrom(${sample} ${chrom})#else#sample_BAM_chrom($sample ${chrom})/#output_files_prefix()${sample.name}_markdup.${$chrom}.bam#end#end
+#macro(sample_markdup_chrom $sample $chrom)#if(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes")#sample_realigned_chrom(${sample} ${chrom})#else#sample_BAM_chrom($sample ${chrom})/#output_files_prefix()${sample.name}_markdup.${chrom}.bam#end#end
 
 #macro(sample_recal $sample)#if($project.getPropertyByName("disable.recalibration","no")=="yes")#sample_markdup($sample)#else#sample_BAM($sample)/#output_files_prefix()${sample.name}_recal.bam#end#end
 

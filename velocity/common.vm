@@ -17,3 +17,15 @@ ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 
 #end
 
+#macro(XCAPTURE_CHROM $chrom)$(OUTDIR)/BED/extended_capture.${chrom}.bed#end
+#macro(MAKE_XCAPTURE_CHROM  $chrom)
+
+#
+# extended capture for chromosome ${chrom}
+#
+
+#XCAPTURE_CHROM($chrom):$(extended_capture_bed)
+	mkdir -p $(dir $@)
+	awk -F '	' -v C=${chrom} 'BEGIN{N=0;} {if(C!=$$1) next; print;N++;} END{if(N==0) printf("%s\t0\t1\tIGNORE_PLEASE\n",C);}' $< > $@
+
+#end
