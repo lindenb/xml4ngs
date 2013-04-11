@@ -1,0 +1,44 @@
+digraph G{
+
+part1_F_fastq -> part1_bam;
+part1_R_fastq -> part1_bam;
+part2_F_fastq -> part2_bam;
+part2_R_fastq -> part2_bam;
+part3_F_fastq -> part3_bam;
+part3_R_fastq -> part3_bam;
+
+
+part1_bam -> chr1_bam ; 
+part1_bam -> chr2_bam ; 
+part1_bam -> chr3_bam ; 
+part1_bam -> chr4_bam ; 
+part1_bam -> chr5_bam ; 
+
+part2_bam -> chr1_bam ; 
+part2_bam -> chr2_bam ; 
+part2_bam -> chr3_bam ; 
+part2_bam -> chr4_bam ; 
+part2_bam -> chr5_bam ; 
+
+part3_bam -> chr1_bam ; 
+part3_bam -> chr2_bam ; 
+part3_bam -> chr3_bam ; 
+part3_bam -> chr4_bam ; 
+part3_bam -> chr5_bam ; 
+
+
+
+chr1_bam -> chr1_realign_bam ->  chr1_rmdup_bam -> chr1_recal_bam -> chr1_vcf -> chr1_annotation_vcf;
+chr2_bam -> chr2_realign_bam ->  chr2_rmdup_bam -> chr2_recal_bam -> chr2_vcf -> chr2_annotation_vcf;
+chr3_bam -> chr3_realign_bam ->  chr3_rmdup_bam -> chr3_recal_bam -> chr3_vcf -> chr3_annotation_vcf;
+chr4_bam -> chr4_realign_bam ->  chr4_rmdup_bam -> chr4_recal_bam -> chr4_vcf -> chr4_annotation_vcf;
+chr5_bam -> chr5_realign_bam ->  chr5_rmdup_bam -> chr5_recal_bam -> chr5_vcf -> chr5_annotation_vcf;
+
+
+chr1_annotation_vcf -> all_vcf ;
+chr2_annotation_vcf -> all_vcf ;
+chr3_annotation_vcf -> all_vcf ;
+chr4_annotation_vcf -> all_vcf ;
+chr5_annotation_vcf -> all_vcf ;
+
+}

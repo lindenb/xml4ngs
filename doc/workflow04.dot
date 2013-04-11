@@ -1,0 +1,22 @@
+digraph G{
+
+part1_F_fastq -> part1_unsorted_bam;
+part1_R_fastq -> part1_unsorted_bam;
+part2_F_fastq -> part2_unsorted_bam;
+part2_R_fastq -> part2_unsorted_bam;
+part3_F_fastq -> part3_unsorted_bam;
+part3_R_fastq -> part3_unsorted_bam;
+
+
+part1_unsorted_bam -> part1_sorted_bam;
+part2_unsorted_bam -> part2_sorted_bam;
+part3_unsorted_bam -> part3_sorted_bam;
+
+part1_sorted_bam -> merged_bam;
+part2_sorted_bam -> merged_bam;
+part3_sorted_bam -> merged_bam;
+
+
+merged_bam -> realign_bam ->  rmdup_bam -> recal_bam -> vcf -> annotation_vcf;
+
+}

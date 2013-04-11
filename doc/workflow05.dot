@@ -1,0 +1,11 @@
+digraph G {
+
+JAVA[label="interface MyObject\n  {\n  public String getX();\n  public int getY();\n  }",shape=note,fillcolor=orange,style=filled]; 
+VM[label="X= ${object.x} and Y= ${object.y} .",shape=note,fillcolor=yellow,style=filled]; 
+VELOCITY[label="Apache Velocity",shape=oval,fillcolor=pink,style=filled];
+RESULT[label="X= Hello and Y= 2 .",shape=note,fillcolor=lightgray,style=filled]; 
+
+JAVA->VELOCITY[label="inject java object MyObject\nin velocity context as $object."];
+VM->VELOCITY[label="velocity template"];
+VELOCITY->RESULT[label="output"];
+}
