@@ -286,8 +286,10 @@ all: ${TOP_TARGETS} all_predictions fastx hsqldb_statistics
 
 
 
+TOP_TARGETS+= final_bams
+LIST_PHONY_TARGET+= final_bams
 
-
+final_bams :  #foreach($sample in $project.sample)  #sample_final_bam(${sample})  #end
 
 
 LIST_PHONY_TARGET+= coverage
@@ -360,7 +362,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 # merge all the chromosomes for sample ${sample.name}
 #
 
-#sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.allChromosomes}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
+#sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.refChromosomes}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
 	
 	mkdir -p $(dir $@)
 	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ |\
@@ -369,7 +371,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 	$(TABIX.tabix) -f -p vcf $@
 	
 
-#foreach($c in ${project.allChromosomes})
+#foreach($c in ${project.refChromosomes})
 
 #sample_vcf_genotyper_chrom($sample $genotyper $c): #sample_final_bam( ${sample} ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 
@@ -634,7 +636,7 @@ $(extended_capture_bed): $(capture.bed)
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
 
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.refChromosomes})
 #MAKE_XCAPTURE_CHROM($chrom)
 #end
 
@@ -687,7 +689,9 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 # make TOP bam, merging all chromosomes
 #
 
-#sample_final_bam(${sample}) : #foreach($chrom in ${project.allChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end
+
+#sample_final_bam(${sample}) : #foreach($chrom in ${project.refChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end \
+	#sample_merged_chrom(#{same} "Unmapped")
 	
 	@$(call timebegindb,$@,merge_chroms)
 	mkdir -p $(dir $@)	
