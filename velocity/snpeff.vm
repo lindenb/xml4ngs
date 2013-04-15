@@ -13,6 +13,7 @@ ${target} : ${dependencies} $(REF)
 	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  #if(! $project.propertyMap.containsKey("snpEff.build") )hg19#else${project.propertyMap["snpEff.build"]}#end |\
 	$(SNPEFF)/scripts/vcfEffOnePerLine.pl  #if( ${project.propertyMap["discard.intergenic.variants"]}=="yes" ) |\
 	grep -v ";EFF=INTERGENIC(" #end ${project.propertyMap["downstream.vcf.annotation"]} | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
+	$(VARKIT)/missingvcf -S "${sample.name}" |\
 	${TABIX.bgzip} -c > $@
 	${TABIX.tabix} -f -p vcf $@ 
 	##VEP done

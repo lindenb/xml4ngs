@@ -22,6 +22,20 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	    
+	    <xs:enumeration value="make.include">
+	        <xs:annotation>
+	          <xs:documentation>if defined, this file will be included at the top of a Makefile.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      
+	      <xs:enumeration value="merge.bams.with.samtools">
+	        <xs:annotation>
+	          <xs:documentation>if 'yes', samtools merge will be used instead of picard SamMerge.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      
+	      
 	      <xs:enumeration value="vep.vcf.filtration">
 	        <xs:annotation>
 	          <xs:documentation>GATK variant filtration for VEP</xs:documentation>

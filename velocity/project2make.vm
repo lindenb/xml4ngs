@@ -6,6 +6,8 @@
 # Date : $now
 #
 
+#delete the default suffixes
+.SUFFIXES:
 #parse("common.vm")
 #parse("sample.vm")
 #parse("fastq.vm")
@@ -691,10 +693,12 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 
 
 #sample_final_bam(${sample}) : #foreach($chrom in ${project.refChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end \
-	#sample_merged_chrom(#{same} "Unmapped")
+	#sample_merged_chrom(${sample} "Unmapped")
 	
 	@$(call timebegindb,$@,merge_chroms)
-	mkdir -p $(dir $@)	
+	mkdir -p $(dir $@)
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
+	#else
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
@@ -703,15 +707,22 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 		VALIDATION_STRINGENCY=SILENT \
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
+	#end
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge_chroms)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 
 
+#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
+
+#index_bam_with_samtools("#sample_final_bam(${sample})")
+
+#else
 
 #fake_index_bam_with_samtools("#sample_final_bam(${sample})")
 
+#end
 
 #if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
 #foreach($chrom in ${project.allChromosomes})
@@ -893,7 +904,9 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #sample_merged_chrom(${sample} ${chrom}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted_chrom(${pair} ${chrom}) #end
 	
 	@$(call timebegindb,$@,merge)
-	mkdir -p $(dir $@)	
+	mkdir -p $(dir $@)
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
+	#else
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
@@ -902,13 +915,21 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 		USE_THREADING=true \
 		COMMENT="Merged for chromosome ${chrom} from $^" \
 		$(foreach B,$^, I=$(B) )
+	#end
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 
+#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
+
+#index_bam_with_samtools("#sample_merged_chrom(${sample} ${chrom})")
+
+#else
+
 #fake_index_bam_with_samtools("#sample_merged_chrom(${sample} ${chrom})")
 
+#end
 
 #else 
 
