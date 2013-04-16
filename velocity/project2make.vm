@@ -18,6 +18,7 @@
 #parse("vep.vm")
 #parse("snpeff.vm")
 #parse("samtools.vm")
+#parse("freebayes.vm")
 ## PROXY SETTING 
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
@@ -136,7 +137,7 @@ SAMPLES=#foreach($sample in $project.sample)${sample.name} #end
 
 #if(! $project.propertyMap.containsKey("capture.bed.path") )
 ${utils.warning("'capture.bed.path' undefined in project.")}
-capture.bed=$(OUTDIR)/BED/ensembl.exons.bed
+capture.bed=$(OUTDIR)/BED/ensembl.genes.bed
 #else
 capture.bed=${project.propertyMap["capture.bed.path"]}
 #end
@@ -278,7 +279,7 @@ toptarget:
 	@echo "This is the top target. Please select a specific target"
 	@echo "e.g: ${TOP_TARGETS} "
 
-all: ${TOP_TARGETS} all_predictions fastx hsqldb_statistics 
+all: ${TOP_TARGETS}  fastx hsqldb_statistics 
 
 
 
@@ -314,7 +315,7 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 
 
 
-#set( $genotypeMethods = ["samtools", "gatk"] )
+#set( $genotypeMethods = ["samtools", "gatk","freebayes"] )
 #set( $annotationMethods = ["snpeff", "vep"] )
  
 
@@ -378,6 +379,8 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 
 #elseif( $genotyper == "gatk")
 #call_with_gatk()
+#elseif( $genotyper == "freebayes")
+#call_with_freebayes()
 
 #else
 
@@ -460,6 +463,9 @@ $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : #foreach($sample in ${project.sam
 
 #elseif( $genotyper == "gatk")
 #call_with_gatk()
+
+#elseif( $genotyper == "freebayes")
+#call_with_freebayes()
 
 #else
 
@@ -601,11 +607,11 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#
 # Capture
 #
 
-$(OUTDIR)/BED/ensembl.exons.bed:
+$(OUTDIR)/BED/ensembl.genes.bed:
 	$(call timebegindb,$@,$@)
 	mkdir -p $(dir $@)
 	curl ${set_curl_proxy} -d 'query=<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
-		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
+		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="start_position" /><Attribute name="end_position" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
 	awk -F '	' '(int($$2) < int($$3))' |\
 	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
@@ -1024,7 +1030,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		#fastq_sai(${pair.reverse}) \
 		#fastq_preprocessed(${pair.forward}) \
 		#fastq_preprocessed(${pair.reverse}) |\
-		$(JAVA) -jar $(JVARKIT)/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")) -G  ${project.propertyMap["chromosomes.groups"]} #end \
+		$(JAVA) -jar $(JVARKIT)/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) -G  ${project.propertyMap["chromosomes.groups"]} #end \
 			--mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	

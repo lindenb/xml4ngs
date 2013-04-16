@@ -26,6 +26,6 @@ ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 
 #XCAPTURE_CHROM($group):$(extended_capture_bed)
 	mkdir -p $(dir $@)
-	awk -F '	'  'BEGIN{N=0;} {if(!($$1==" -%- " #foreach($c in ${project.getChromosomesByGroup("${group}")}) || $$1=="${c}" #end)) next; print;N++;} END{if(N==0) printf("%s\t0\t1\tIGNORE_PLEASE\n",${project.getChromosomesByGroup("${group}")[0]});}' $< > $@
+	awk -F '	'  'BEGIN{N=0;} {if(!($$1==" -%- " #foreach($c in ${project.getChromosomesByGroup("${group}")}) || $$1=="${c}" #end)) next; print;N++;} END{if(N==0) printf("${project.getChromosomesByGroup("${group}")[0]}\t0\t1\tIGNORE_PLEASE\n");}' $< > $@
 
 #end

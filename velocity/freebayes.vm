@@ -1,10 +1,9 @@
-
-
-## # #$(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sample" mode="merged"/>)
-
 #macro(call_with_freebayes)	$(call timebegindb,$@,freebayes)
 	mkdir -p $(dir $@)
-	$(freebayes.bin) $(foreach B,$(filter %.bam,\$^), -b ${B} ) -o $(basename $@) -f ${REF}
+	$(freebayes.bin) $(foreach B,$(filter %.bam,\$^), -b ${B} ) -v \
+		-m  $(MIN_MAPPING_QUALITY) \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -t $(extended_capture_bed) #end \
+		-o $(basename $@) -f ${REF}
 	${TABIX.bgzip} -f $(basename $@)
 	${TABIX.tabix} -f -p vcf $@ 
 	$(call timeenddb,$@,freebayes)
