@@ -75,10 +75,6 @@ TOP_TARGETS=
 # Chromosomes 
 #
 
-REF_CHROMOSOMES=#foreach($c in ${project.refChromosomes}) $c #end
-
-
-ALL_CHROMOSOMES=#foreach($c in ${project.allChromosomes}) $c #end
 
 
 #
@@ -364,7 +360,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 # merge all the chromosomes for sample ${sample.name}
 #
 
-#sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.refChromosomes}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
+#sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.chromosomeGroups}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
 	
 	mkdir -p $(dir $@)
 	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ |\
@@ -373,7 +369,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 	$(TABIX.tabix) -f -p vcf $@
 	
 
-#foreach($c in ${project.refChromosomes})
+#foreach($c in ${project.chromosomeGroups})
 
 #sample_vcf_genotyper_chrom($sample $genotyper $c): #sample_final_bam( ${sample} ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 
@@ -638,8 +634,8 @@ $(extended_capture_bed): $(capture.bed)
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
 
-#foreach($chrom in ${project.refChromosomes})
-#MAKE_XCAPTURE_CHROM($chrom)
+#foreach($chrom in ${project.chromosomeGroups})
+#MAKE_XCAPTURE_CHROM_GROUP($chrom)
 #end
 
 
@@ -692,7 +688,7 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 #
 
 
-#sample_final_bam(${sample}) : #foreach($chrom in ${project.refChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end \
+#sample_final_bam(${sample}) : #foreach($g in ${project.chromosomeGroups}) #sample_recal_chrom( ${sample} ${g})  #end \
 	#sample_merged_chrom(${sample} "Unmapped")
 	
 	@$(call timebegindb,$@,merge_chroms)
@@ -724,8 +720,9 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 
 #end
 
+
 #if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 #
 #
 # Recalibrate alignments for Sample ${sample.name}
@@ -787,7 +784,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 
 #if(!(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes"))
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 
 #
 #
@@ -799,8 +796,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 #if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@)
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
-	$(call sizedb,$@)
-	$(call notempty,$@)
+	@$(call sizedb,$@)
 	
 
 #else	$(call timebegindb,$@_markdup,markdup)
@@ -819,7 +815,6 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		CREATE_INDEX=true
 	@$(call timeenddb,$@_markdup,markdup)
 	@$(call sizedb,$@)
-	$(call notempty,$@)
 
 #end
 
@@ -831,7 +826,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 
 #if(${project.getPropertyByName("disable.indelrealigner","no")}!="yes")
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 
 #
 #
@@ -860,7 +855,6 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 			-S SILENT 
 		@$(call timeenddb,$@_indelrealigner,indelrealign)
 		@$(call sizedb,$@)
-		$(call notempty,$@)
 
 
 #fake_index_bam_with_samtools("#sample_realigned_chrom(${sample} ${chrom})")
@@ -891,7 +885,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 #end
 
 
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 #if( ${sample.sequences.pair.size()} > 1)
 
 #
@@ -919,7 +913,6 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge)
 	@$(call sizedb,$@)
-	$(call notempty,$@)
 
 #if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
 
@@ -1009,7 +1002,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #
 
 
-#foreach($c in ${project.allChromosomes})#pair_bam_sorted_chrom($pair $c ) #end : ${sample.name}_sampe_pair${pair.index}_chromosomes
+#foreach($c in ${project.allChromosomeGroups})#pair_bam_sorted_chrom($pair $c ) #end : ${sample.name}_sampe_pair${pair.index}_chromosomes
 
 LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 
@@ -1031,7 +1024,8 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		#fastq_sai(${pair.reverse}) \
 		#fastq_preprocessed(${pair.forward}) \
 		#fastq_preprocessed(${pair.reverse}) |\
-		$(JAVA) -jar $(JVARKIT)/splitbam.jar --mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
+		$(JAVA) -jar $(JVARKIT)/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")) -G  ${project.propertyMap["chromosomes.groups"]} #end \
+			--mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	
 	@$(call timeenddb,$@,bwasampe)

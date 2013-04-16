@@ -16,7 +16,7 @@
 
 #macro(sample_recal $sample)#if($project.getPropertyByName("disable.recalibration","no")=="yes")#sample_markdup($sample)#else#sample_BAM($sample)/#output_files_prefix()${sample.name}_recal.bam#end#end
 
-#macro(sample_recal_chrom $sample)#if($project.getPropertyByName("disable.recalibration","no")=="yes")#sample_markdup_chrom($sample $chrom)#else#sample_BAM_chrom($sample $chrom)/#output_files_prefix()${sample.name}_recal.${chrom}.bam#end#end
+#macro(sample_recal_chrom $sample $chrom)#if($project.getPropertyByName("disable.recalibration","no")=="yes")#sample_markdup_chrom($sample $chrom)#else#sample_BAM_chrom($sample $chrom)/#output_files_prefix()${sample.name}_recal.${chrom}.bam#end#end
 
 #macro(sample_sorted $sample)#sample_BAM($sample)/${sample.name}_sorted.bam#end
 
