@@ -9,7 +9,6 @@
 	$(TABIX.tabix) -f -p vcf $@ 
 	@$(call timeenddb,$@,mpileup)
 	@$(call sizedb,$@)
-	$(call notempty,$@)
 
 #end
 

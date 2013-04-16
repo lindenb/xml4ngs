@@ -1,9 +1,11 @@
 #macro(call_with_freebayes)	$(call timebegindb,$@,freebayes)
 	mkdir -p $(dir $@)
-	$(freebayes.bin) $(foreach B,$(filter %.bam,\$^), -b ${B} ) -v \
+	#freebayes needs a *.bam.bai not a *.bam, just create a symbolic link
+	lockfile $(LOCKFILE); $(foreach B,$(filter %.bam,$^), if [ ! -e ${B}.bai ]  || [ ${B} -ot  ${B}.bai ] ; then  cp -f $(patsubst %.bam,%.bai,${B}) ${B}.bai ; else echo "BAI already defined"; fi ; ) rm -f $(LOCKFILE)
+	$(freebayes.bin) $(foreach B,$(filter %.bam,$^), -b ${B} ) \
 		-m  $(MIN_MAPPING_QUALITY) \
 		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -t $(extended_capture_bed) #end \
-		-o $(basename $@) -f ${REF}
+		-v $(basename $@) -f ${REF}
 	${TABIX.bgzip} -f $(basename $@)
 	${TABIX.tabix} -f -p vcf $@ 
 	$(call timeenddb,$@,freebayes)

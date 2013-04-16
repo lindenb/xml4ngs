@@ -372,7 +372,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 
 #foreach($c in ${project.chromosomeGroups})
 
-#sample_vcf_genotyper_chrom($sample $genotyper $c): #sample_final_bam( ${sample} ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
+#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_final_bam( ${sample} ) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 
 #if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
@@ -455,7 +455,7 @@ all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variatio
 
 TOP_TARGETS+= $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz 
 
-$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end \
+$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : $(call indexed_bam, #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end ) \
 		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 	
 #if( $genotyper == "samtools")
