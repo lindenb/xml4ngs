@@ -50,7 +50,7 @@
 
 #macro(sample_vcf_genotyper $sample $genotyper)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.${genotyper}.vcf.gz #end
 #macro(sample_vcf_genotyper_chrom $sample $genotyper $chrom)#sample_VCF_chrom($sample $chrom)/#output_files_prefix()${sample.name}_variations.${genotyper}.${chrom}.vcf.gz #end
-#macro(sample_vcf_genotyper_annotator $sample $genotyper $annotator)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.${genotyper}.${annotator}.gz #end
+#macro(sample_vcf_genotyper_annotator $sample $genotyper $annotator)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.${genotyper}.${annotator}.vcf.gz #end
 
 
 

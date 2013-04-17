@@ -4,8 +4,8 @@
 	lockfile $(LOCKFILE); $(foreach B,$(filter %.bam,$^), if [ ! -e ${B}.bai ]  || [ ${B} -ot  ${B}.bai ] ; then  cp -f $(patsubst %.bam,%.bai,${B}) ${B}.bai ; else echo "BAI already defined"; fi ; ) rm -f $(LOCKFILE)
 	$(freebayes.bin) $(foreach B,$(filter %.bam,$^), -b ${B} ) \
 		-m  $(MIN_MAPPING_QUALITY) \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -t $(extended_capture_bed) #end \
-		-v $(basename $@) -f ${REF}
+		$(foreach D,$(filter %.bed,$^), -t $(D) ) \
+		-v $(basename $@) -f ${REF} 2> $@.errors
 	${TABIX.bgzip} -f $(basename $@)
 	${TABIX.tabix} -f -p vcf $@ 
 	$(call timeenddb,$@,freebayes)
@@ -13,3 +13,4 @@
 
 
 #end
+

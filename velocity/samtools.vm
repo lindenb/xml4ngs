@@ -2,7 +2,7 @@
 	mkdir -p $(dir $@)
 	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end -uD \
 		-q $(MIN_MAPPING_QUALITY) \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -l $(extended_capture_bed) #end \
+		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
 		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	$(TABIX.bgzip) -c > $@
@@ -19,13 +19,12 @@
 #
 
 $(patsubst %.bam,%.bai,${bam}):${bam}
-
 	@$(call timebegindb,$@,bai)
 	#some indexes are created by picard, no need to recreate it, or just check the timestamp
 	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
 	@$(call timeenddb,$@,bai)
 	@$(call sizedb,$@)
-	$(call notempty,$@)
+
 #end
 
 

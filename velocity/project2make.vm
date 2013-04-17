@@ -6,8 +6,7 @@
 # Date : $now
 #
 
-#delete the default suffixes
-.SUFFIXES:
+
 #parse("common.vm")
 #parse("sample.vm")
 #parse("fastq.vm")
@@ -25,6 +24,12 @@
 
 .SUFFIXES:            # Delete the default suffixes
 .SUFFIXES: .bam .bai   # Define our suffix list
+
+
+#
+# treat all files as SECONDARY
+#
+.SECONDARY :
 
 #
 # this is the name of the current Makefile
@@ -68,13 +73,9 @@ LIST_PHONY_TARGET=
 
 
 #
-# LIST_OF_PHONY_TARGET
+# LIST_OF_TOP_TARGETS
 #
 TOP_TARGETS=
-
-#
-# Chromosomes 
-#
 
 
 
@@ -268,10 +269,7 @@ ${extension}.fai : %$extension
 #call_index_genome_rules(".fa")
 #call_index_genome_rules(".fasta")
 
-#
-# treat all files as SECONDARY
-#
-.SECONDARY :
+
 
 
 
@@ -372,7 +370,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 
 #foreach($c in ${project.chromosomeGroups})
 
-#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_final_bam( ${sample} ) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
+#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_final_bam( ${sample} ) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #else  #XWHOLE_CHROM($c) #end
 
 #if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
@@ -641,7 +639,11 @@ $(extended_capture_bed): $(capture.bed)
 	$(call notempty,$@)
 
 #foreach($chrom in ${project.chromosomeGroups})
+
 #MAKE_XCAPTURE_CHROM_GROUP($chrom)
+
+#MAKE_XWHOLE_GROUP($chrom)
+
 #end
 
 

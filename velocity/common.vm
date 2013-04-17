@@ -29,3 +29,16 @@ ${target} : $(capture.bed)  $(call indexed_bam, ${dependencies} )
 	awk -F '	'  'BEGIN{N=0;} {if(!($$1==" -%- " #foreach($c in ${project.getChromosomesByGroup("${group}")}) || $$1=="${c}" #end)) next; print;N++;} END{if(N==0) printf("${project.getChromosomesByGroup("${group}")[0]}\t0\t1\tIGNORE_PLEASE\n");}' $< > $@
 
 #end
+
+#macro(XWHOLE_CHROM $chrom)$(OUTDIR)/BED/whole.${chrom}.bed#end
+#macro(MAKE_XWHOLE_GROUP $group)
+
+#
+# bed for whole chromosome group ${group}
+#
+
+#XWHOLE_CHROM($group):$(addsuffix .fai,$(REF))
+	mkdir -p $(dir $@)
+	awk -F '	'  '{if(!($$1==" -%- " #foreach($c in ${project.getChromosomesByGroup("${group}")}) || $$1=="${c}" #end)) next; printf("%s\t0\t%d\n",$$1,int($$2)-1);}' $< > $@
+
+#end
