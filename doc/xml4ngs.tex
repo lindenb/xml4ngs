@@ -235,6 +235,21 @@ $ xmllint --xinclude --format \
    human_wholegenome.xml
 \end{lstlisting} 
 
+
+\section{Grouping by Chromosomes.}
+The default workflow will split all BAM per chromosomes, but you can refine this process by creating the property 'chromosomes.groups': it's a path to a text file telling how some chromosomes should be grouped. The syntax is:
+\begin{lstlisting}
+GROUPNAME1 chrA chrB chrC
+GROUPNAME2 chrD chrE
+\end{lstlisting} 
+All chromosomes that are not part of a group will be assigned to their own group.
+
+For example, to group all the GL* and the sexual human chromosomes:
+\begin{lstlisting}
+GL GL000207.1 GL000226.1 GL000229.1 GL000231.1 GL000210.1 GL000239.1 GL000235.1 
+XY X Y
+\end{lstlisting} 
+
 \section{Tools used}
 Here is the latest list of variables imported in tha Makefile in our lab. Its is imported in the Makefile produced by the \velocity{} file "project2make.vm":
 \begin{lstlisting}[language=bash]
