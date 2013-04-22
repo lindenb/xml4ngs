@@ -191,6 +191,22 @@
   	return L;
   	}
   
+   @javax.xml.bind.annotation.XmlTransient
+  public java.util.Set<String> getGenotypeMethods()
+  	{
+  	String methods[]=new String[]{"samtools", "gatk","freebayes"};
+  	java.util.Set<String> S= new java.util.HashSet<String>(methods.length);
+  	for(String m:methods)
+  		{
+  		if(getPropertyByName("disable."+m+".calling","no").equals("yes"))
+  			{
+  			continue;
+  			}
+  		S.add(m);
+  		}
+  	return S;
+  	}
+  
   ]]></ci:code>
   </jxb:bindings>
  

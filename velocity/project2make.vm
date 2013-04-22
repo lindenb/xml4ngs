@@ -313,7 +313,7 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 
 
 
-#set( $genotypeMethods = ["samtools", "gatk","freebayes"] )
+
 #set( $annotationMethods = ["snpeff", "vep"] )
  
 
@@ -321,10 +321,10 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 
 LIST_PHONY_TARGET+= all_predictions
 TOP_TARGETS+= all_predictions
-all_predictions: #foreach($genotyper in $genotypeMethods) variations.${genotyper} #foreach($annotator in $annotationMethods) variations.${genotyper}.${annotator} #end #end
+all_predictions: #foreach($genotyper in ${project.genotypeMethods}) variations.${genotyper} #foreach($annotator in $annotationMethods) variations.${genotyper}.${annotator} #end #end
 
 
-#foreach($genotyper in $genotypeMethods)
+#foreach($genotyper in ${project.genotypeMethods})
 
 LIST_PHONY_TARGET+= variations.${genotyper}
 TOP_TARGETS+= variations.${genotyper}
@@ -350,7 +350,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 
 
 #foreach($sample in $project.sample)
-#foreach($genotyper in $genotypeMethods)
+#foreach($genotyper in ${project.genotypeMethods})
 
 
 
@@ -442,10 +442,10 @@ ${utils.error("unknown annotator [${annotator}]")}
 LIST_PHONY_TARGET+=all_predictions
 TOP_TARGETS+=all_predictions
 
-all_predictions: #foreach($genotyper in $genotypeMethods) $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz  #end #end
+all_predictions: #foreach($genotyper in ${project.genotypeMethods}) $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz  #end #end
 	
 
-#foreach($genotyper in $genotypeMethods)
+#foreach($genotyper in ${project.genotypeMethods})
 
 #
 # Create VCF for all samples with ${genotyper} 

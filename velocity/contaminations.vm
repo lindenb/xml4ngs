@@ -7,6 +7,7 @@ contaminations : $(OUTDIR)/CONTAMINATIONS/contaminations.tsv
 
 $(OUTDIR)/CONTAMINATIONS/contaminations.tsv: #foreach($sample in $project.sample) #sample_contaminations_tsv(${sample}) #end
 
+	mkdir -p $(dir $@)
 	cat $^ > $@
 
 

@@ -22,6 +22,25 @@
           <xs:simpleType>
             <xs:restriction base="xs:token">
 	     
+	      <xs:enumeration value="disable.samtools.calling">
+	        <xs:annotation>
+	          <xs:documentation>If 'yes', disable calling with samtools.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     <xs:enumeration value="disable.gatk.calling">
+	        <xs:annotation>
+	          <xs:documentation>If 'yes', disable calling with gatk.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     <xs:enumeration value="disable.freebayes.calling">
+	        <xs:annotation>
+	          <xs:documentation>If 'yes', disable calling with freebayes.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     
 	    <xs:enumeration value="chromosomes.groups">
 	        <xs:annotation>
 	          <xs:documentation>if defined define how we should split by group of chromosomes after aligning for optimizing the parallelism.
