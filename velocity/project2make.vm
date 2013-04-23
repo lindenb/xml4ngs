@@ -370,7 +370,7 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 
 #foreach($c in ${project.chromosomeGroups})
 
-#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_final_bam( ${sample} ) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #else  #XWHOLE_CHROM($c) #end
+#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_recal_chrom( ${sample} $c) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #else  #XWHOLE_CHROM($c) #end
 
 #if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
