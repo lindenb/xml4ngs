@@ -21,6 +21,13 @@
         <xs:attribute name="key">
           <xs:simpleType>
             <xs:restriction base="xs:token">
+
+
+		<xs:enumeration value="samtools.mpileup.options">
+		<xs:annotation>
+                  <xs:documentation>options for samtools mpileup.</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
 	     
 	      <xs:enumeration value="disable.samtools.calling">
 	        <xs:annotation>

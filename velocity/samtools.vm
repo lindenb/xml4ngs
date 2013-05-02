@@ -1,10 +1,12 @@
 #macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup)
 	mkdir -p $(dir $@)
-	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end -uD \
+	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end \
+		#if(${project.propertyMap.containsKey("samtools.mpileup.options")}) ${project.propertyMap["samtools.mpileup.options"]} #else -E -C50 -m3 -F0.002   #end \
+		-uD
 		-q $(MIN_MAPPING_QUALITY) \
 		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
 		-f $(REF) $(filter %.bam,$^) |\
-	$(BCFTOOLS) view -vcg - |\
+	$(BCFTOOLS) view -vcg - | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4 |\
 	$(TABIX.bgzip) -c > $@
 	$(TABIX.tabix) -f -p vcf $@ 
 	@$(call timeenddb,$@,mpileup)
