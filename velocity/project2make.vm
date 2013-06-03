@@ -122,6 +122,14 @@ MIN_MAPPING_QUALITY=30
 MIN_MAPPING_QUALITY=$project.propertyMap["min.mapping.quality"]
 #end
 
+#
+# picard MAX_RECORDS_IN_RAM
+#
+#if(! $project.propertyMap.containsKey("picard.max.records.in.ram") )
+PICARD_MAX_RECORDS_IN_RAM=10000000
+#else
+PICARD_MAX_RECORDS_IN_RAM=$project.propertyMap["picard.max.records.in.ram"]
+#end
 
 
 #
@@ -707,6 +715,7 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		USE_THREADING=true \
 		VALIDATION_STRINGENCY=SILENT \
 		COMMENT="Merged from $^" \
@@ -811,6 +820,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 	mkdir -p $(dir $@)
 	mkdir -p $(addsuffix tmp.rmdup,$(dir $@))
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
 		INPUT=$(filter %.bam,$^) \
 		O=$@ \
@@ -912,6 +922,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		CREATE_INDEX=true \
 		VALIDATION_STRINGENCY=SILENT \
 		USE_THREADING=true \
@@ -1049,7 +1060,8 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 
 
 
-#fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF)
+#fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF) #if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end
+	
 	mkdir -p $(dir $@)
 	@$(call timebegindb,$@,sai)
 	@$(call sizedb,$<)
@@ -1175,12 +1187,13 @@ TOP_TARGETS+= git
 
 git:.git/config
 	-git add $(makefile.name)
-	-git commit -m "changes $(makefile.name)"
+	-git commit -a -m "changes $(makefile.name)"
 	
 .git/config:
 	git init $(dir $(makefile.name))
 
 #parse("contaminations.vm")
+#parse("fastx.vm")
 
 #
 # END

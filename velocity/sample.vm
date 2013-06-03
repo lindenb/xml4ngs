@@ -53,4 +53,8 @@
 #macro(sample_vcf_genotyper_annotator $sample $genotyper $annotator)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.${genotyper}.${annotator}.vcf.gz #end
 
 
+#macro(fastx_sample_dir $sample)#sample_dir($sample)/FASTX#end
+#macro(fastx_sample_qual $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.qualchart.ps#end
+#macro(fastx_sample_nucl $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.nuclchart.ps#end
+#macro(fastx_sample_stats $sample)#fastx_sample_dir($sample)/${sample.name}.tmp.stats#end
 
