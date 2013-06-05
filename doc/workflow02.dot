@@ -1,0 +1,28 @@
+digraph G{
+
+FASTQ[label="dir/*.fastq.gz",shape=folder,fillcolor=yellow,style=filled];
+
+XML[label="project.xml",shape=note];
+PROPS[label="properties.xml",shape=note];
+ILMN2PROJECT[label="ilmn2project.jar",shape=oval,fillcolor=orange,style=filled];
+TRANSFORM[label="transformngsproject.jar",shape=oval,fillcolor=orange,style=filled];
+VELOCITY1[label="project2make.vm",shape=note];
+VELOCITY2[label="include1....vm",shape=note];
+VELOCITY3[label="include2....vm",shape=note];
+MAKEFILE[label="Makefile",shape=note];
+
+PROPS -> ILMN2PROJECT ;
+FASTQ -> ILMN2PROJECT ;
+ILMN2PROJECT -> XML ;
+
+
+VELOCITY2 -> VELOCITY1 [label="include"];
+VELOCITY3 -> VELOCITY1 [label="include"];
+
+
+XML -> TRANSFORM;
+VELOCITY1 -> TRANSFORM;
+TRANSFORM -> MAKEFILE ;
+
+
+}

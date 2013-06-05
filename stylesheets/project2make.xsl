@@ -409,7 +409,7 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 		-f $(REF) $(filter %.bam,$^) |\
 	$(BCFTOOLS) view -vcg - |\
 	${TABIX.bgzip} -c &gt; $@
-	${TABIX.tabix} -p vcf $@ 
+	${TABIX.tabix} -f -p vcf $@ 
 	@$(call timeenddb,$@,mpileup)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
@@ -1847,8 +1847,11 @@ $(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sam
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
 	gunzip -c  $&lt; |\
 	egrep -v '^GL' |\
+	$(VARKIT)/missingvcf -S missing |\
 	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf -c $(SNPEFF)/snpEff.config  $(SNPEFFBUILD) |\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl  <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> | grep -v ";EFF=INTERGENIC(" </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/>  | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  | ${TABIX.bgzip} -c &gt; $@
+	$(SNPEFF)/scripts/vcfEffOnePerLine.pl  <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> | grep -v ";EFF=INTERGENIC(" </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/>  | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
+	$(VARKIT)/missingvcf -S MISSING |\
+	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -f -p vcf $@ 
 	##VEP done <xsl:call-template name="GATK_VARIANT_FILTRATION">
 		<xsl:with-param name="vcffile">$@</xsl:with-param>
@@ -1871,7 +1874,9 @@ $(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sam
 	#Annotation with VEP
 	#VEP only work as root
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  | ${TABIX.bgzip} -c &gt; $@
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
+	$(VARKIT)/missingvcf -S MISSING |\
+	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -f -p vcf $@ 
 	##VEP done <xsl:call-template name="GATK_VARIANT_FILTRATION">
 		<xsl:with-param name="vcffile">$@</xsl:with-param>

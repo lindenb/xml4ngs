@@ -1,23 +1,16 @@
-
-
-
-<!-- ======================================================================================================
-     
-   	FREEBAYES
-     
-     ====================================================================================================== -->
-<xsl:template match="project" mode="freebayes">
-\#
-\# FREEBAYES
-\#
-LIST_PHONY_TARGET+= freebayes
-
-freebayes:$(OUTDIR)/freebayes.vcf.gz 
-$(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sample" mode="merged"/>)
-	${freebayes.bin} $(foreach B,$(filter %.bam,\$^), -b ${B} ) -o $(basename $@) -f ${REF}
+#macro(call_with_freebayes)	$(call timebegindb,$@,freebayes)
+	mkdir -p $(dir $@)
+	#freebayes needs a *.bam.bai not a *.bam, just create a symbolic link
+	lockfile $(LOCKFILE); $(foreach B,$(filter %.bam,$^), if [ ! -e ${B}.bai ]  || [ ${B} -ot  ${B}.bai ] ; then  cp -f $(patsubst %.bam,%.bai,${B}) ${B}.bai ; else echo "BAI already defined"; fi ; ) rm -f $(LOCKFILE)
+	$(freebayes.bin) $(foreach B,$(filter %.bam,$^), -b ${B} ) \
+		-m  $(MIN_MAPPING_QUALITY) \
+		$(foreach D,$(filter %.bed,$^), -t $(D) ) \
+		-v $(basename $@) -f ${REF} 2> $@.errors
 	${TABIX.bgzip} -f $(basename $@)
 	${TABIX.tabix} -f -p vcf $@ 
-</xsl:template>
+	$(call timeenddb,$@,freebayes)
+	$(call sizedb,$@)
 
 
+#end
 

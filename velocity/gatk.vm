@@ -35,3 +35,23 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	${TABIX.tabix} -f -p vcf ${vcffile}
 	#end#end
 
+
+#macro(call_with_gatk)		$(call timebegindb,$@,UnifiedGenotyper)
+	mkdir -p $(dir $@)
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-R $(REF) \
+		-T UnifiedGenotyper \
+		-glm BOTH \
+		-S SILENT \
+		#if($project.propertyMap.containsKey("gatk.unified.genotyper.options")
+			) ${project.getPropertyByName("gatk.unified.genotyper.options","")} #end \
+		$(foreach D,$(filter %.bed,$^), -L:capture,BED $(D) ) \
+		$(foreach B,$(filter %.bam,$^), -I $B ) \
+		--dbsnp:vcfinput,VCF $(known.sites) \
+		-o $(basename $@)
+	$(TABIX.bgzip) -f $(basename $@)
+	@$(call timeendb,$@,UnifiedGenotyper)
+	@$(call sizedb,$@)
+	$(call notempty,$@)
+
+#end

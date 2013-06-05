@@ -21,7 +21,73 @@
         <xs:attribute name="key">
           <xs:simpleType>
             <xs:restriction base="xs:token">
+            
+            <xs:enumeration value="fastx.before.align">
+		<xs:annotation>
+                  <xs:documentation>if 'yes' compute fastx report for each sample/fastq before aligning the reads</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
+           
+            
+
+		<xs:enumeration value="picard.max.records.in.ram">
+		<xs:annotation>
+                  <xs:documentation>default value for picard MAX_RECORDS_IN_RAM</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
+
+
+		<xs:enumeration value="samtools.mpileup.options">
+		<xs:annotation>
+                  <xs:documentation>options for samtools mpileup.</xs:documentation>
+                </xs:annotation>
+              </xs:enumeration>
 	     
+	      <xs:enumeration value="disable.samtools.calling">
+	        <xs:annotation>
+	          <xs:documentation>If 'yes', disable calling with samtools.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     <xs:enumeration value="disable.gatk.calling">
+	        <xs:annotation>
+	          <xs:documentation>If 'yes', disable calling with gatk.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     <xs:enumeration value="disable.freebayes.calling">
+	        <xs:annotation>
+	          <xs:documentation>If 'yes', disable calling with freebayes.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	     
+	     
+	    <xs:enumeration value="chromosomes.groups">
+	        <xs:annotation>
+	          <xs:documentation>if defined define how we should split by group of chromosomes after aligning for optimizing the parallelism.
+The text file should have the following format:
+
+groupName1(delim)chrom1(delim)chrom2(delim)...
+groupName2(delim)chrom11(delim)chrom22(delim)...
+groupName3(delim)...
+	          </xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>	 
+	    	
+	    	
+	      <xs:enumeration value="make.include">
+	        <xs:annotation>
+	          <xs:documentation>if defined, this file will be included at the top of a Makefile.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      
+	      <xs:enumeration value="merge.bams.with.samtools">
+	        <xs:annotation>
+	          <xs:documentation>if 'yes', samtools merge will be used instead of picard SamMerge.</xs:documentation>
+	        </xs:annotation>
+	      </xs:enumeration>
+	      
+	      
 	      <xs:enumeration value="vep.vcf.filtration">
 	        <xs:annotation>
 	          <xs:documentation>GATK variant filtration for VEP</xs:documentation>

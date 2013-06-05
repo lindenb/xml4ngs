@@ -6,6 +6,7 @@
 # Date : $now
 #
 
+
 #parse("common.vm")
 #parse("sample.vm")
 #parse("fastq.vm")
@@ -15,9 +16,20 @@
 #parse("gatk.vm")
 #parse("vep.vm")
 #parse("snpeff.vm")
+#parse("samtools.vm")
+#parse("freebayes.vm")
 ## PROXY SETTING 
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
+
+.SUFFIXES:            # Delete the default suffixes
+.SUFFIXES: .bam .bai   # Define our suffix list
+
+
+#
+# treat all files as SECONDARY
+#
+.SECONDARY :
 
 #
 # this is the name of the current Makefile
@@ -59,14 +71,12 @@ OUTDIR=$project.propertyMap["output.directory"]
 #
 LIST_PHONY_TARGET=
 
+
 #
-# Chromosomes 
+# LIST_OF_TOP_TARGETS
 #
+TOP_TARGETS=
 
-REF_CHROMOSOMES=#foreach($c in ${project.refChromosomes}) $c #end
-
-
-ALL_CHROMOSOMES=#foreach($c in ${project.allChromosomes}) $c #end
 
 
 #
@@ -112,6 +122,14 @@ MIN_MAPPING_QUALITY=30
 MIN_MAPPING_QUALITY=$project.propertyMap["min.mapping.quality"]
 #end
 
+#
+# picard MAX_RECORDS_IN_RAM
+#
+#if(! $project.propertyMap.containsKey("picard.max.records.in.ram") )
+PICARD_MAX_RECORDS_IN_RAM=10000000
+#else
+PICARD_MAX_RECORDS_IN_RAM=$project.propertyMap["picard.max.records.in.ram"]
+#end
 
 
 #
@@ -128,7 +146,7 @@ SAMPLES=#foreach($sample in $project.sample)${sample.name} #end
 
 #if(! $project.propertyMap.containsKey("capture.bed.path") )
 ${utils.warning("'capture.bed.path' undefined in project.")}
-capture.bed=$(OUTDIR)/BED/ensembl.exons.bed
+capture.bed=$(OUTDIR)/BED/ensembl.genes.bed
 #else
 capture.bed=${project.propertyMap["capture.bed.path"]}
 #end
@@ -228,7 +246,7 @@ endef
 # 
 # create BAM index for ${bam}
 #
-%.bai : %.bam
+.bam.bai:
 	@$(call timebegindb,$@,bai)
 	#some indexes are created by picard, no need to recreate it, or just check the timestamp
 	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
@@ -259,28 +277,29 @@ ${extension}.fai : %$extension
 #call_index_genome_rules(".fa")
 #call_index_genome_rules(".fasta")
 
-#
-# treat all files as SECONDARY
-#
-.SECONDARY :
+
 
 
 
 toptarget:
 	@echo "This is the top target. Please select a specific target"
-	@echo "e.g: ${LIST_PHONY_TARGET} "
+	@echo "e.g: ${TOP_TARGETS} "
 
-all: ${LIST_PHONY_TARGET} all_predictions fastx hsqldb_statistics 
-
-
+all: ${TOP_TARGETS}  fastx hsqldb_statistics 
 
 
 
 
 
+TOP_TARGETS+= final_bams
+LIST_PHONY_TARGET+= final_bams
+
+final_bams :  #foreach($sample in $project.sample)  #sample_final_bam(${sample})  #end
 
 
 LIST_PHONY_TARGET+= coverage
+TOP_TARGETS+= coverage
+
 coverage:$(OUTDIR)/Statistics/mean_coverage01.pdf
 $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in $project.sample) #sample_coverage($sample) #end)
 	mkdir -p $(dir $@)
@@ -298,152 +317,129 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 # ALLELES CALLING
 #
 #
-#macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup)
-	mkdir -p $(dir $@)
-	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end -uD \
-		-q $(MIN_MAPPING_QUALITY) \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -l $(extended_capture_bed) #end \
-		-f $(REF) $(filter %.bam,$^) |\
-	$(BCFTOOLS) view -vcg - |\
-	$(TABIX.bgzip) -c > $@
-	$(TABIX.tabix) -p vcf $@ 
-	@$(call timeenddb,$@,mpileup)
-	@$(call sizedb,$@)
-	$(call notempty,$@)
-
-#end
-
-
-#macro(call_with_gatk)		$(call timebegindb,$@,UnifiedGenotyper)
-	mkdir -p $(dir $@)
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
-		-R $(REF) \
-		-T UnifiedGenotyper \
-		-glm BOTH \
-		-S SILENT \
-		#if($project.propertyMap.containsKey("gatk.unified.genotyper.options")
-			) ${project.getPropertyByName("gatk.unified.genotyper.options","")} #end \
-		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") -L:capture,BED $(extended_capture_bed) #end \
-		$(foreach B,$(filter %.bam,$^), -I $B ) \
-		--dbsnp:vcfinput,VCF $(known.sites) \
-		-o $(basename $@)
-	$(TABIX.bgzip) -f $(basename $@)
-	@$(call timeendb,$@,UnifiedGenotyper)
-	@$(call sizedb,$@)
-	$(call notempty,$@)
-
-#end
 
 
 
 
-#if( $project.propertyMap["one.vcf.per.sample"]=="yes")
+
+#set( $annotationMethods = ["snpeff", "vep"] )
+ 
+
+#if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes")
 
 LIST_PHONY_TARGET+= all_predictions
-all_predictions: \
-	variations.samtools \
-	variations.gatk \
-	variations.samtools.snpeff \
-	variations.gatk.snpeff \
-	variations.samtools.vep \
-	variations.gatk.vep
+TOP_TARGETS+= all_predictions
+all_predictions: #foreach($genotyper in ${project.genotypeMethods}) variations.${genotyper} #foreach($annotator in $annotationMethods) variations.${genotyper}.${annotator} #end #end
 
 
-LIST_PHONY_TARGET+= variations.samtools 
-variations.samtools: #foreach($sample in $project.sample) #sample_vcf_samtools($sample) #end
-LIST_PHONY_TARGET+= variations.gatk 
-variations.gatk: #foreach($sample in $project.sample) #sample_vcf_gatk($sample) #end
+#foreach($genotyper in ${project.genotypeMethods})
+
+LIST_PHONY_TARGET+= variations.${genotyper}
+TOP_TARGETS+= variations.${genotyper}
+
+variations.${genotyper} : #foreach($sample in $project.sample) #sample_vcf_genotyper($sample $genotyper) #end
 
 
-LIST_PHONY_TARGET+= variations.samtools.snpeff 
-variations.samtools.snpeff: #foreach($sample in $project.sample) #sample_vcf_samtools_snpeff($sample) #end
+#foreach($annotator in $annotationMethods)
 
-LIST_PHONY_TARGET+= variations.gatk.snpeff  
-variations.gatk.snpeff: #foreach($sample in $project.sample) #sample_vcf_gatk_snpeff($sample) #end
+LIST_PHONY_TARGET+= variations.${genotyper}.${annotator}
+TOP_TARGETS+= variations.${genotyper}.${annotator}
+variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotator($sample $genotyper ${annotator} ) #end
 
-LIST_PHONY_TARGET+= variations.samtools.vep  
-variations.samtools.vep: #foreach($sample in $project.sample) #sample_vcf_samtools_vep($sample) #end
+## END LOOP OVER ANNOTATOR
 
-LIST_PHONY_TARGET+= variations.gatk.vep  
-variations.gatk.vep: #foreach($sample in $project.sample) #sample_vcf_gatk_vep($sample) #end
+#end
+
+## END LOOP OVER GENOTYPER
+
+#end 
+
 
 
 
 #foreach($sample in $project.sample)
+#foreach($genotyper in ${project.genotypeMethods})
 
 
-#
-# prediction samtools with Variation Ensembl Prediction API for  sample ${sample.name}
-#
-
-#set($filterparam=${project.getPropertyByName("samtools.vcf.filtration","")}+" "+${project.getPropertyByName("vep.vcf.filtration","")})
-
-#annotate_with_vep(
-	"#sample_vcf_samtools_vep($sample)"
-	"#sample_vcf_samtools($sample)"
-	"mpileupvep"
-	"$filterparam"
-	)
 
 
-#
-# prediction gatk with Variation Ensembl Prediction API for  sample ${sample.name}
+# 
+# merge all the chromosomes for sample ${sample.name}
 #
 
-#set($filterparam=${project.getPropertyByName("gatk.vcf.filtration","")}+" "+${project.getPropertyByName("vep.vcf.filtration","")})
+#sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.chromosomeGroups}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
+	
+	mkdir -p $(dir $@)
+	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ |\
+	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-sort |\
+	$(TABIX.bgzip) -c > $@ 
+	$(TABIX.tabix) -f -p vcf $@
+	
 
-#annotate_with_vep(
-	"#sample_vcf_gatk_vep($sample)"
-	"#sample_vcf_gatk($sample)"
-	"gatkvep"
-	"$filterparam"
-	)
+#foreach($c in ${project.chromosomeGroups})
 
+#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_recal_chrom( ${sample} $c) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #else  #XWHOLE_CHROM($c) #end
 
-
-
-
-#
-# Annotation samtools with SNPEFF for  sample ${sample.name}
-#
-
-#set($filterparam=${project.getPropertyByName("samtools.vcf.filtration","")}+" "+${project.getPropertyByName("snpeff.vcf.filtration","")})
-
-#annotate_with_snpeff(
-	"#sample_vcf_samtools_snpeff($sample)"
-	"#sample_vcf_samtools($sample)"
-	"mpileupsnpeff"
-	"$filterparam"
-	)
-
-
-#
-# Annotation gatk with SNPEFF for  sample ${sample.name}
-#
-
-#set($filterparam=${project.getPropertyByName("gatk.vcf.filtration","")}+" "+${project.getPropertyByName("snpeff.vcf.filtration","")})
-
-#annotate_with_snpeff(
-	"#sample_vcf_gatk_snpeff($sample)"
-	"#sample_vcf_gatk($sample)"
-	"gatksnpeff"
-	"$filterparam"
-	)
-
-
-#
-# Allele calling with samtools for sample ${sample.name}
-#
-
-#sample_vcf_samtools($sample) : #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#sample_recal($sample) )
+#if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
 
+#elseif( $genotyper == "gatk")
+#call_with_gatk()
+#elseif( $genotyper == "freebayes")
+#call_with_freebayes()
+
+#else
+
+${utils.error("unknown genotyper [${genotyper}]")}
+
+## end if genotyper
+
+#end 
+
+## end for-each chromosomes
+
+#end
+
+
+
+#foreach($annotator in $annotationMethods)
+
 #
-# Allele calling with GATK for sample <xsl:value-of select="@name"/>
+# predictions ${genotyper} with ${annotator} for  sample ${sample.name}
 #
 
-#sample_vcf_gatk($sample): #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#sample_recal($sample)) $(known.sites)
-#call_with_gatk()
+#set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
+#set($annotatorfilterproperty=${annotator}+".vcf.filtration")
+#set($filterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
+
+
+#if( $annotator == "vep")
+
+#annotate_with_vep(
+	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
+	"#sample_vcf_genotyper($sample $genotyper) "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#elseif(  $annotator == "snpeff" )
+
+#annotate_with_snpeff(
+	"#sample_vcf_genotyper_annotator($sample $genotyper ${annotator} )"
+	"#sample_vcf_genotyper($sample $genotyper) "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#else
+
+${utils.error("unknown annotator [${annotator}]")}
+
+#end
+
+#end
+
+#end
 
 #end
 
@@ -451,68 +447,78 @@ variations.gatk.vep: #foreach($sample in $project.sample) #sample_vcf_gatk_vep($
 
 #else
 
-LIST_PHONY_TARGET+=all_predictions 
-all_predictions: \
-	$(OUTDIR)/VCF/variations.samtools.vep.vcf.gz \
-	$(OUTDIR)/VCF/variations.samtools.snpEff.vcf.gz \
-	$(OUTDIR)/VCF/variations.gatk.vep.vcf.gz \
-	$(OUTDIR)/VCF/variations.gatk.snpEff.vcf.gz 
+LIST_PHONY_TARGET+=all_predictions
+TOP_TARGETS+=all_predictions
+
+all_predictions: #foreach($genotyper in ${project.genotypeMethods}) $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz #foreach($annotator in $annotationMethods) $(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz  #end #end
 	
-#
-# prediction samtools with Variation Ensembl Prediction API
-#
-#set($filterparam=${project.propertyMap["samtools.vcf.filtration"]}+" "+${project.propertyMap["vep.vcf.filtration"]})
-#annotate_with_vep(
-	"$(OUTDIR)/VCF/variations.samtools.vep.vcf.gz"
-	"$(OUTDIR)/VCF/variations.samtools.vcf.gz"
-	"samtoolsvep"
-	"$filterparam"
-	)
+
+#foreach($genotyper in ${project.genotypeMethods})
 
 #
-# prediction gatk with Variation Ensembl Prediction API
+# Create VCF for all samples with ${genotyper} 
 #
-#set($filterparam=${project.propertyMap["gatk.vcf.filtration"]}+" "+${project.propertyMap["vep.vcf.filtration"]})
-#annotate_with_vep(
-	"$(OUTDIR)/VCF/variations.gatk.vep.vcf.gz"
-	"$(OUTDIR)/VCF/variations.gatk.vcf.gz"
-	"gatkvep"
-	"$filterparam"
-	)
 
-#
-# annotate samtools vcf with snpEff
-#
-#set($filterparam=${project.propertyMap["samtools.vcf.filtration"]}+" "+${project.propertyMap["snpeff.vcf.filtration"]})
-#annotate_with_snpeff(
-	"$(OUTDIR)/VCF/variations.samtools.snpEff.vcf.gz"
-	"$(OUTDIR)/VCF/variations.samtools.vcf.gz"
-	"mpileupsnpeff"
-	"$filterparam"
-	)
+TOP_TARGETS+= $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz 
 
-#
-# annotate GATK vcf with snpEff
-#
-#set($filterparam=${project.propertyMap["gatk.vcf.filtration"]}+" "+${project.propertyMap["snpeff.vcf.filtration"]})
-#annotate_with_snpeff(
-	"$(OUTDIR)/VCF/variations.gatk.snpEff.vcf.gz"
-	"$(OUTDIR)/VCF/variations.gatk.vcf.gz"
-	"gatksnpeff"
-	"$filterparam"
-	)
-
-#
-# Allele calling with samtools
-#
-$(OUTDIR)/VCF/variations.samtools.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end)
+$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : $(call indexed_bam, #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end ) \
+		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
+	
+#if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
 
-#
-# Allele calling with GATK
-#
-$(OUTDIR)/VCF/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.in.capture"]=="yes") $(extended_capture_bed) #end  $(call indexed_bam,#foreach($sample in $project.sample) #sample_recal($sample)  #end ) $(known.sites)
+#elseif( $genotyper == "gatk")
 #call_with_gatk()
+
+#elseif( $genotyper == "freebayes")
+#call_with_freebayes()
+
+#else
+
+${utils.error("unknown genotyper [${genotyper}]")}
+
+## end if genotyper
+
+#end 
+
+#foreach($annotator in $annotationMethods)
+
+#set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
+#set($annotatorfilterproperty=${annotator}+".vcf.filtration")
+#set($filterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
+
+
+#if( $annotator == "vep")
+#annotate_with_vep(
+	"$(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz"
+	"$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#elseif(  $annotator == "snpeff" )
+#annotate_with_snpeff(
+	"$(OUTDIR)/VCF/variations.${genotyper}.${annotator}.vcf.gz"
+	"$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz "
+	"${genotyper}${annotator}"
+	"$filterparam"
+	)
+
+#else
+
+${utils.error("unknown annotator [${annotator}]")}
+
+#end
+
+
+## enf of loop over annotator
+
+#end
+
+## enf of loop over genotypers
+
+#end
+
 
 #end
 
@@ -522,6 +528,8 @@ $(OUTDIR)/VCF/variations.gatk.vcf.gz: #if($project.propertyMap["allele.calling.i
 # Statistics for BAM
 #
 LIST_PHONY_TARGET+= bam_statistics 
+TOP_TARGETS+= bam_statistics 
+
 bam_statistics: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
 	$(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf \
 	$(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv \
@@ -529,12 +537,15 @@ bam_statistics: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
 
 
 LIST_PHONY_TARGET+= beddepth
+TOP_TARGETS+= beddepth
 beddepth:  #foreach($sample in $project.sample) #sample_beddepth(${sample}) #end
 
 
 #
 # create a PDF for bamstats01.tsv
 #
+TOP_TARGETS+= $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf
+
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv
 	mkdir -p $(dir $@)
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
@@ -552,6 +563,9 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv : #foreach($sample in 
 #
 # count of distribution of coverage
 #
+
+TOP_TARGETS+= $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv
+
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
 
 	mkdir -p $(dir $@)
@@ -563,6 +577,7 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv : #foreach($sample in 
 ## coverage of distribution ############################################################################################
 
 LIST_PHONY_TARGET+= coverage_distribution
+TOP_TARGETS+= coverage_distribution
 
 coverage_distribution:  $(OUTDIR)/Statistics/#output_files_prefix()all.distribution.recal.pdf
 
@@ -598,11 +613,11 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#
 # Capture
 #
 
-$(OUTDIR)/BED/ensembl.exons.bed:
+$(OUTDIR)/BED/ensembl.genes.bed:
 	$(call timebegindb,$@,$@)
 	mkdir -p $(dir $@)
-	curl ${set_curl_proxy} -d 'query=<![CDATA[<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
-		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="exon_chrom_start" /><Attribute name="exon_chrom_end" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
+	curl ${set_curl_proxy} -d 'query=<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
+		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="start_position" /><Attribute name="end_position" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
 	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
 	awk -F '	' '(int($$2) < int($$3))' |\
 	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
@@ -630,6 +645,15 @@ $(extended_capture_bed): $(capture.bed)
 	sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
+
+#foreach($chrom in ${project.chromosomeGroups})
+
+#MAKE_XCAPTURE_CHROM_GROUP($chrom)
+
+#MAKE_XWHOLE_GROUP($chrom)
+
+#end
+
 
 
 ##############################################################################
@@ -673,33 +697,49 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 
 
 
+
+
 #
 # make TOP bam, merging all chromosomes
 #
 
-#sample_final_bam(${sample} ${chrom}) : #foreach($chrom in ${project.allChromosomes}) #sample_recal_chrom( ${sample} ${chrom})  #end
+
+#sample_final_bam(${sample}) : #foreach($g in ${project.chromosomeGroups}) #sample_recal_chrom( ${sample} ${g})  #end \
+	#sample_merged_chrom(${sample} "Unmapped")
 	
 	@$(call timebegindb,$@,merge_chroms)
-	mkdir -p $(dir $@)	
+	mkdir -p $(dir $@)
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
+	#else
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
+		USE_THREADING=true \
 		VALIDATION_STRINGENCY=SILENT \
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
+	#end
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge_chroms)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	$(call delete_and_touch,$^)
-	touch $@
 
 
+#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
+
+#index_bam_with_samtools("#sample_final_bam(${sample})")
+
+#else
+
+#fake_index_bam_with_samtools("#sample_final_bam(${sample})")
+
+#end
 
 
 #if( ${project.getPropertyByName("disable.recalibration","no")}!="yes")
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 #
 #
 # Recalibrate alignments for Sample ${sample.name}
@@ -710,7 +750,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 
 	
 #sample_recal_chrom( ${sample} ${chrom})  : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
-		$(extended_capture_bed) \
+		#XCAPTURE_CHROM(${chrom}) \
 		$(known.sites) \
 		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )
 	@$(call timebegindb,$@_tableRecalibaration,recalibration)
@@ -728,11 +768,12 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 	@$(call timeenddb,$@_tableRecalibaration,recalibration)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
-	touch $@
 
+
+#index_bam_with_samtools("#sample_recal_chrom( ${sample} ${chrom})")
 
 $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
-			$(extended_capture_bed) \
+			#XCAPTURE_CHROM(${chrom}) \
 			$(known.sites)
 	@$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 	mkdir -p $(dir $@)
@@ -760,27 +801,26 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 
 #if(!(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes"))
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 
 #
 #
-# Mark duplicates for Sample: ${sample.name}
+# Mark duplicates for Sample: ${sample.name} and chromosome ${chrom}.
 #
 
 
-#sample_markdup_chrom(${sample}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
+#sample_markdup_chrom(${sample} ${chrom}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
 #if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@)
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
-	$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,$^) )
-	$(call delete_and_touch,$(filter %.bai,$^) )
+	@$(call sizedb,$@)
+	
 
 #else	$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@)
 	mkdir -p $(addsuffix tmp.rmdup,$(dir $@))
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
 		INPUT=$(filter %.bam,$^) \
 		O=$@ \
@@ -789,22 +829,22 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		AS=true \
 		#if(${project.propertyMap.containsKey("picard.mark.duplicates.options")}
 			) ${project.propertyMap.get("picard.mark.duplicates.options")} #end \
-		VALIDATION_STRINGENCY=SILENT
+		VALIDATION_STRINGENCY=SILENT \
+		CREATE_INDEX=true
 	@$(call timeenddb,$@_markdup,markdup)
 	@$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$(filter %.bam,$^) )
-	$(call delete_and_touch,$(filter %.bai,$^) )
-	touch $@
 
 #end
+
+
+#index_bam_with_samtools("#sample_markdup_chrom(${sample} ${chrom})")
 
 #end
 #end
 
 
 #if(${project.getPropertyByName("disable.indelrealigner","no")}!="yes")
-#foreach($chrom in ${project.allChromosomes})
+#foreach($chrom in ${project.allChromosomeGroups})
 
 #
 #
@@ -814,8 +854,8 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 
 #sample_realigned_chrom(${sample} ${chrom}) :	$(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
-				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) \
-				$(extended_capture_bed) 		
+				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) 
+		
 		@$(call timebegindb,$@_indelrealigner,indelrealign)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
@@ -833,13 +873,14 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 			-S SILENT 
 		@$(call timeenddb,$@_indelrealigner,indelrealign)
 		@$(call sizedb,$@)
-		$(call notempty,$@)
-		$(call delete_and_touch,$(filter %.bam,$^)  )
-		$(call delete_and_touch,$(filter %.bam.bai,$^)  )
-		touch $@
 
 
-$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) $(extended_capture_bed)
+#fake_index_bam_with_samtools("#sample_realigned_chrom(${sample} ${chrom})")
+
+
+$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
+		#XCAPTURE_CHROM(${chrom})
+		
 		@$(call timebegindb,$@_targetcreator,targetcreator)
 		mkdir -p $(dir $@)
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
@@ -849,7 +890,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
   			-I $(filter %.bam,$^) \
 			#if(${project.propertyMap.containsKey("gatk.realigner.target.creator.options")}
 			) ${project.propertyMap.get("gatk.realigner.target.creator.options")} #end \
-			-o $(addsuffix .intervals, $(filter %.bam,$^) ) \
+			-o $@ \
 			--known:vcfinput,VCF #if(${project.propertyMap.containsKey("known.indels.vcf")}
 			 ) ${project.getPropertyByName("known.indels.vcf","")} #else  
 			  ${utils.error("known.indels.vcf undefined")}	 
@@ -861,8 +902,9 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 #end
 #end
 
+
+#foreach($chrom in ${project.allChromosomeGroups})
 #if( ${sample.sequences.pair.size()} > 1)
-#foreach($chrom in ${project.allChromosomes})
 
 #
 #
@@ -874,23 +916,45 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #sample_merged_chrom(${sample} ${chrom}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted_chrom(${pair} ${chrom}) #end
 	
 	@$(call timebegindb,$@,merge)
-	mkdir -p $(dir $@)	
+	mkdir -p $(dir $@)
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
+	#else
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		CREATE_INDEX=true \
 		VALIDATION_STRINGENCY=SILENT \
+		USE_THREADING=true \
 		COMMENT="Merged for chromosome ${chrom} from $^" \
 		$(foreach B,$^, I=$(B) )
+	#end
 	$(DELETEFILE) $^
 	@$(call timeenddb,$@,merge)
 	@$(call sizedb,$@)
-	$(call notempty,$@)
-	$(call delete_and_touch,$^)
-	touch $@
-	
+
+#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
+
+#index_bam_with_samtools("#sample_merged_chrom(${sample} ${chrom})")
+
+#else
+
+#fake_index_bam_with_samtools("#sample_merged_chrom(${sample} ${chrom})")
+
+#end
+
+#else 
+
+
+#foreach($pair in ${sample.sequences.pair} )
+#index_bam_with_samtools("#pair_bam_sorted_chrom(${pair} ${chrom})")
+#end
+
+
 #end
 #end
+
+
 
 #
 # bamstats01 for sample: ${sample.name}
@@ -956,9 +1020,10 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #
 #
 
-LIST_PHONY_TARGET+=${sample.name}_sampe_chromosomes
 
-#foreach($c in ${project.allChromosomes})#pair_bam_sorted_chrom($pair $c ) #end : ${sample.name}_sampe_pair${pair.index}_chromosomes
+#foreach($c in ${project.allChromosomeGroups})#pair_bam_sorted_chrom($pair $c ) #end : ${sample.name}_sampe_pair${pair.index}_chromosomes
+
+LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 
 
 ${sample.name}_sampe_pair${pair.index}_chromosomes : \
@@ -978,11 +1043,12 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		#fastq_sai(${pair.reverse}) \
 		#fastq_preprocessed(${pair.forward}) \
 		#fastq_preprocessed(${pair.reverse}) |\
-		$(JAVA) -jar $(JVARKIT)/splitbam.jar --mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
+		$(JAVA) -jar $(JVARKIT)/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) -G  ${project.propertyMap["chromosomes.groups"]} #end \
+			--mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	
 	@$(call timeenddb,$@,bwasampe)
-	@$(call delete_and_touch,$(filter %.sai,$^))
+
 
 
 
@@ -994,7 +1060,8 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 
 
 
-#fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF)
+#fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF) #if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end
+	
 	mkdir -p $(dir $@)
 	@$(call timebegindb,$@,sai)
 	@$(call sizedb,$<)
@@ -1072,6 +1139,9 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 ##############################################################################
 
 LIST_PHONY_TARGET+= hsqldb_statistics 
+
+TOP_TARGETS+= hsqldb_statistics 
+
 hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 
 $(OUTDIR)/durations.stats.txt:
@@ -1094,6 +1164,9 @@ $(OUTDIR)/filesize.stats.txt:
 # an ongoing process.
 #
 LIST_PHONY_TARGET+= ongoing
+
+TOP_TARGETS+= ongoing
+
 ongoing:
 	lockfile $(LOCKFILE)
 	mkdir -p $(dir $(HSQLSTATS) )
@@ -1110,13 +1183,17 @@ ongoing:
 #
 #
 LIST_PHONY_TARGET+= git 
+TOP_TARGETS+= git
+
 git:.git/config
 	-git add $(makefile.name)
-	-git commit -m "changes $(makefile.name)"
+	-git commit -a -m "changes $(makefile.name)"
 	
 .git/config:
 	git init $(dir $(makefile.name))
 
+#parse("contaminations.vm")
+#parse("fastx.vm")
 
 #
 # END

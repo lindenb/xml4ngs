@@ -6,3 +6,7 @@ test/config.mk
 dist
 *~
 jeter.*
+doc/xml4ngs.aux
+doc/xml4ngs.log
+doc/xml4ngs.pdf
+

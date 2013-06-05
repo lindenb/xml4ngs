@@ -1,0 +1,42 @@
+#macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup)
+	mkdir -p $(dir $@)
+	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 #end \
+		#if(${project.propertyMap.containsKey("samtools.mpileup.options")}) ${project.propertyMap["samtools.mpileup.options"]} #else -E -C50 -m3 -F0.002   #end \
+		-uD \
+		-q $(MIN_MAPPING_QUALITY) \
+		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
+		-f $(REF) $(filter %.bam,$^) |\
+	$(BCFTOOLS) view -vcg - | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4 |\
+	$(TABIX.bgzip) -c > $@
+	$(TABIX.tabix) -f -p vcf $@ 
+	@$(call timeenddb,$@,mpileup)
+	@$(call sizedb,$@)
+
+#end
+
+#macro(index_bam_with_samtools $bam)
+
+#
+# index BAM "${bam}" with samtools.
+#
+
+$(patsubst %.bam,%.bai,${bam}):${bam}
+	@$(call timebegindb,$@,bai)
+	#some indexes are created by picard, no need to recreate it, or just check the timestamp
+	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
+	@$(call timeenddb,$@,bai)
+	@$(call sizedb,$@)
+
+#end
+
+
+#macro(fake_index_bam_with_samtools $bam)
+
+#
+# index BAM "${bam}" with samtools.
+#
+
+$(patsubst %.bam,%.bai,${bam}):${bam}
+	# index bam:  nothing to do. at this point, an index should have been created by the picard-API
+	
+#end
