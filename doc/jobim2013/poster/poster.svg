@@ -15,7 +15,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="poster.svg">
+   sodipodi:docname="poster.svg"
+   inkscape:export-filename="/home/lindenb/jeter.png"
+   inkscape:export-xdpi="150.60001"
+   inkscape:export-ydpi="150.60001">
   <title
      id="title2985">XML4NGS : A XML-based description of a Next-Generation sequencing project allowing the generation of a ’Makefile’-driven workflow.</title>
   <defs
@@ -27,18 +30,18 @@
      borderopacity="1"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.08"
-     inkscape:cx="-384.85742"
-     inkscape:cy="2220.5709"
+     inkscape:zoom="0.22627417"
+     inkscape:cx="1913.2754"
+     inkscape:cy="2695.1876"
      inkscape:document-units="px"
-     inkscape:current-layer="layer5"
+     inkscape:current-layer="layer7"
      showgrid="false"
      inkscape:showpageshadow="true"
      borderlayer="true"
-     inkscape:window-width="1280"
-     inkscape:window-height="720"
-     inkscape:window-x="3"
-     inkscape:window-y="-6"
+     inkscape:window-width="1521"
+     inkscape:window-height="899"
+     inkscape:window-x="69"
+     inkscape:window-y="18"
      inkscape:window-maximized="0"
      showguides="true"
      inkscape:guide-bbox="true" />
@@ -90,7 +93,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
      style="display:inline">
     <g
        id="g3543"
-       transform="matrix(0.39772974,0,0,0.39772974,-503.88461,1079.726)">
+       transform="matrix(0.39772974,0,0,0.39772974,-481.78752,1115.0813)">
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          style="fill:#ffffff;stroke:#ffffff"
@@ -99,7 +102,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon12"
-         points="103,-356 82,-356 79,-352 3.55271e-14,-352 7.10543e-15,-316 106,-316 106,-352 106,-352 "
+         points="106,-316 106,-352 106,-352 103,-356 82,-356 79,-352 3.55271e-14,-352 7.10543e-15,-316 "
          style="fill:#ffff00;stroke:#000000" />
       <text
          id="text14"
@@ -134,12 +137,12 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon28"
-         points="101.428,-277.248 92.2746,-282.583 97.5994,-287.127 97.5994,-287.127 "
+         points="92.2746,-282.583 97.5994,-287.127 97.5994,-287.127 101.428,-277.248 "
          style="fill:#000000;stroke:#000000" />
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon33"
-         points="94,-186 94,-150 186,-150 186,-180 180,-186 180,-186 "
+         points="180,-186 94,-186 94,-150 186,-150 186,-180 180,-186 "
          style="fill:none;stroke:#000000" />
       <polyline
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
@@ -184,12 +187,12 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon53"
-         points="202.516,-111.509 192.75,-115.617 197.443,-120.811 197.443,-120.811 "
+         points="192.75,-115.617 197.443,-120.811 197.443,-120.811 202.516,-111.509 "
          style="fill:#000000;stroke:#000000" />
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon58"
-         points="124,-352 124,-316 240,-316 240,-346 234,-352 234,-352 "
+         points="234,-352 124,-352 124,-316 240,-316 240,-346 234,-352 "
          style="fill:none;stroke:#000000" />
       <polyline
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
@@ -215,7 +218,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon71"
-         points="132.815,-277.248 136.719,-287.097 142.009,-282.513 142.009,-282.513 "
+         points="136.719,-287.097 142.009,-282.513 142.009,-282.513 132.815,-277.248 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path76"
@@ -225,12 +228,12 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon78"
-         points="135.397,-186.21 129.554,-195.048 136.34,-196.763 136.34,-196.763 "
+         points="129.554,-195.048 136.34,-196.763 136.34,-196.763 135.397,-186.21 "
          style="fill:#000000;stroke:#000000" />
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon101"
-         points="212,-186 212,-150 346,-150 346,-180 340,-186 340,-186 "
+         points="340,-186 212,-186 212,-150 346,-150 346,-180 340,-186 "
          style="fill:none;stroke:#000000" />
       <polyline
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
@@ -256,12 +259,12 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon114"
-         points="236.82,-111.509 239.999,-121.616 245.608,-117.428 245.608,-117.428 "
+         points="239.999,-121.616 245.608,-117.428 245.608,-117.428 236.82,-111.509 "
          style="fill:#000000;stroke:#000000" />
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon119"
-         points="223,-277 223,-241 335,-241 335,-271 329,-277 329,-277 "
+         points="329,-277 223,-277 223,-241 335,-241 335,-271 329,-277 "
          style="fill:none;stroke:#000000" />
       <polyline
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
@@ -287,7 +290,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon132"
-         points="279,-186.077 275.5,-196.077 282.5,-196.077 282.5,-196.077 "
+         points="275.5,-196.077 282.5,-196.077 282.5,-196.077 279,-186.077 "
          style="fill:#000000;stroke:#000000" />
       <text
          id="text134"
@@ -298,7 +301,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon139"
-         points="353,-277 353,-241 465,-241 465,-271 459,-277 459,-277 "
+         points="459,-277 353,-277 353,-241 465,-241 465,-271 459,-277 "
          style="fill:none;stroke:#000000" />
       <polyline
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
@@ -324,7 +327,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3457.3214,1389.5101)"
          id="polygon152"
-         points="305.775,-186.007 312.074,-194.526 316.011,-188.739 316.011,-188.739 "
+         points="312.074,-194.526 316.011,-188.739 316.011,-188.739 305.775,-186.007 "
          style="fill:#000000;stroke:#000000" />
       <text
          id="text154"
@@ -383,7 +386,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon28-6"
-         points="396.66,-549.167 386.108,-548.214 387.816,-555.002 387.816,-555.002 "
+         points="386.108,-548.214 387.816,-555.002 387.816,-555.002 396.66,-549.167 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -412,7 +415,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon42"
-         points="347.182,-479.552 354.033,-487.634 357.578,-481.598 357.578,-481.598 "
+         points="354.033,-487.634 357.578,-481.598 357.578,-481.598 347.182,-479.552 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -441,7 +444,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon56"
-         points="452.477,-481.667 447.67,-491.109 454.607,-492.046 454.607,-492.046 "
+         points="447.67,-491.109 454.607,-492.046 454.607,-492.046 452.477,-481.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -470,7 +473,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon70"
-         points="559.536,-478.947 549.034,-480.346 552.199,-486.59 552.199,-486.59 "
+         points="549.034,-480.346 552.199,-486.59 552.199,-486.59 559.536,-478.947 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -499,7 +502,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon84"
-         points="683.144,-475.41 672.574,-474.695 674.435,-481.443 674.435,-481.443 "
+         points="672.574,-474.695 674.435,-481.443 674.435,-481.443 683.144,-475.41 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -528,7 +531,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon98"
-         points="820.424,-475.902 809.866,-475.021 811.62,-481.797 811.62,-481.797 "
+         points="809.866,-475.021 811.62,-481.797 811.62,-481.797 820.424,-475.902 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -557,7 +560,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon112"
-         points="418.049,-553.902 407.717,-556.249 411.436,-562.18 411.436,-562.18 "
+         points="407.717,-556.249 411.436,-562.18 411.436,-562.18 418.049,-553.902 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -605,7 +608,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon133"
-         points="569.894,-554.748 559.988,-558.506 564.493,-563.863 564.493,-563.863 "
+         points="559.988,-558.506 564.493,-563.863 564.493,-563.863 569.894,-554.748 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path138"
@@ -615,7 +618,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon140"
-         points="363.244,-475.425 371.941,-481.475 373.816,-474.731 373.816,-474.731 "
+         points="371.941,-481.475 373.816,-474.731 373.816,-474.731 363.244,-475.425 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path145"
@@ -625,7 +628,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon147"
-         points="484.631,-479.122 491.742,-486.976 495.087,-480.828 495.087,-480.828 "
+         points="491.742,-486.976 495.087,-480.828 495.087,-480.828 484.631,-479.122 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path152"
@@ -635,7 +638,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon154"
-         points="591,-481.667 587.5,-491.667 594.5,-491.667 594.5,-491.667 "
+         points="587.5,-491.667 594.5,-491.667 594.5,-491.667 591,-481.667 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path159"
@@ -645,7 +648,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon161"
-         points="697.369,-479.122 686.913,-480.828 690.258,-486.976 690.258,-486.976 "
+         points="686.913,-480.828 690.258,-486.976 690.258,-486.976 697.369,-479.122 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path166"
@@ -655,7 +658,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon168"
-         points="818.756,-475.425 808.184,-474.731 810.059,-481.475 810.059,-481.475 "
+         points="808.184,-474.731 810.059,-481.475 810.059,-481.475 818.756,-475.425 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -684,7 +687,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon182"
-         points="612.106,-554.748 617.507,-563.863 622.012,-558.506 622.012,-558.506 "
+         points="617.507,-563.863 622.012,-558.506 622.012,-558.506 612.106,-554.748 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -732,7 +735,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon203"
-         points="764.085,-553.986 770.698,-562.264 774.417,-556.334 774.417,-556.334 "
+         points="770.698,-562.264 774.417,-556.334 774.417,-556.334 764.085,-553.986 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path208"
@@ -742,7 +745,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon210"
-         points="361.576,-475.902 370.38,-481.797 372.134,-475.021 372.134,-475.021 "
+         points="370.38,-481.797 372.134,-475.021 372.134,-475.021 361.576,-475.902 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path215"
@@ -752,7 +755,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon217"
-         points="498.856,-475.41 507.565,-481.443 509.426,-474.695 509.426,-474.695 "
+         points="507.565,-481.443 509.426,-474.695 509.426,-474.695 498.856,-475.41 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path222"
@@ -762,7 +765,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon224"
-         points="622.464,-478.947 629.801,-486.59 632.966,-480.346 632.966,-480.346 "
+         points="629.801,-486.59 632.966,-480.346 632.966,-480.346 622.464,-478.947 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path229"
@@ -772,7 +775,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon231"
-         points="729.523,-481.667 727.393,-492.046 734.33,-491.109 734.33,-491.109 "
+         points="727.393,-492.046 734.33,-491.109 734.33,-491.109 729.523,-481.667 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path236"
@@ -782,7 +785,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon238"
-         points="834.818,-479.552 824.422,-481.598 827.967,-487.634 827.967,-487.634 "
+         points="824.422,-481.598 827.967,-487.634 827.967,-487.634 834.818,-479.552 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -811,7 +814,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon252"
-         points="785.585,-549.229 794.429,-555.064 796.137,-548.276 796.137,-548.276 "
+         points="794.429,-555.064 796.137,-548.276 796.137,-548.276 785.585,-549.229 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -840,7 +843,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon266"
-         points="191.301,-406.074 199.01,-413.342 201.86,-406.949 201.86,-406.949 "
+         points="199.01,-413.342 201.86,-406.949 201.86,-406.949 191.301,-406.074 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -869,7 +872,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon280"
-         points="394.658,-407.184 399.623,-416.544 404.376,-411.405 404.376,-411.405 "
+         points="399.623,-416.544 404.376,-411.405 404.376,-411.405 394.658,-407.184 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -898,7 +901,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon294"
-         points="591,-407.667 587.5,-417.667 594.5,-417.667 594.5,-417.667 "
+         points="587.5,-417.667 594.5,-417.667 594.5,-417.667 591,-407.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -927,7 +930,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon308"
-         points="788.096,-407.184 778.352,-411.345 783.074,-416.513 783.074,-416.513 "
+         points="778.352,-411.345 783.074,-416.513 783.074,-416.513 788.096,-407.184 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -956,7 +959,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon322"
-         points="985.691,-406.256 975.145,-407.277 978.084,-413.63 978.084,-413.63 "
+         points="975.145,-407.277 978.084,-413.63 978.084,-413.63 985.691,-406.256 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -985,7 +988,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon336"
-         points="143.279,-333.667 141.563,-344.122 148.457,-342.911 148.457,-342.911 "
+         points="141.563,-344.122 148.457,-342.911 148.457,-342.911 143.279,-333.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1014,7 +1017,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon350"
-         points="130.279,-259.667 128.563,-270.122 135.457,-268.911 135.457,-268.911 "
+         points="128.563,-270.122 135.457,-268.911 135.457,-268.911 130.279,-259.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1043,7 +1046,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon364"
-         points="120.27,-185.667 118.003,-196.017 124.952,-195.172 124.952,-195.172 "
+         points="118.003,-196.017 124.952,-195.172 124.952,-195.172 120.27,-185.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1072,7 +1075,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon378"
-         points="112.766,-111.667 110.223,-121.953 117.192,-121.293 117.192,-121.293 "
+         points="110.223,-121.953 117.192,-121.293 117.192,-121.293 112.766,-111.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1101,7 +1104,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon392"
-         points="552.1,-24.8723 541.689,-22.9073 542.736,-29.8285 542.736,-29.8285 "
+         points="541.689,-22.9073 542.736,-29.8285 542.736,-29.8285 552.1,-24.8723 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1130,7 +1133,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon406"
-         points="365.279,-333.667 363.563,-344.122 370.457,-342.911 370.457,-342.911 "
+         points="363.563,-344.122 370.457,-342.911 370.457,-342.911 365.279,-333.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1159,7 +1162,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon420"
-         points="357.514,-259.667 354.833,-269.918 361.81,-269.352 361.81,-269.352 "
+         points="354.833,-269.918 361.81,-269.352 361.81,-269.352 357.514,-259.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1188,7 +1191,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon434"
-         points="353.757,-185.667 350.665,-195.801 357.659,-195.517 357.659,-195.517 "
+         points="350.665,-195.801 357.659,-195.517 357.659,-195.517 353.757,-185.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1217,7 +1220,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon448"
-         points="351.505,-111.667 348.276,-121.758 355.274,-121.569 355.274,-121.569 "
+         points="348.276,-121.758 355.274,-121.569 355.274,-121.569 351.505,-111.667 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path453"
@@ -1227,7 +1230,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon455"
-         points="557.045,-29.4696 546.457,-29.0715 548.52,-35.7607 548.52,-35.7607 "
+         points="546.457,-29.0715 548.52,-35.7607 548.52,-35.7607 557.045,-29.4696 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1256,7 +1259,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon469"
-         points="591,-333.667 587.5,-343.667 594.5,-343.667 594.5,-343.667 "
+         points="587.5,-343.667 594.5,-343.667 594.5,-343.667 591,-333.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1285,7 +1288,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon483"
-         points="591,-259.667 587.5,-269.667 594.5,-269.667 594.5,-269.667 "
+         points="587.5,-269.667 594.5,-269.667 594.5,-269.667 591,-259.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1314,7 +1317,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon497"
-         points="591,-185.667 587.5,-195.667 594.5,-195.667 594.5,-195.667 "
+         points="587.5,-195.667 594.5,-195.667 594.5,-195.667 591,-185.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1343,7 +1346,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon511"
-         points="591,-111.667 587.5,-121.667 594.5,-121.667 594.5,-121.667 "
+         points="587.5,-121.667 594.5,-121.667 594.5,-121.667 591,-111.667 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path516"
@@ -1353,7 +1356,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon518"
-         points="591,-37.6674 587.5,-47.6674 594.5,-47.6673 594.5,-47.6673 "
+         points="587.5,-47.6674 594.5,-47.6673 594.5,-47.6673 591,-37.6674 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1382,7 +1385,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon532"
-         points="810.991,-333.667 806.956,-343.464 813.946,-343.842 813.946,-343.842 "
+         points="806.956,-343.464 813.946,-343.842 813.946,-343.842 810.991,-333.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1411,7 +1414,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon546"
-         points="822.468,-259.667 817.17,-268.842 824.048,-270.144 824.048,-270.144 "
+         points="817.17,-268.842 824.048,-270.144 824.048,-270.144 822.468,-259.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1440,7 +1443,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon560"
-         points="827.495,-185.667 823.726,-195.569 830.724,-195.758 830.724,-195.758 "
+         points="823.726,-195.569 830.724,-195.758 830.724,-195.758 827.495,-185.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1469,7 +1472,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon574"
-         points="830.243,-111.667 826.341,-121.517 833.335,-121.801 833.335,-121.801 "
+         points="826.341,-121.517 833.335,-121.801 833.335,-121.801 830.243,-111.667 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path579"
@@ -1479,7 +1482,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon581"
-         points="624.955,-29.4696 633.48,-35.7607 635.543,-29.0715 635.543,-29.0715 "
+         points="633.48,-35.7607 635.543,-29.0715 635.543,-29.0715 624.955,-29.4696 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1508,7 +1511,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon595"
-         points="1023.75,-333.667 1020.11,-343.619 1027.11,-343.714 1027.11,-343.714 "
+         points="1020.11,-343.619 1027.11,-343.714 1027.11,-343.714 1023.75,-333.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1537,7 +1540,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon609"
-         points="1027.74,-259.667 1023.57,-269.409 1030.56,-269.881 1030.56,-269.881 "
+         points="1023.57,-269.409 1030.56,-269.881 1030.56,-269.881 1027.74,-259.667 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1566,7 +1569,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon623"
-         points="1044.78,-185.411 1038.68,-194.076 1045.41,-195.987 1045.41,-195.987 "
+         points="1038.68,-194.076 1045.41,-195.987 1045.41,-195.987 1044.78,-185.411 "
          style="fill:#000000;stroke:#000000" />
       <ellipse
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
@@ -1595,7 +1598,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon637"
-         points="1065.7,-111.667 1059.61,-120.332 1066.34,-122.243 1066.34,-122.243 "
+         points="1059.61,-120.332 1066.34,-122.243 1066.34,-122.243 1065.7,-111.667 "
          style="fill:#000000;stroke:#000000" />
       <path
          id="path642"
@@ -1605,7 +1608,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.25,0,0,1.25,3382.8986,1303.8904)"
          id="polygon644"
-         points="629.9,-24.8723 639.264,-29.8285 640.311,-22.9073 640.311,-22.9073 "
+         points="639.264,-29.8285 640.311,-22.9073 640.311,-22.9073 629.9,-24.8723 "
          style="fill:#000000;stroke:#000000" />
     </g>
     <g
@@ -1614,7 +1617,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon12-6"
-         points="82,-356 79,-352 3.55271e-14,-352 7.10543e-15,-316 106,-316 106,-352 106,-352 103,-356 "
+         points="106,-316 106,-352 106,-352 103,-356 82,-356 79,-352 3.55271e-14,-352 7.10543e-15,-316 "
          style="fill:#ffff00;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <text
          transform="scale(0.93883066,1.0651548)"
@@ -1657,7 +1660,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon33-9"
-         points="94,-150 186,-150 186,-180 180,-186 180,-186 94,-186 "
+         points="180,-186 94,-186 94,-150 186,-150 186,-180 180,-186 "
          style="fill:none;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <polyline
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
@@ -1709,7 +1712,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon58-1"
-         points="124,-316 240,-316 240,-346 234,-352 234,-352 124,-352 "
+         points="234,-352 124,-352 124,-316 240,-316 240,-346 234,-352 "
          style="fill:none;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <polyline
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
@@ -1751,7 +1754,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon83-0"
-         points="187,-1.06581e-14 259,0 259,-30 253,-36 253,-36 187,-36 "
+         points="253,-36 187,-36 187,-1.06581e-14 259,0 259,-30 253,-36 "
          style="fill:none;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <polyline
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
@@ -1783,7 +1786,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon101-0"
-         points="212,-150 346,-150 346,-180 340,-186 340,-186 212,-186 "
+         points="340,-186 212,-186 212,-150 346,-150 346,-180 340,-186 "
          style="fill:none;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <polyline
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
@@ -1815,7 +1818,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon119-8"
-         points="223,-241 335,-241 335,-271 329,-277 329,-277 223,-277 "
+         points="329,-277 223,-277 223,-241 335,-241 335,-271 329,-277 "
          style="fill:none;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <polyline
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
@@ -1854,7 +1857,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <polygon
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
          id="polygon139-0"
-         points="353,-241 465,-241 465,-271 459,-277 459,-277 353,-277 "
+         points="459,-277 353,-277 353,-241 465,-241 465,-271 459,-277 "
          style="fill:none;stroke:#000000;stroke-width:1.92258716;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <polyline
          transform="matrix(1.3523444,0,0,1.3523444,3112.9217,2082.2487)"
@@ -1904,15 +1907,15 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        height="1024"
        width="1024" />
     <image
-       y="620.70648"
-       x="135.71428"
+       y="760.38922"
+       x="68.258698"
        id="image4068"
        xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter02.jpg"
-       height="656"
-       width="500" />
+       height="787.20001"
+       width="600" />
     <image
-       y="1036.095"
-       x="1872.3401"
+       y="1080.2892"
+       x="1867.9207"
        id="image5455"
        xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter03.png"
        height="94"
@@ -2017,84 +2020,84 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
          style="font-size:28px;font-weight:bold;-inkscape-font-specification:Monospace Bold" /></text>
     <text
        xml:space="preserve"
-       style="font-size:9.44507599px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Monospace;-inkscape-font-specification:Monospace"
-       x="196.90921"
-       y="2549.0525"
+       style="font-size:9.70788002px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Monospace;-inkscape-font-specification:Monospace"
+       x="148.29562"
+       y="2538.603"
        id="text3406"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3408"
-         x="196.90921"
-         y="2549.0525"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold"><tspan
+         x="148.29562"
+         y="2538.603"
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold"><tspan
    style="fill:#dd2a2b"
    id="tspan3495">#sample_merged_chrom(${sample} ${chrom})</tspan> : \</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2584.4714"
-         style="font-size:28.33522797px;font-weight:bold;fill:#dd2a2b;-inkscape-font-specification:Monospace Bold"
+         x="148.29562"
+         y="2575.0073"
+         style="font-size:29.12364006px;font-weight:bold;fill:#dd2a2b;-inkscape-font-specification:Monospace Bold"
          id="tspan3517">      #foreach($pair in ${sample.sequences.pair} )</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2619.8906"
+         x="148.29562"
+         y="2611.4121"
          id="tspan3414"
-         style="font-size:28.33522797px;font-weight:bold;fill:#dd2a2b;-inkscape-font-specification:Monospace Bold">       #pair_bam_sorted_chrom(${pair} ${chrom}) #end</tspan><tspan
+         style="font-size:29.12364006px;font-weight:bold;fill:#dd2a2b;-inkscape-font-specification:Monospace Bold">       #pair_bam_sorted_chrom(${pair} ${chrom}) #end</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2655.3096"
+         x="148.29562"
+         y="2647.8167"
          id="tspan3416"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold">    mkdir -p $(dir $@)</tspan><tspan
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold">    mkdir -p $(dir $@)</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2690.7285"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold"
+         x="148.29562"
+         y="2684.2209"
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold"
          id="tspan3533">    $(JAVA) -jar $(PICARD)/<tspan
    style="fill:#00c000"
    id="tspan3771">MergeSamFiles</tspan>.jar O=$@ \</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2726.1477"
+         x="148.29562"
+         y="2720.6257"
          id="tspan3428"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold"><tspan
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold"><tspan
    style="fill:#dd2a2b"
-   id="tspan3509">    ${project.properties[&quot;picard.merge.options&quot;]}</tspan> \</tspan><tspan
+   id="tspan3509">      ${project.properties[&quot;picard.merge.options&quot;]}</tspan> \</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2761.5667"
+         x="148.29562"
+         y="2757.0303"
          id="tspan3436"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold">    MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \</tspan><tspan
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold">      MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2796.9858"
+         x="148.29562"
+         y="2793.4348"
          id="tspan3438"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold">    COMMENT=&quot;Merged for chromosome <tspan
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold">      COMMENT=&quot;Merged for chromosome <tspan
    style="fill:#dd2a2b"
    id="tspan3511">${chrom}</tspan> from $^&quot; \</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2832.4048"
+         x="148.29562"
+         y="2829.8394"
          id="tspan3440"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold">    $(foreach B,$^, I=$(B) )</tspan><tspan
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold">      $(foreach B,$^, I=$(B) )</tspan><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2867.8237"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold"
+         x="148.29562"
+         y="2866.2439"
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold"
          id="tspan3487" /><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2903.2429"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold"
+         x="148.29562"
+         y="2902.6484"
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold"
          id="tspan3489" /><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2938.6619"
+         x="148.29562"
+         y="2939.053"
          id="tspan3448"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold" /><tspan
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold" /><tspan
          sodipodi:role="line"
-         x="196.90921"
-         y="2974.0808"
+         x="148.29562"
+         y="2975.4575"
          id="tspan3450"
-         style="font-size:28.33522797px;font-weight:bold;-inkscape-font-specification:Monospace Bold" /></text>
+         style="font-size:29.12364006px;font-weight:bold;-inkscape-font-specification:Monospace Bold" /></text>
     <text
        xml:space="preserve"
        style="font-size:8.477705px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Monospace;-inkscape-font-specification:Monospace"
@@ -2217,14 +2220,14 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
     <flowRoot
        xml:space="preserve"
        id="flowRoot4130"
-       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Monospace;font-style:normal;font-weight:normal;font-size:12px;line-height:125%;letter-spacing:0px;word-spacing:0px;-inkscape-font-specification:Monospace;text-anchor:start;text-align:start;font-stretch:normal;font-variant:normal"><flowRegion
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Monospace;-inkscape-font-specification:Monospace"><flowRegion
          id="flowRegion4132"><rect
            id="rect4134"
            width="13.258252"
            height="19.887379"
            x="-1752.299"
            y="3419.7068" /></flowRegion><flowPara
-         id="flowPara4136"></flowPara></flowRoot>  </g>
+         id="flowPara4136" /></flowRoot>  </g>
   <g
      inkscape:groupmode="layer"
      id="layer2"
@@ -2232,10 +2235,10 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
      style="display:inline">
     <path
        style="fill:#d0c894;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:7.5914073;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       d="m 28.3125,374.71875 0,3805.93745 2921.3437,0 0,-3805.93745 z M 157.59375,631 620.25,633 l 2.03125,642.4688 -468.71875,-2 z m 1613.34375,372.2188 485.6563,9.9374 -4.4063,150.8438 -462.5,-10.2812 z m -194.6431,741.7356 11.2056,608.8388 -771.875,-1.8306 2.05267,-618.9721 c 605.87513,17.9403 182.33953,25.6873 758.61673,11.9639 z m 635.6579,-62.8522 695.056,-4.4194 -16.0215,605.028 -672.2006,13.3603 z m 656.9906,764.6382 -7.5444,544.4455 -950.0212,8.6777 2.2319,-550.2303 z m -2739.56949,46.4911 c 366.67932,10.9285 759.40531,-7.2903 1027.58569,3.6562 -10.8487,150.255 13.658,361.7963 2.8093,402.1515 l -1026.61375,7.5576 z M 2852.6875,3043.2188 2862.7812,4069.5312 2014.25,4065.5 1996.0625,3059.4062 c 362.0342,-17.9917 467.8945,9.9034 856.625,-16.1874 z M 794.56094,1251.931 l 703.69426,-9.9111 21.875,384.0268 -741.10224,0.3141 z"
+       d="m 28.3125,374.71875 0,3805.93745 2921.3437,0 0,-3805.93745 z m 79.03125,397.15625 534.53125,2 -13.59375,761.2188 -537.46875,4.25 z m 1663.59375,279.3438 485.6563,9.9374 -4.4063,150.8438 -462.5,-10.2812 z m -194.6431,693.7356 11.2056,608.8388 -771.875,-1.8306 2.05267,-618.9721 c 605.87513,17.9403 182.33953,25.6873 758.61673,11.9639 z m 635.6579,-62.8522 695.056,-4.4194 -16.0215,601.903 c 0,0 74.2341,-10.6161 -115.899,5.7374 -190.1331,16.3536 -556.3016,10.7479 -556.3016,10.7479 z m 656.9906,764.6382 26.7233,469.9984 -215.5177,-0.5529 4.255,79.4145 -773.0262,4.2632 3.4521,-255.6373 -1.2202,-294.593 555.1236,-7.9405 z m -2726.31124,46.4911 c 366.67932,10.9285 746.14706,-7.2903 1014.32744,3.6562 -4.0666,56.3226 18.9317,123.4662 21.0763,184.7672 3.5768,102.2353 -11.4849,192.1561 -18.267,217.3843 L 137.57407,2915.4356 114.81539,2699.3397 z M 2852.6875,3043.2188 2862.7812,4069.5312 2014.25,4065.5 1996.0625,3059.4062 c 362.0342,-17.9917 467.8945,9.9034 856.625,-16.1874 z M 794.36677,1302.3504 l 390.89493,-1.4907 313.9042,5.9427 15.2459,382.922 -316.9635,-21.94 -379.94461,2.3667 -18.41983,-156.4454 z"
        id="rect3887"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccc" />
+       sodipodi:nodetypes="ccccccccccccccccccccccczcccccccccccccsccccccccccccccccc" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -2244,10 +2247,10 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
      style="display:inline">
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:10.23087311;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 47.71916,1668.9332 714.68604,-11.4896 38.2135,759.9687 -738.7374,10.0592 z"
+       d="m 56.557995,1668.9332 356.624595,14.1544 349.22261,-25.644 38.2135,759.9687 -106.83224,-7.6813 -631.90516,17.7405 z"
        id="rect5341-4-8-7-0"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="ccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:10;stroke-miterlimit:4;stroke-opacity:1"
        d="m 2351.1301,593.48937 552.428,-17.67767 22.0971,994.3689 -561.2668,-13.2583 z"
@@ -2256,40 +2259,40 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#ffffff;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:6.31584978;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 1582.9292,1161.826 747.6567,-5.2103 -9.8685,297.4983 -719.8444,-8.3271 z"
+       d="m 1597.2923,1232.5367 737.713,-5.2103 5.7565,294.3733 -183.1962,-8.578 -552.2732,3.3759 -16.4554,-137.4599 z"
        id="rect5341-4"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="ccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:6.31584978;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 1575.9129,591.02252 712.3014,-0.79088 16.648,284.24006 -746.3609,4.9311 z"
+       d="m 1575.9129,697.08854 712.3014,-0.79088 16.648,284.24006 -746.3609,4.9311 z"
        id="rect5341-4-8"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#ffffff;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:6.93107557;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 704.87515,861.1877 699.06105,-0.97051 16.3385,348.79611 -732.48741,6.051 z"
+       d="m 802.10233,878.86537 690.22227,47.64308 -11.6964,162.11365 -29.4175,173.4242 -675.03506,10.4705 -1.73758,-174.5246 z"
        id="rect5341-4-8-7"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="ccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.20278859;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 343.43496,1390.3887 470.38754,-0.308 10.9939,110.6844 -492.87963,1.9202 z"
+       d="m 333.49127,1390.3887 162.58775,7.6333 317.74348,-7.9413 -10.07101,73.0577 4.49209,45.3607 -253.58473,-8.6195 -222.72208,2.8057 z"
        id="rect5341-4-8-7-7"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="cccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:10.28010845;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 1570.4252,1568.1259 648.9634,19.2273 21.2466,826.4769 -684.6701,7.4009 z"
+       d="m 1570.4252,1568.1259 648.9634,19.2273 21.2466,826.4769 -428.1084,-1.4873 -256.5617,8.8882 z"
        id="rect5341-4-8-7-0-2"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="cccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:7.60056925;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 1222.0566,2472.3521 717.1374,9.5112 23.4786,408.8324 -756.5951,3.661 z"
+       d="m 1222.0566,2472.3521 717.1374,9.5112 -4.3376,196.5468 27.8162,212.2856 -756.5951,3.661 21.4583,-111.2871 -1.7266,-156.5028 z"
        id="rect5341-4-8-7-0-2-4"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="cccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:6.17451191;stroke-miterlimit:4;stroke-opacity:1;display:inline"
        d="m 553.43191,2840.6368 883.89289,5.0927 28.9381,218.9077 -932.5257,1.9603 z"
@@ -2298,34 +2301,34 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:11.69995785;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 95.296946,3344.3357 1928.239454,8.3821 63.1293,360.2989 -2034.333364,3.2264 z"
+       d="m 82.796946,3384.9607 1254.665754,-13.3774 617.3237,-9.4905 3.4357,281.8038 -912.1814,-2.7549 -5.4799,67.0619 -969.478464,-4.4605 -3.471545,-153.643 z"
        id="rect5341-4-8-7-0-2-4-9-2-8"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="ccccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:10.29129791;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 71.676509,3083.5459 1928.239391,6.4852 63.1293,278.7627 -2034.333303,2.4963 z"
+       d="m 52.926509,3080.4209 1950.114391,15.8602 -2.4957,210.0127 -681.2845,-14.0444 -3.2522,54.0363 -941.014,9.1328 -318.157603,-9.1284 z"
        id="rect5341-4-8-7-0-2-4-9-2"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="cccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:10.57229519;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 76.206037,3748.6152 1468.128863,8.9892 48.0656,386.3934 -1548.906989,3.46 z"
+       d="m 57.456037,3748.6152 1502.503863,8.9892 -7.1569,190.1916 -10.4025,199.3268 -1486.406989,-9.04 21.026026,-224.4993 z"
        id="rect5341-4-8-7-0-2-4-9-2-8-1"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="ccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:6.59987593;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 1658.4997,3724.3614 551.1676,9.331 18.0449,401.0914 -581.4935,3.5917 z"
+       d="m 1664.7497,3752.4864 157.1837,-14.8192 c 31.9733,1.6467 132.0212,10.8067 387.7339,-3.9748 l 20.987,72.9511 -6.0671,309.3903 -106.19,15.6505 -425.3035,-12.0588 -20.8752,-50.3454 7.1722,-231.2271 z"
        id="rect5341-4-8-7-0-2-4-9-4"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="cccccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:7.78750372;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 690.89302,480.38473 803.33418,-1.06613 18.7756,383.16488 -841.7465,6.64724 z"
+       d="m 690.89302,586.45074 c 293.23468,18.26549 601.16048,-9.15647 847.52838,-14.32438 l -7.7409,325.71246 -408.147,-3.28646 -429.18011,5.51428 z"
        id="rect5341-4-8-7-01"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
+       sodipodi:nodetypes="cccccc" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -2343,7 +2346,8 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            x="-969.74646"
            y="-344.8161" /></flowRegion><flowPara
          id="flowPara5283" /></flowRoot>    <a
-       id="a5309">
+       id="a5309"
+       transform="translate(8.8388348,35.355339)">
       <text
          sodipodi:linespacing="125%"
          id="text5285"
@@ -2383,7 +2387,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            x="24.243662"
            y="-371.08005" /></flowRegion><flowPara
          id="flowPara5299" /></flowRoot>    <a
-       transform="translate(579.73494,-3152.2226)"
+       transform="translate(637.18737,-3094.7702)"
        id="a5309-3">
       <text
          sodipodi:linespacing="125%"
@@ -2446,7 +2450,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            id="tspan5382">complexe</tspan></text>
     </a>
     <a
-       transform="translate(1604.2008,-2329.7794)"
+       transform="translate(1608.6202,-2259.0687)"
        id="a5309-3-9">
       <text
          sodipodi:linespacing="125%"
@@ -2472,7 +2476,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            id="tspan5555">le Grid-Engine d'ORACLE.</tspan></text>
     </a>
     <a
-       transform="translate(1569.265,-2923.2522)"
+       transform="translate(1569.265,-2821.6056)"
        id="a5309-3-9-2">
       <text
          sodipodi:linespacing="125%"
@@ -2598,7 +2602,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="4227.5356"
            x="489.98425"
            sodipodi:role="line"
-           id="tspan5555-2">Un graph de dépendances</tspan><tspan
+           id="tspan5555-2">LE graphe de dépendances</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;text-anchor:start;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="4271.0986"
            x="489.98425"
@@ -2789,30 +2793,30 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <text
          sodipodi:linespacing="125%"
          id="text5285-1-5-4-0"
-         y="3458.1191"
-         x="804.90869"
+         y="3464.7483"
+         x="793.86017"
          style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Monospace;-inkscape-font-specification:Monospace"
          xml:space="preserve"><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3458.1191"
-           x="804.90869"
+           y="3464.7483"
+           x="793.86017"
            sodipodi:role="line"
-           id="tspan4267">Dans cet exemple, nous indiquons à `make`</tspan><tspan
+           id="tspan4267">Dans cet exemple, nous créons une cible</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3502.9253"
-           x="804.90869"
+           y="3508.3113"
+           x="793.86017"
            sodipodi:role="line"
-           id="tspan4274">comment fusionner les BAMS à partir</tspan><tspan
+           id="tspan4276">'BAM-merged' pour UN chromosome</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3546.488"
-           x="804.90869"
+           y="3549.5544"
+           x="793.86017"
            sodipodi:role="line"
-           id="tspan4276">de tous les  FASTQs disponibles</tspan><tspan
+           id="tspan4278">et dont la dépendence est une liste</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3587.7312"
-           x="804.90869"
+           y="3594.3604"
+           x="793.86017"
            sodipodi:role="line"
-           id="tspan4278">pour l'échantillon.</tspan></text>
+           id="tspan5569">de BAM triés pour l'échantillon.</tspan></text>
     </a>
     <a
        transform="matrix(0.70060674,0,0,0.70060674,64.209881,927.20787)"
@@ -2839,19 +2843,19 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="3740.2424"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5221">particulirement efficace pour nos Projets  mais ces technologies pourraient</tspan><tspan
+           id="tspan5221">particulierement efficace pour nos Projets  mais ces technologies pourraient</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3810.2424"
+           y="3812.4182"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5227">s'adapter tres facilement a d'autres types d'Analyses (RNASEQ...) en changeant</tspan><tspan
+           id="tspan5227">s'adapter tres facilement à d'autres types d'Analyses (RNASEQ...) en changeant</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3880.2424"
+           y="3888.6531"
            x="52.843307"
            sodipodi:role="line"
            id="tspan5338">uniquement les `templates` de velocity.</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3950.2424"
+           y="3958.6531"
            x="52.843307"
            sodipodi:role="line"
            id="tspan5223" /></text>
@@ -2866,7 +2870,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            height="28.125"
            x="46.875"
            y="3216.1172" /></flowRegion><flowPara
-         id="flowPara5237"></flowPara></flowRoot>    <a
+         id="flowPara5237" /></flowRoot>    <a
        transform="matrix(0.75338829,0,0,0.75338829,-445.47269,394.62786)"
        style="display:inline"
        id="a5309-9-5">
@@ -2891,12 +2895,12 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="3804.9182"
            x="687.21832"
            sodipodi:role="line"
-           id="tspan5303">sous Galaxy Mais on pourrait imaginer générer un Workflow pour galaxy</tspan><tspan
+           id="tspan5303">sous Galaxy Mais nous pouvont imaginer générer un Workflow pour</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3881.1531"
            x="687.21832"
            sodipodi:role="line"
-           id="tspan5313">en utilisant un autre jeux de ``templaTes`.</tspan><tspan
+           id="tspan5313">galaxy en utilisant un autre jeux de ``templaTes`.</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3951.1531"
            x="687.21832"
@@ -2932,43 +2936,59 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
       <text
          sodipodi:linespacing="125%"
          id="text5285-1-5-4-0-0"
-         y="3458.1191"
-         x="804.90869"
+         y="3438.1885"
+         x="803.57996"
          style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Monospace;-inkscape-font-specification:Monospace"
          xml:space="preserve"><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3458.1191"
-           x="804.90869"
+           y="3438.1885"
+           x="803.57996"
            sodipodi:role="line"
            id="tspan4278-0">Ici, une simple boucle nous</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3499.3623"
-           x="804.90869"
+           y="3479.4316"
+           x="803.57996"
            sodipodi:role="line"
-           id="tspan4324">permet de créer autant</tspan><tspan
+           id="tspan4324">permet de créer des cibles</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3542.9253"
-           x="804.90869"
+           y="3522.9946"
+           x="803.57996"
            sodipodi:role="line"
-           id="tspan4322">de VCFs que nous avons</tspan><tspan
+           id="tspan4322">pour autant de VCFs que</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3582.9253"
-           x="804.90869"
+           y="3562.9946"
+           x="803.57996"
            sodipodi:role="line"
-           id="tspan4326">d'algorithmes pour faire de</tspan><tspan
+           id="tspan4326">nous avons d'algorithmes</tspan><tspan
            style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-           y="3622.9253"
-           x="804.90869"
+           y="3602.9946"
+           x="803.57996"
            sodipodi:role="line"
-           id="tspan4328">l'`allELE-Calling`</tspan></text>
+           id="tspan4328">pour faire de</tspan><tspan
+           style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
+           y="3642.9946"
+           x="803.57996"
+           sodipodi:role="line"
+           id="tspan5587">l'`allELE-Calling`</tspan></text>
     </a>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="2078.7429"
+       y="4166.001"
+       id="text3513"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3515"
+         x="2078.7429"
+         y="4166.001"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold">Remerciements: Anne GAIGNERIE, Laetitia Duboscq-bidot, Mathieu Le neue.  </tspan></text>
   </g>
   <g
      inkscape:label="Title"
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,3160.6299)"
-     sodipodi:insensitive="true"
      style="display:inline">
     <rect
        style="fill:#b4c0a8;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:9.20625401;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
@@ -3075,17 +3095,17 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
     <path
        style="fill:#d40000;fill-opacity:0.93607309;fill-rule:nonzero;stroke:none"
        id="path4381"
-       d="m 1271.3147,3999.5519 c -10.9884,-2.9391 -22.2426,-4.9086 -33.5625,-6.5914 -31.9164,-4.4997 -64.3176,-4.8546 -96.5351,-6.3095 -44.126,-2.1905 -88.3156,-2.9989 -132.5026,-3.4909 -44.80226,-0.3533 -89.56779,-2.1452 -134.3597,-3.0325 -39.00782,-0.3878 -77.97534,-2.0961 -116.87885,-4.5148 -31.30612,-2.0604 -62.6906,-2.8417 -94.07374,-3.2626 -25.73069,0.043 -51.44303,-0.7598 -77.16174,-1.3147 -23.79397,-0.478 -47.59455,-0.5826 -71.39384,-0.6368 -23.21449,-0.016 -46.42901,-0.035 -69.64351,-0.033 -23.45872,3e-4 -46.91742,0.022 -70.37615,0.02 -23.23317,0.1908 -46.51427,0.4285 -69.7014,1.7862 -23.16469,1.5084 -46.33681,2.9627 -69.52845,4.1243 -22.58782,1.9784 -45.27112,3.166 -67.79032,5.6888 -14.79059,1.4252 -29.33558,3.9823 -43.88967,6.5901 -7.76282,1.5802 -15.52687,3.1914 -23.02266,5.5702 -2.553066,0.7929 -3.848495,1.135 -6.286886,2.1233 -0.945494,0.3831 -3.692632,1.6882 -2.783577,1.2433 16.870733,-8.2559 9.179223,-4.4803 4.542017,-0.8087 -5.067374,4.3826 -8.637348,9.8173 -12.221969,15.1374 -2.892027,4.828 -4.967745,8.5907 -2.939254,13.9741 4.16829,6.0278 12.389933,8.5032 19.648109,10.7634 9.06931,2.6924 18.36867,4.8027 27.74399,6.5176 11.62212,1.99 23.20019,4.0685 34.69318,6.5774 14.16158,2.7407 28.35546,5.3367 42.34699,8.6858 15.26981,3.5461 30.38092,7.5585 45.75723,10.7538 20.90726,3.7964 42.3098,4.7056 63.5292,6.4604 22.39981,1.5836 44.82037,2.9603 67.27343,3.8214 23.08447,0.2799 46.10523,1.7878 69.11314,3.3533 28.19534,1.4945 56.32255,3.7237 84.52808,5.0916 33.91302,2.6268 67.90998,3.9662 101.93652,4.7517 42.39619,1.155 84.7805,0.7127 127.12632,-1.3085 44.41843,-2.2473 88.74935,-5.7087 133.03247,-9.436 44.16306,-4.3789 88.29409,-8.8343 132.64934,-11.4402 43.4274,-3.2115 86.9677,-4.7454 130.5287,-5.6254 42.1823,-0.6112 84.3229,-2.1517 126.2935,-5.9209 32.4624,-3.8842 64.8607,-8.2623 97.1309,-13.2159 20.4127,-2.8191 40.6164,-6.7392 60.4201,-11.8786 4.5162,-1.2291 9.1083,-2.4094 13.4782,-4.011 4.6587,-1.7075 15.451,-7.2654 -5.5101,2.9957 3.7744,-2.1284 5.4455,-3.1 2.5065,-6.7163 -5.5887,-4.9727 -12.8869,-7.9052 -20.256,-10.3312 -9.6657,-3.3384 -20.1127,-4.1692 -30.3542,-5.2232 -15.0134,-1.3401 -30.1206,-1.5009 -45.1985,-1.649 -19.6412,-0.8461 -39.0551,-3.6864 -58.5282,-5.9092 -14.9605,-1.978 -29.8149,-4.4472 -44.673,-6.9199 -5.0664,-0.7641 -2.636,-0.4286 -7.2884,-1.0214 0,0 11.6817,-7.1363 11.6817,-7.1363 l 0,0 c 4.5861,0.682 2.1934,0.3024 7.1756,1.152 14.6269,2.6883 29.2789,5.2668 44.0719,7.1883 19.4959,2.2577 38.9648,4.999 58.6476,5.6618 15.1726,0.1695 30.3769,0.2726 45.4858,1.6256 10.3839,1.0607 20.9549,1.9027 30.7265,5.3726 7.5917,2.5978 15.1065,5.6907 20.8856,10.8395 3.1147,3.7617 3.33,5.9688 -1.4434,8.5067 -11.9575,6.0915 -19.22,10.1505 -32.3761,12.9237 -19.6488,4.8293 -39.6285,8.5991 -59.8104,11.3135 -32.104,4.8177 -64.3256,9.1049 -96.6271,12.7906 -41.9478,3.6563 -84.0607,5.1044 -126.2051,5.7615 -43.533,0.8776 -87.0416,2.4421 -130.4426,5.6287 -44.33656,2.6442 -88.45568,7.0882 -132.60576,11.449 -44.30728,3.7196 -88.662,7.169 -133.10286,9.4267 -42.46703,1.9921 -84.96776,2.419 -127.48653,1.4316 -34.14608,-0.7212 -68.26334,-1.9975 -102.30043,-4.5646 -28.31167,-1.3652 -56.55601,-3.5047 -84.86412,-4.9113 -23.02889,-1.4938 -46.06246,-2.9987 -69.16232,-3.2778 -22.46651,-0.8888 -44.90383,-2.2553 -67.31625,-3.8657 -21.31636,-1.7551 -42.81873,-2.6404 -63.81792,-6.481 -15.46132,-3.1479 -30.68716,-7.0613 -46.0158,-10.6532 -13.98645,-3.3788 -28.20073,-5.8856 -42.36263,-8.6365 -11.54343,-2.4465 -23.17159,-4.4551 -34.82538,-6.4479 -9.42746,-1.7491 -18.778206,-3.8737 -27.882136,-6.6435 -7.689168,-2.4695 -16.135233,-5.1561 -20.505785,-11.5978 -2.46148,-5.987 -0.643342,-9.448 2.44005,-14.9565 3.64913,-5.3615 7.154181,-10.8962 12.083106,-15.4725 8.163195,-6.8174 18.233795,-11.7607 28.946785,-14.8766 7.50605,-2.2535 15.23774,-3.86 22.99173,-5.3298 14.40317,-2.4821 28.81569,-4.8277 43.43374,-6.1808 22.52063,-2.3893 45.17905,-3.6515 67.757,-5.5704 23.18523,-1.1681 46.35115,-2.6277 69.51097,-4.1237 23.2126,-1.2744 46.50584,-1.589 69.75986,-1.7303 23.44651,-0.01 46.89301,0.012 70.33951,0 23.22347,-0.01 46.44702,-0.05 69.67044,0.022 23.78617,0.078 47.57439,0.1745 71.35443,0.693 25.65721,0.5712 51.30695,1.3955 76.97634,1.42 31.29635,0.5191 62.59011,1.436 93.80866,3.5042 38.72429,2.4812 77.51069,4.3859 116.34705,4.7824 44.78762,0.9133 89.55074,2.6841 134.34995,3.0257 44.2704,0.5176 88.5383,1.364 132.7576,3.3777 32.5717,1.3142 65.2977,1.594 97.61,5.8014 11.5957,1.5843 23.0765,3.5585 34.4414,6.1088 0,0 -11.9183,7.2193 -11.9183,7.2193 z"
+       d="m 1271.3147,4021.5519 c -10.9884,-2.9391 -22.2426,-4.9086 -33.5625,-6.5914 -31.9164,-4.4997 -64.3176,-4.8546 -96.5351,-6.3095 -44.126,-2.1905 -88.3156,-2.9989 -132.5026,-3.4909 -44.80226,-0.3533 -89.56779,-2.1452 -134.3597,-3.0325 -39.00782,-0.3878 -77.97534,-2.0961 -116.87885,-4.5148 -31.30612,-2.0604 -62.6906,-2.8417 -94.07374,-3.2626 -25.73069,0.043 -51.44303,-0.7598 -77.16174,-1.3147 -23.79397,-0.478 -47.59455,-0.5826 -71.39384,-0.6368 -23.21449,-0.016 -46.42901,-0.035 -69.64351,-0.033 -23.45872,3e-4 -46.91742,0.022 -70.37615,0.02 -23.23317,0.1908 -46.51427,0.4285 -69.7014,1.7862 -23.16469,1.5084 -46.33681,2.9627 -69.52845,4.1243 -22.58782,1.9784 -45.27112,3.166 -67.79032,5.6888 -14.79059,1.4252 -29.33558,3.9823 -43.88967,6.5901 -7.76282,1.5802 -15.52687,3.1914 -23.02266,5.5702 -2.553066,0.7929 -3.848495,1.135 -6.286886,2.1233 -0.945494,0.3831 -3.692632,1.6882 -2.783577,1.2433 16.870733,-8.2559 9.179223,-4.4803 4.542017,-0.8087 -5.067374,4.3826 -8.637348,9.8173 -12.221969,15.1374 -2.892027,4.828 -4.967745,8.5907 -2.939254,13.9741 4.16829,6.0278 12.389933,8.5032 19.648109,10.7634 9.06931,2.6924 18.36867,4.8027 27.74399,6.5176 11.62212,1.99 23.20019,4.0685 34.69318,6.5774 14.16158,2.7407 28.35546,5.3367 42.34699,8.6858 15.26981,3.5461 30.38092,7.5585 45.75723,10.7538 20.90726,3.7964 42.3098,4.7056 63.5292,6.4604 22.39981,1.5836 44.82037,2.9603 67.27343,3.8214 23.08447,0.2799 46.10523,1.7878 69.11314,3.3533 28.19534,1.4945 56.32255,3.7237 84.52808,5.0916 33.91302,2.6268 67.90998,3.9662 101.93652,4.7517 42.39619,1.155 84.7805,0.7127 127.12632,-1.3085 44.41843,-2.2473 88.74935,-5.7087 133.03247,-9.436 44.16306,-4.3789 88.29409,-8.8343 132.64934,-11.4402 43.4274,-3.2115 86.9677,-4.7454 130.5287,-5.6254 42.1823,-0.6112 84.3229,-2.1517 126.2935,-5.9209 32.4624,-3.8842 64.8607,-8.2623 97.1309,-13.2159 20.4127,-2.8191 40.6164,-6.7392 60.4201,-11.8786 4.5162,-1.2291 9.1083,-2.4094 13.4782,-4.011 4.6587,-1.7075 15.451,-7.2654 -5.5101,2.9957 3.7744,-2.1284 5.4455,-3.1 2.5065,-6.7163 -5.5887,-4.9727 -12.8869,-7.9052 -20.256,-10.3312 -9.6657,-3.3384 -20.1127,-4.1692 -30.3542,-5.2232 -15.0134,-1.3401 -30.1206,-1.5009 -45.1985,-1.649 -19.6412,-0.8461 -39.0551,-3.6864 -58.5282,-5.9092 -14.9605,-1.978 -29.8149,-4.4472 -44.673,-6.9199 -5.0664,-0.7641 -2.636,-0.4286 -7.2884,-1.0214 0,0 11.6817,-7.1363 11.6817,-7.1363 l 0,0 c 4.5861,0.682 2.1934,0.3024 7.1756,1.152 14.6269,2.6883 29.2789,5.2668 44.0719,7.1883 19.4959,2.2577 38.9648,4.999 58.6476,5.6618 15.1726,0.1695 30.3769,0.2726 45.4858,1.6256 10.3839,1.0607 20.9549,1.9027 30.7265,5.3726 7.5917,2.5978 15.1065,5.6907 20.8856,10.8395 3.1147,3.7617 3.33,5.9688 -1.4434,8.5067 -11.9575,6.0915 -19.22,10.1505 -32.3761,12.9237 -19.6488,4.8293 -39.6285,8.5991 -59.8104,11.3135 -32.104,4.8177 -64.3256,9.1049 -96.6271,12.7906 -41.9478,3.6563 -84.0607,5.1044 -126.2051,5.7615 -43.533,0.8776 -87.0416,2.4421 -130.4426,5.6287 -44.33656,2.6442 -88.45568,7.0882 -132.60576,11.449 -44.30728,3.7196 -88.662,7.169 -133.10286,9.4267 -42.46703,1.9921 -84.96776,2.419 -127.48653,1.4316 -34.14608,-0.7212 -68.26334,-1.9975 -102.30043,-4.5646 -28.31167,-1.3652 -56.55601,-3.5047 -84.86412,-4.9113 -23.02889,-1.4938 -46.06246,-2.9987 -69.16232,-3.2778 -22.46651,-0.8888 -44.90383,-2.2553 -67.31625,-3.8657 -21.31636,-1.7551 -42.81873,-2.6404 -63.81792,-6.481 -15.46132,-3.1479 -30.68716,-7.0613 -46.0158,-10.6532 -13.98645,-3.3788 -28.20073,-5.8856 -42.36263,-8.6365 -11.54343,-2.4465 -23.17159,-4.4551 -34.82538,-6.4479 -9.42746,-1.7491 -18.778206,-3.8737 -27.882136,-6.6435 -7.689168,-2.4695 -16.135233,-5.1561 -20.505785,-11.5978 -2.46148,-5.987 -0.643342,-9.448 2.44005,-14.9565 3.64913,-5.3615 7.154181,-10.8962 12.083106,-15.4725 8.163195,-6.8174 18.233795,-11.7607 28.946785,-14.8766 7.50605,-2.2535 15.23774,-3.86 22.99173,-5.3298 14.40317,-2.4821 28.81569,-4.8277 43.43374,-6.1808 22.52063,-2.3893 45.17905,-3.6515 67.757,-5.5704 23.18523,-1.1681 46.35115,-2.6277 69.51097,-4.1237 23.2126,-1.2744 46.50584,-1.589 69.75986,-1.7303 23.44651,-0.01 46.89301,0.012 70.33951,0 23.22347,-0.01 46.44702,-0.05 69.67044,0.022 23.78617,0.078 47.57439,0.1745 71.35443,0.693 25.65721,0.5712 51.30695,1.3955 76.97634,1.42 31.29635,0.5191 62.59011,1.436 93.80866,3.5042 38.72429,2.4812 77.51069,4.3859 116.34705,4.7824 44.78762,0.9133 89.55074,2.6841 134.34995,3.0257 44.2704,0.5176 88.5383,1.364 132.7576,3.3777 32.5717,1.3142 65.2977,1.594 97.61,5.8014 11.5957,1.5843 23.0765,3.5585 34.4414,6.1088 0,0 -11.9183,7.2193 -11.9183,7.2193 z"
        inkscape:connector-curvature="0" />
     <path
-       style="fill:#d40000;fill-opacity:0.93607309;fill-rule:nonzero;stroke:none"
+       style="fill:#d40000;fill-opacity:0.93607309000000005;fill-rule:nonzero;stroke:none;opacity:0.65020576"
        id="path5153"
-       d="m 2669.6731,872.65115 c -9.6719,1.59817 -19.4682,2.08281 -29.2482,2.45964 -17.0659,0.67024 -34.1066,0.51191 -51.1527,-0.43459 -17.7091,-1.12922 -35.4447,-1.68326 -53.1848,-1.98414 -8.9938,0.22563 -18.0733,-0.783 -27.043,0.24798 -2.3638,0.2717 -8.7729,1.55981 -11.1368,2.018 -9.0139,2.23168 -18.3247,3.66869 -27.2015,6.4069 -6.148,1.17747 -27.9773,11.07097 -3.4881,0.37932 -5.5236,3.89747 -9.9429,9.0647 -14.2146,14.24555 -4.2868,4.65422 -6.4851,10.17253 -7.6616,16.28477 -1.3917,6.85819 1.2509,12.32732 6.0706,17.02247 6.3524,5.82431 14.4315,9.07053 22.0468,12.86517 9.6489,4.11046 19.6701,7.50437 29.8935,9.86907 15.1269,3.50916 30.4401,6.21255 45.7616,8.72654 19.0837,3.40992 38.3451,5.87039 57.6237,7.88908 17.5511,2.54781 35.2035,4.07729 52.9118,4.90213 14.7382,0.57228 29.4898,0.58466 44.2367,0.58961 13.834,-0.93432 27.6473,-2.06148 41.5038,-2.62018 14.5149,-0.48548 29.0404,-0.51653 43.5619,-0.57109 12.0406,-0.19798 24.1013,0.78799 35.9935,-1.40839 1.597,-0.63484 6.3483,-2.63086 4.7909,-1.90453 -2.9832,1.3912 -5.8291,3.3347 -9.0716,3.90087 -1.6978,0.29646 2.8132,-1.99372 4.1779,-3.0464 3.6381,-2.80628 6.6917,-5.77845 9.6184,-9.2984 4.3319,-4.56194 6.7701,-9.7754 7.8945,-15.88518 1.5437,-7.27211 -0.6311,-13.52957 -3.701,-20.02704 -5.2301,-8.89053 -13.3503,-15.37473 -20.982,-22.09762 -6.6417,-5.89988 -14.2993,-10.03693 -22.3406,-13.6433 -9.0475,-3.53175 -18.5369,-5.81072 -28.1281,-7.2467 -12.5291,-2.10426 -25.1413,-3.55278 -37.6121,-6.00964 -12.5838,-2.93207 -25.3085,-4.99013 -38.0279,-7.20308 -13.1306,-2.82213 -26.4214,-3.20721 -39.7785,-2.73645 -18.6357,0.42073 -37.1852,2.28674 -55.7727,3.55073 -14.052,0.89984 -28.13,1.20217 -42.2062,1.38826 0,0 12.6317,-7.7647 12.6317,-7.7647 l 0,0 c 14.0323,-0.20182 28.0675,-0.49133 42.0753,-1.40047 18.6371,-1.24834 37.2364,-3.08032 55.9171,-3.58222 13.4524,-0.44371 26.8407,0.0695 40.0528,2.92717 12.7323,2.16148 25.4221,4.40839 38.0275,7.23975 12.5049,2.37668 25.1327,3.8757 37.6959,5.89424 9.6812,1.54329 19.2923,3.86743 28.392,7.56507 8.1511,3.67176 15.8293,8.03275 22.5024,14.07452 7.7631,6.88212 15.9752,13.54926 21.3173,22.60852 3.2559,6.70173 5.6624,13.26932 4.2084,20.83198 -1.0008,6.35299 -3.1492,11.9561 -7.7365,16.65555 -9.2079,11.8023 -22.32,19.07089 -36.6899,23.31851 -11.9165,1.8662 -23.9694,0.90677 -35.9912,1.11258 -14.5069,0.0259 -29.0176,0.068 -43.5163,0.61264 -13.8668,0.61975 -27.6908,1.79755 -41.5473,2.57011 -14.7236,-0.0344 -29.4533,-0.0561 -44.1652,-0.71614 -17.6784,-0.90784 -35.2956,-2.52026 -52.8213,-5.0543 -19.3156,-2.07802 -38.6144,-4.5449 -57.7495,-7.91186 -15.4065,-2.53149 -30.8191,-5.16641 -46.0348,-8.68344 -10.3182,-2.45713 -20.5011,-5.78811 -30.1971,-10.09409 -7.782,-3.82425 -15.9405,-7.25239 -22.3591,-13.25262 -5.0245,-5.05542 -8.0575,-11.03883 -6.7391,-18.34601 1.0693,-6.30176 3.0244,-12.17408 7.4114,-17.00917 4.2089,-5.32267 8.7474,-10.45193 14.0467,-14.72369 10.1983,-5.06774 19.8875,-10.40904 30.9567,-13.12633 8.9453,-2.39383 18.0754,-4.19774 27.1167,-6.18334 12.6498,-2.33267 25.2927,-2.50767 38.1379,-1.87684 17.7157,0.37259 35.4249,0.98779 53.1122,2.08865 17.0901,0.8952 34.1802,0.95424 51.2821,0.1863 9.9396,-0.47794 19.8403,-1.25442 29.6953,-2.65767 0,0 -13.1657,8.06794 -13.1657,8.06794 z"
+       d="m 2668.1106,878.90115 c -9.6719,1.59817 -19.4682,2.08281 -29.2482,2.45964 -17.0659,0.67024 -34.1066,0.51191 -51.1527,-0.43459 -17.7091,-1.12922 -35.4447,-1.68326 -53.1848,-1.98414 -8.9938,0.22563 -18.0733,-0.783 -27.043,0.24798 -2.3638,0.2717 -8.7729,1.55981 -11.1368,2.018 -9.0139,2.23168 -18.3247,3.66869 -27.2015,6.4069 -6.148,1.17747 -27.9773,11.07097 -3.4881,0.37932 -5.5236,3.89747 -9.9429,9.0647 -14.2146,14.24555 -4.2868,4.65422 -6.4851,10.17253 -7.6616,16.28477 -1.3917,6.85819 1.2509,12.32732 6.0706,17.02247 6.3524,5.82431 14.4315,9.07053 22.0468,12.86517 9.6489,4.11046 19.6701,7.50437 29.8935,9.86907 15.1269,3.50916 30.4401,6.21255 45.7616,8.72654 19.0837,3.40992 38.3451,5.87039 57.6237,7.88908 17.5511,2.54781 35.2035,4.07729 52.9118,4.90213 14.7382,0.57228 29.4898,0.58466 44.2367,0.58961 13.834,-0.93432 27.6473,-2.06148 41.5038,-2.62018 14.5149,-0.48548 29.0404,-0.51653 43.5619,-0.57109 12.0406,-0.19798 24.1013,0.78799 35.9935,-1.40839 1.597,-0.63484 6.3483,-2.63086 4.7909,-1.90453 -2.9832,1.3912 -5.8291,3.3347 -9.0716,3.90087 -1.6978,0.29646 2.8132,-1.99372 4.1779,-3.0464 3.6381,-2.80628 6.6917,-5.77845 9.6184,-9.2984 4.3319,-4.56194 6.7701,-9.7754 7.8945,-15.88518 1.5437,-7.27211 -0.6311,-13.52957 -3.701,-20.02704 -5.2301,-8.89053 -13.3503,-15.37473 -20.982,-22.09762 -6.6417,-5.89988 -14.2993,-10.03693 -22.3406,-13.6433 -9.0475,-3.53175 -18.5369,-5.81072 -28.1281,-7.2467 -12.5291,-2.10426 -25.1413,-3.55278 -37.6121,-6.00964 -12.5838,-2.93207 -25.3085,-4.99013 -38.0279,-7.20308 -13.1306,-2.82213 -26.4214,-3.20721 -39.7785,-2.73645 -18.6357,0.42073 -37.1852,2.28674 -55.7727,3.55073 -14.052,0.89984 -28.13,1.20217 -42.2062,1.38826 0,0 12.6317,-7.7647 12.6317,-7.7647 l 0,0 c 14.0323,-0.20182 28.0675,-0.49133 42.0753,-1.40047 18.6371,-1.24834 37.2364,-3.08032 55.9171,-3.58222 13.4524,-0.44371 26.8407,0.0695 40.0528,2.92717 12.7323,2.16148 25.4221,4.40839 38.0275,7.23975 12.5049,2.37668 25.1327,3.8757 37.6959,5.89424 9.6812,1.54329 19.2923,3.86743 28.392,7.56507 8.1511,3.67176 15.8293,8.03275 22.5024,14.07452 7.7631,6.88212 15.9752,13.54926 21.3173,22.60852 3.2559,6.70173 5.6624,13.26932 4.2084,20.83198 -1.0008,6.35299 -3.1492,11.9561 -7.7365,16.65555 -9.2079,11.8023 -22.32,19.07089 -36.6899,23.31851 -11.9165,1.8662 -23.9694,0.90677 -35.9912,1.11258 -14.5069,0.0259 -29.0176,0.068 -43.5163,0.61264 -13.8668,0.61975 -27.6908,1.79755 -41.5473,2.57011 -14.7236,-0.0344 -29.4533,-0.0561 -44.1652,-0.71614 -17.6784,-0.90784 -35.2956,-2.52026 -52.8213,-5.0543 -19.3156,-2.07802 -38.6144,-4.5449 -57.7495,-7.91186 -15.4065,-2.53149 -30.8191,-5.16641 -46.0348,-8.68344 -10.3182,-2.45713 -20.5011,-5.78811 -30.1971,-10.09409 -7.782,-3.82425 -15.9405,-7.25239 -22.3591,-13.25262 -5.0245,-5.05542 -8.0575,-11.03883 -6.7391,-18.34601 1.0693,-6.30176 3.0244,-12.17408 7.4114,-17.00917 4.2089,-5.32267 8.7474,-10.45193 14.0467,-14.72369 10.1983,-5.06774 19.8875,-10.40904 30.9567,-13.12633 8.9453,-2.39383 18.0754,-4.19774 27.1167,-6.18334 12.6498,-2.33267 25.2927,-2.50767 38.1379,-1.87684 17.7157,0.37259 35.4249,0.98779 53.1122,2.08865 17.0901,0.8952 34.1802,0.95424 51.2821,0.1863 9.9396,-0.47794 19.8403,-1.25442 29.6953,-2.65767 0,0 -13.1657,8.06794 -13.1657,8.06794 z"
        inkscape:connector-curvature="0" />
     <path
        style="fill:#d40000;fill-opacity:0.93607309;fill-rule:nonzero;stroke:none"
        id="path5155"
-       d="m 824.54761,567.76391 c -9.66477,-2.70454 -19.6491,-4.70508 -29.8594,-6.45229 -13.32004,-2.40101 -27.03549,-2.66388 -40.77226,-2.05437 -13.10815,0.98955 -25.9485,2.8786 -38.71114,4.91053 -0.55887,0.10961 -8.38234,1.63857 -9.20836,1.82084 -1.29692,0.28617 -5.08676,1.30129 -3.84119,0.93905 17.37491,-5.0531 7.17785,-1.92755 3.49272,-0.25591 -5.66427,2.35103 -9.62765,5.68684 -13.33989,9.1458 -3.54461,3.59242 -5.6605,7.54075 -6.94317,11.64124 -0.94584,3.56265 -0.96459,7.17978 -1.02928,10.77898 0.45637,4.41224 2.3631,8.69811 4.91921,12.81046 3.20833,5.02746 6.71717,8.56306 12.87594,12.38557 5.44323,3.40757 12.19749,5.83559 19.00412,8.06096 7.71264,2.33547 15.8844,3.95246 24.04654,5.56225 10.17496,1.70131 20.65938,2.70346 31.09977,3.58555 12.38765,0.80092 24.83718,0.99904 37.25456,1.59271 14.97723,0.76107 30.00303,0.98406 45.02308,1.12866 14.80933,0.028 29.58709,4.3e-4 44.36807,0.59119 12.63063,0.58336 25.28505,0.89142 37.94644,1.05298 11.21821,0.032 22.4512,0.30847 33.65438,-0.10982 10.82451,-0.48339 21.66693,-0.8457 32.26735,-2.34867 8.3277,-1.01072 16.207,-2.84634 23.9568,-4.91834 1.2171,-0.33835 4.881,-1.3356 3.6513,-1.01505 -9.6456,2.51418 -11.3597,3.42317 -5.6309,1.1034 2.6628,-1.0782 4.9976,-2.13057 7.2564,-3.51143 4.0322,-2.50972 5.6468,-5.64095 6.4925,-9.03437 1.5223,-5.90595 -0.4201,-10.84808 -3.992,-16.29997 -4.6585,-6.6112 -11.4425,-12.56106 -18.4063,-18.32083 -5.9488,-5.6823 -13.2686,-10.48054 -21.75964,-14.72606 -14.85841,-7.14476 -31.8906,-10.52533 -49.69062,-13.81066 -40.98693,-6.78213 -83.18412,-10.44555 -125.08185,-14.41708 -40.57771,-3.85643 -81.37984,-7.42083 -122.42372,-8.76411 -10.95427,-0.35852 -21.93145,-0.36681 -32.89716,-0.55022 0,0 8.96832,-3.35748 8.96832,-3.35748 l 0,0 c 10.98955,0.18755 21.99028,0.20489 32.96865,0.56263 41.19493,1.3424 82.14359,4.88275 122.89834,8.64516 42.31999,3.88005 84.92654,7.43385 126.38631,14.06432 18.30836,3.27985 35.2258,6.59428 50.51407,13.88664 8.6035,4.27457 15.9774,9.1447 21.98,14.8884 6.9513,5.84631 13.7564,11.85999 18.5261,18.50919 3.7052,5.53958 5.849,10.59614 4.5004,16.632 -0.7009,3.51471 -2.1793,6.83796 -6.1875,9.51472 -7.6696,5.23423 -19.0973,7.6243 -29.1714,10.57476 -7.7597,2.05233 -15.7314,3.7442 -24.03794,4.76207 -10.63611,1.35293 -21.46103,1.72992 -32.277,2.19936 -11.22639,0.3583 -22.47443,0.12181 -33.71108,0.0566 -12.63451,-0.18563 -25.25867,-0.53586 -37.86215,-1.12329 -14.74745,-0.5649 -29.49661,-0.51594 -44.26888,-0.5835 -15.05688,-0.1464 -30.11938,-0.37384 -45.13253,-1.1438 -12.47793,-0.56544 -24.99966,-0.70384 -37.43361,-1.5864 -10.49979,-0.91766 -21.05705,-1.90352 -31.27133,-3.68359 -8.24797,-1.60232 -16.48369,-3.26918 -24.23098,-5.66948 -6.90703,-2.27455 -13.70798,-4.7939 -19.20049,-8.27873 -5.90989,-3.71904 -10.06895,-7.81701 -13.1032,-12.69174 -2.64158,-4.19843 -4.64178,-8.56179 -5.20505,-13.06852 0.002,-3.64512 0.0519,-7.30613 0.94667,-10.91812 1.24176,-4.19104 3.31217,-8.23554 6.78931,-11.94865 3.63876,-3.52115 7.50941,-7.00499 13.17768,-9.40155 9.50041,-4.83315 21.78067,-7.19679 33.43819,-9.36535 12.75612,-1.99356 25.60373,-3.836 38.70788,-4.73349 13.84901,-0.529 27.67218,-0.19213 41.0724,2.26068 10.33951,1.76539 20.38943,3.89936 30.3267,6.39199 0,0 -11.83018,4.0842 -11.83018,4.0842 z"
+       d="m 877.58062,620.79692 c -9.66477,-2.70454 -19.6491,-4.70508 -29.8594,-6.45229 -13.32004,-2.40101 -27.03549,-2.66388 -40.77226,-2.05437 -13.10815,0.98955 -25.9485,2.8786 -38.71114,4.91053 -0.55887,0.10961 -8.38234,1.63857 -9.20836,1.82084 -1.29692,0.28617 -5.08676,1.30129 -3.84119,0.93905 17.37491,-5.0531 7.17785,-1.92755 3.49272,-0.25591 -5.66427,2.35103 -9.62765,5.68684 -13.33989,9.1458 -3.54461,3.59242 -5.6605,7.54075 -6.94317,11.64124 -0.94584,3.56265 -0.96459,7.17978 -1.02928,10.77898 0.45637,4.41224 2.3631,8.69811 4.91921,12.81046 3.20833,5.02746 6.71717,8.56306 12.87594,12.38557 5.44323,3.40757 12.19749,5.83559 19.00412,8.06096 7.71264,2.33547 15.8844,3.95246 24.04654,5.56225 10.17496,1.70131 20.65938,2.70346 31.09977,3.58555 12.38765,0.80092 24.83718,0.99904 37.25456,1.59271 14.97723,0.76107 30.00303,0.98406 45.02308,1.12866 14.80933,0.028 29.58709,4.3e-4 44.36807,0.59119 12.63063,0.58336 25.28505,0.89142 37.94644,1.05298 11.21822,0.032 22.45122,0.30847 33.65442,-0.10982 10.8245,-0.48339 21.6669,-0.8457 32.2673,-2.34867 8.3277,-1.01072 16.207,-2.84634 23.9568,-4.91834 1.2171,-0.33835 4.881,-1.3356 3.6513,-1.01505 -9.6456,2.51418 -11.3597,3.42317 -5.6309,1.1034 2.6628,-1.0782 4.9976,-2.13057 7.2564,-3.51143 4.0322,-2.50972 5.6468,-5.64095 6.4925,-9.03437 1.5223,-5.90595 -0.4201,-10.84808 -3.992,-16.29997 -4.6585,-6.6112 -11.4425,-12.56106 -18.4063,-18.32083 -5.9488,-5.6823 -13.2686,-10.48054 -21.7596,-14.72606 -14.8584,-7.14476 -31.8906,-10.52533 -49.6907,-13.81066 -40.98688,-6.78213 -83.18407,-10.44555 -125.0818,-14.41708 -40.57771,-3.85643 -81.37984,-7.42083 -122.42372,-8.76411 -10.95427,-0.35852 -21.93145,-0.36681 -32.89716,-0.55022 0,0 8.96832,-3.35748 8.96832,-3.35748 l 0,0 c 10.98955,0.18755 21.99028,0.20489 32.96865,0.56263 41.19493,1.3424 82.14359,4.88275 122.89834,8.64516 42.31999,3.88005 84.92654,7.43385 126.38627,14.06432 18.3084,3.27985 35.2258,6.59428 50.5141,13.88664 8.6035,4.27457 15.9774,9.1447 21.98,14.8884 6.9513,5.84631 13.7564,11.85999 18.5261,18.50919 3.7052,5.53958 5.849,10.59614 4.5004,16.632 -0.7009,3.51471 -2.1793,6.83796 -6.1875,9.51472 -7.6696,5.23423 -19.0973,7.6243 -29.1714,10.57476 -7.7597,2.05233 -15.7314,3.7442 -24.0379,4.76207 -10.6361,1.35293 -21.4611,1.72992 -32.277,2.19936 -11.2264,0.3583 -22.47446,0.12181 -33.71111,0.0566 -12.63451,-0.18563 -25.25867,-0.53586 -37.86215,-1.12329 -14.74745,-0.5649 -29.49661,-0.51594 -44.26888,-0.5835 -15.05688,-0.1464 -30.11938,-0.37384 -45.13253,-1.1438 -12.47793,-0.56544 -24.99966,-0.70384 -37.43361,-1.5864 -10.49979,-0.91766 -21.05705,-1.90352 -31.27133,-3.68359 -8.24797,-1.60232 -16.48369,-3.26918 -24.23098,-5.66948 -6.90703,-2.27455 -13.70798,-4.7939 -19.20049,-8.27873 -5.90989,-3.71904 -10.06895,-7.81701 -13.1032,-12.69174 -2.64158,-4.19843 -4.64178,-8.56179 -5.20505,-13.06852 0.002,-3.64512 0.0519,-7.30613 0.94667,-10.91812 1.24176,-4.19104 3.31217,-8.23554 6.78931,-11.94865 3.63876,-3.52115 7.50941,-7.00499 13.17768,-9.40155 9.50041,-4.83315 21.78067,-7.19679 33.43819,-9.36535 12.75612,-1.99356 25.60373,-3.836 38.70788,-4.73349 13.84901,-0.529 27.67218,-0.19213 41.0724,2.26068 10.33951,1.76539 20.38943,3.89936 30.3267,6.39199 0,0 -11.83018,4.0842 -11.83018,4.0842 z"
        inkscape:connector-curvature="0" />
     <path
        style="fill:#d40000;fill-opacity:0.93607309;fill-rule:nonzero;stroke:none"
@@ -3095,8 +3115,62 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
     <path
        style="fill:#d40000;fill-opacity:0.93607309;fill-rule:nonzero;stroke:none"
        id="path5153-8"
-       d="m 1793.818,1185.4985 c -6.4632,1.3732 -13.0096,1.7896 -19.5451,2.1134 -11.4043,0.5758 -22.7917,0.4398 -34.1828,-0.3734 -11.8341,-0.9702 -23.6859,-1.4463 -35.5408,-1.7048 -6.0101,0.1939 -12.0774,-0.6728 -18.0714,0.213 -1.5797,0.2335 -5.8625,1.3402 -7.4422,1.7339 -6.0235,1.9175 -12.2455,3.1522 -18.1774,5.5048 -4.1084,1.0117 -18.6958,9.5122 -2.3309,0.3259 -3.6912,3.3487 -6.6444,7.7884 -9.4989,12.2398 -2.8647,3.9989 -4.3337,8.7402 -5.1199,13.9919 -0.93,5.8926 0.8359,10.5916 4.0567,14.6256 4.245,5.0043 9.6438,7.7935 14.7327,11.0538 6.4479,3.5317 13.1446,6.4478 19.9764,8.4795 10.1085,3.015 20.3416,5.3378 30.5802,7.4978 12.7527,2.9298 25.6241,5.0439 38.507,6.7783 11.7285,2.1891 23.5248,3.5032 35.3583,4.2119 9.8488,0.4917 19.7066,0.5023 29.5612,0.5066 9.2446,-0.8028 18.4753,-1.7712 27.7349,-2.2512 9.6996,-0.4171 19.4063,-0.4439 29.1103,-0.4907 8.0461,-0.1701 16.1057,0.6771 24.0526,-1.2101 1.0672,-0.5455 4.2423,-2.2604 3.2016,-1.6364 -1.9936,1.1953 -3.8953,2.8652 -6.0621,3.3516 -1.1346,0.2548 1.8799,-1.7129 2.7918,-2.6174 2.4312,-2.4112 4.4718,-4.9648 6.4275,-7.9892 2.8948,-3.9196 4.5242,-8.399 5.2755,-13.6485 1.0316,-6.2482 -0.4217,-11.6246 -2.4732,-17.2072 -3.495,-7.6387 -8.9213,-13.21 -14.0212,-18.9863 -4.4383,-5.0692 -9.5555,-8.6238 -14.9291,-11.7223 -6.046,-3.0345 -12.3873,-4.9925 -18.7966,-6.2263 -8.3726,-1.8081 -16.8007,-3.0526 -25.1343,-5.1636 -8.4091,-2.5191 -16.9124,-4.2875 -25.4121,-6.1888 -8.7746,-2.4248 -17.6561,-2.7557 -26.582,-2.3512 -12.4533,0.3615 -24.849,1.9648 -37.2701,3.0508 -9.3903,0.7732 -18.7979,1.0329 -28.2043,1.1928 0,0 8.4411,-6.6714 8.4411,-6.6714 l 0,0 c 9.3771,-0.1734 18.7561,-0.4221 28.1168,-1.2033 12.4543,-1.0726 24.8833,-2.6466 37.3666,-3.0778 8.9896,-0.3813 17.9363,0.06 26.7653,2.515 8.5084,1.8572 16.9883,3.7877 25.4119,6.2203 8.3564,2.0421 16.7949,3.33 25.1903,5.0644 6.4695,1.326 12.8921,3.3229 18.973,6.4999 5.4469,3.1548 10.5779,6.9017 15.0372,12.0928 5.1877,5.9131 10.6754,11.6415 14.2453,19.4252 2.1757,5.7581 3.7839,11.401 2.8122,17.8989 -0.6687,5.4584 -2.1044,10.2727 -5.1699,14.3104 -6.1532,10.1405 -14.9153,16.3857 -24.518,20.0352 -7.9632,1.6034 -16.0176,0.779 -24.0511,0.956 -9.6943,0.022 -19.391,0.058 -29.0798,0.5263 -9.2665,0.5324 -18.5044,1.5444 -27.764,2.2082 -9.839,-0.029 -19.6822,-0.048 -29.5134,-0.6152 -11.8136,-0.7801 -23.5863,-2.1655 -35.2978,-4.3427 -12.9077,-1.7855 -25.8041,-3.905 -38.5911,-6.7979 -10.2954,-2.175 -20.5949,-4.439 -30.7628,-7.4608 -6.8951,-2.1111 -13.6999,-4.9731 -20.1792,-8.6728 -5.2003,-3.2858 -10.6523,-6.2313 -14.9415,-11.3866 -3.3576,-4.3436 -5.3844,-9.4846 -4.5034,-15.7629 0.7146,-5.4145 2.0211,-10.46 4.9527,-14.6143 2.8126,-4.5732 5.8454,-8.9802 9.3867,-12.6506 6.815,-4.3541 13.2898,-8.9434 20.6868,-11.2781 5.9777,-2.0567 12.0789,-3.6066 18.1207,-5.3127 8.4533,-2.0042 16.9019,-2.1546 25.4857,-1.6126 11.8385,0.3201 23.6727,0.8487 35.4922,1.7946 11.4205,0.7692 22.841,0.8199 34.2693,0.1601 6.6421,-0.4107 13.2583,-1.0779 19.8439,-2.2835 0,0 -8.798,6.9319 -8.798,6.9319 z"
+       d="m 1798.2374,1256.2092 c -6.4632,1.3732 -13.0096,1.7896 -19.5451,2.1134 -11.4043,0.5758 -22.7917,0.4398 -34.1828,-0.3734 -11.8341,-0.9702 -23.6859,-1.4463 -35.5408,-1.7048 -6.0101,0.1939 -12.0774,-0.6728 -18.0714,0.213 -1.5797,0.2335 -5.8625,1.3402 -7.4422,1.7339 -6.0235,1.9175 -12.2455,3.1522 -18.1774,5.5048 -4.1084,1.0117 -18.6958,9.5122 -2.3309,0.3259 -3.6912,3.3487 -6.6444,7.7884 -9.4989,12.2398 -2.8647,3.9989 -4.3337,8.7402 -5.1199,13.9919 -0.93,5.8926 0.8359,10.5916 4.0567,14.6256 4.245,5.0043 9.6438,7.7935 14.7327,11.0538 6.4479,3.5317 13.1446,6.4478 19.9764,8.4795 10.1085,3.015 20.3416,5.3378 30.5802,7.4978 12.7527,2.9298 25.6241,5.0439 38.507,6.7783 11.7285,2.1891 23.5248,3.5032 35.3583,4.2119 9.8488,0.4917 19.7066,0.5023 29.5612,0.5066 9.2446,-0.8028 18.4753,-1.7712 27.7349,-2.2512 9.6996,-0.4171 19.4063,-0.4439 29.1103,-0.4907 8.0461,-0.1701 16.1057,0.6771 24.0526,-1.2101 1.0672,-0.5455 4.2423,-2.2604 3.2016,-1.6364 -1.9936,1.1953 -3.8953,2.8652 -6.0621,3.3516 -1.1346,0.2548 1.8799,-1.7129 2.7918,-2.6174 2.4312,-2.4112 4.4718,-4.9648 6.4275,-7.9892 2.8948,-3.9196 4.5242,-8.399 5.2755,-13.6485 1.0316,-6.2482 -0.4217,-11.6246 -2.4732,-17.2072 -3.495,-7.6387 -8.9213,-13.21 -14.0212,-18.9863 -4.4383,-5.0692 -9.5555,-8.6238 -14.9291,-11.7223 -6.046,-3.0345 -12.3873,-4.9925 -18.7966,-6.2263 -8.3726,-1.8081 -16.8007,-3.0526 -25.1343,-5.1636 -8.4091,-2.5191 -16.9124,-4.2875 -25.4121,-6.1888 -8.7746,-2.4248 -17.6561,-2.7557 -26.582,-2.3512 -12.4533,0.3615 -24.849,1.9648 -37.2701,3.0508 -9.3903,0.7732 -18.7979,1.0329 -28.2043,1.1928 0,0 8.4411,-6.6714 8.4411,-6.6714 l 0,0 c 9.3771,-0.1734 18.7561,-0.4221 28.1168,-1.2033 12.4543,-1.0726 24.8833,-2.6466 37.3666,-3.0778 8.9896,-0.3813 17.9363,0.06 26.7653,2.515 8.5084,1.8572 16.9883,3.7877 25.4119,6.2203 8.3564,2.0421 16.7949,3.33 25.1903,5.0644 6.4695,1.326 12.8921,3.3229 18.973,6.4999 5.4469,3.1548 10.5779,6.9017 15.0372,12.0928 5.1877,5.9131 10.6754,11.6415 14.2453,19.4252 2.1757,5.7581 3.7839,11.401 2.8122,17.8989 -0.6687,5.4584 -2.1044,10.2727 -5.1699,14.3104 -6.1532,10.1405 -14.9153,16.3857 -24.518,20.0352 -7.9632,1.6034 -16.0176,0.779 -24.0511,0.956 -9.6943,0.022 -19.391,0.058 -29.0798,0.5263 -9.2665,0.5324 -18.5044,1.5444 -27.764,2.2082 -9.839,-0.029 -19.6822,-0.048 -29.5134,-0.6152 -11.8136,-0.7801 -23.5863,-2.1655 -35.2978,-4.3427 -12.9077,-1.7855 -25.8041,-3.905 -38.5911,-6.7979 -10.2954,-2.175 -20.5949,-4.439 -30.7628,-7.4608 -6.8951,-2.1111 -13.6999,-4.9731 -20.1792,-8.6728 -5.2003,-3.2858 -10.6523,-6.2313 -14.9415,-11.3866 -3.3576,-4.3436 -5.3844,-9.4846 -4.5034,-15.7629 0.7146,-5.4145 2.0211,-10.46 4.9527,-14.6143 2.8126,-4.5732 5.8454,-8.9802 9.3867,-12.6506 6.815,-4.3541 13.2898,-8.9434 20.6868,-11.2781 5.9777,-2.0567 12.0789,-3.6066 18.1207,-5.3127 8.4533,-2.0042 16.9019,-2.1546 25.4857,-1.6126 11.8385,0.3201 23.6727,0.8487 35.4922,1.7946 11.4205,0.7692 22.841,0.8199 34.2693,0.1601 6.6421,-0.4107 13.2583,-1.0779 19.8439,-2.2835 0,0 -8.798,6.9319 -8.798,6.9319 z"
        inkscape:connector-curvature="0" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer9"
+     inkscape:label="fleches"
+     style="display:inline">
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:2.9519999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 668.60663,803.50273 -57.06562,6.72823 4.59596,18.10755 -48.03762,-18.58046 36.27288,-30.3859 3.30797,16.39446 55.96147,-7.53051 z"
+       id="path3518"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:2.9519999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 727.92769,1495.3925 55.71064,14.074 2.16679,-18.5557 38.24732,34.4963 -44.72666,15.445 2.75882,-16.4957 -54.96539,-12.9306 z"
+       id="path3518-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:2.9519999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 2115.9033,1182.3385 16.9318,54.9096 16.9787,-7.7932 -9.5919,50.6048 -36.4416,-30.1832 15.5265,-6.2168 -17.5213,-53.6786 z"
+       id="path3518-7-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:4.98383188;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 722.66424,2055.9788 94.05572,23.761 3.65817,-31.3274 64.57256,58.2398 -75.51157,26.0756 4.65769,-27.8495 -92.79751,-21.8306 z"
+       id="path3518-7-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:4.98383188;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 2147.9311,2070.8255 90.1325,35.878 7.7306,-30.5782 56.3864,66.1971 -78.2769,15.9586 8.266,-26.9992 -89.1378,-33.7994 z"
+       id="path3518-7-1-3"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:3.7229476;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 585.72925,2955.3426 -54.3765,-47.9032 -13.1277,19.5646 -23.0148,-60.7433 59.0733,8.46 -12.6041,16.9126 54.1997,46.191 z"
+       id="path3518-7-1-2"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:4.98383188;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 1837.8062,2843.381 88.6403,-39.4204 -16.4766,-26.8944 86.756,5.9061 -43.2703,67.1537 -13.542,-24.777 -86.4584,40.161 z"
+       id="path3518-7-1-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="opacity:0.67078193;fill:#a5b675;fill-opacity:1;stroke:#090909;stroke-width:4.98383188;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:0.60000002;stroke-opacity:1;stroke-dasharray:none"
+       d="m 2176.0341,4064.4258 92.1362,-30.3642 -13.7062,-28.4065 85.7314,14.5471 -49.765,62.4929 -10.998,-26.0064 -90.0392,31.3193 z"
+       id="path3518-7-1-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
   </g>
   <flowRoot
      xml:space="preserve"
@@ -3108,4 +3182,45 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
          height="39.0625"
          x="-1241.4062"
          y="1461.4297" /></flowRegion><flowPara
-       id="flowPara6518" /></flowRoot></svg>
+       id="flowPara6518" /></flowRoot>  <g
+     inkscape:groupmode="layer"
+     id="layer10"
+     inkscape:label="logos"
+     style="display:inline">
+    <image
+       y="469.52054"
+       x="2734.5884"
+       id="image5223"
+       xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter04.jpg"
+       height="80"
+       width="170" />
+    <image
+       y="469.25424"
+       x="2517.106"
+       id="image5333"
+       xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter05.jpg"
+       height="68.522453"
+       width="68.522453" />
+    <image
+       y="469.79187"
+       x="2098.45"
+       id="image5411"
+       xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter06.jpg"
+       height="82"
+       width="250" />
+    <image
+       y="472.9455"
+       x="2613.1226"
+       id="image5489"
+       xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter07.png"
+       height="70.80748"
+       width="104.02012" />
+    <image
+       y="472.26569"
+       x="2350.9294"
+       id="image5551"
+       xlink:href="file:///home/lindenb/src/xml4ngs/doc/jobim2013/poster/jeter08.png"
+       height="79.089844"
+       width="145.25452" />
+  </g>
+</svg>
