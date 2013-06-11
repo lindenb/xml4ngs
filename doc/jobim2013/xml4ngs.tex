@@ -1,0 +1,137 @@
+\documentclass[long, final]{jobim2013}
+% Available options are:
+% - long [default]
+% - short
+% - showframe 
+% - draft
+% - final [default]
+
+\usepackage[utf8]{inputenc}
+\usepackage{multicol}
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{fancyvrb}
+
+\definecolor{lightgray}{rgb}{0.9,0.9,0.9} 
+
+\labelformat{figure}{\figurename~#1}
+\labelformat{table}{\tablename~#1}
+
+% ATTENTION : paquets déja chargés : 
+% - hyperref
+% - times
+% - color
+% - xspace
+% - graphicx
+% - fancyhdr
+% - fancybox
+% - indentfirst
+% - geometry
+% - babel (option english,french) :
+%   possibilité de choisir la langue \selectlanguage{<language>}
+
+%Modif_PB: remove page numbers and headings, additional space between paragraphs
+\pagestyle{empty}
+\addtolength{\parskip}{0.4\baselineskip}
+\labelformat{figure}{Fig.~#1}
+
+%% Title of the paper (required)
+\title{XML4NGS : A XML-based description of a Next-Generation sequencing project allowing the generation of a 'Makefile'-driven workflow.}
+
+%% Titre du papier (requis pour les versions francaises)
+\titre{XML4NGS : Une description en XML de projet de séquençage à haut débit permettant la génération de scripts analyse basés sur 'Make'.}
+
+%% If any, subtitle of the paper
+%%\subtitle{a XML transformation (XSLT) transforms the XML to a Makefile.}
+
+%% Sous-titre du papier, si le sous-titre en anglais est fourni et si la
+%% contribution est en francais.
+%%\soustitre{Une transformation XML (XSLT) transforme le XML en Makefile.}
+
+%% List of authors (separated by the macro \and).
+%% Authors can be followed by \inst{<n>} macro.
+%% The <n> parameter of the \inst macro should correspond to the <n>th institution
+%% (see macro \institute below).
+\author{Pierre \textsc{Lindenbaum}\inst{1} \and Raluca \textsc{Teusan}\inst{2} \and Solena \textsc{Le-Scouarnec}\inst{2} \and Audrey \textsc{Bihou\'{e}e}\inst{2} \and Richard \textsc{Redon}\inst{2}}
+
+%% List of institutions (separated by the macro \and).
+\institute{
+ CHU Nantes / UMR-1087,
+  \href{http://www.umr1087.univ-nantes.fr/}{Institut du Thorax},
+ 8 quai Moncousu, 44007,
+ Nantes, France
+ \\\href{http://plindenbaum.blogspot.com}{\email{pierre.lindenbaum@univ-nantes.fr} \href{https://twitter.com/yokofakun}{@yokofakun}}
+ \and
+ UMR-1087,
+ \href{http://www.umr1087.univ-nantes.fr/}{Institut du Thorax},
+ 8 quai Moncousu, 44007, Nantes, France.
+}
+
+\abstract{XML4NGS is a schema describing a NGS experiment in XML. It provides a XSLT stylesheet transforming the XML into a Makefile-driven workflow allowing a parallel analysis (alignment, calling,  annotation ... ) on a cluster.}
+
+%% List of keywords of the paper (required).
+\keywords{NGS, XSLT, XML, workflow, pipeline, make, makefile, qmake, cluster, next-generation-sequencing.}
+
+
+%% Version francaise de la liste des mots-clés (requis pour les versions
+%% francaises).
+\motscles{ XML, XSLT, NGS, pipeline, s\'{e}{}quençage, cluster, make, qmake.}
+
+\resume{XML4NGS est un schéma décrivant une expérience de NGS en XML, le projet contient une feuille de style XSLT permettant de transformer ce document XML en fichier 'Makefile' permettant ainsi son analyse sur un cluster.}
+
+\begin{document}
+
+ % If you write in English, uncomment the following line
+ %\selectlanguage{english}
+ % Si vous écrivez en francais, décommentez la ligne suivante...
+ \selectlanguage{francais}
+
+ %% You can locally force the language setting.
+ %% Here I do switch to french in order to display the
+ %% additional heading informations when writing french documents
+ \begin{otherlanguage}{english}
+   \maketitle
+ \end{otherlanguage}
+
+\section{Introduction}
+Lors de projets de reséquençage d'exome ou de génome entiers, de nombreuses étapes sont indépendantes les unes des autres et peuvent être traitées en parallèle. Ainsi les alignements sur un génome de référence de deux fichiers FASTQ pour deux échantillons différents sont indépendants et peuvent être traités en parallèle. Un outil d'automatisation des tâches tel que le vénérable 'make'\cite{make} est particulièrement adapté à ce genre d'analyse. En effet, l'option {\tt--jobs} de make permet de spécifier le nombre de tâches parallélisables et peut donc aligner simultanément les FASTQs dans les limites de la machine. Par ailleurs, une version de make baptisée 'qmake'\cite{qmake} est capable d'utiliser l'architecture d'un cluster et de distribuer les tâches sur les différents noeuds. Nous avons developpé un schéma en XML décrivant, entre autres, les échantillons et l'emplacement de leur fichiers FASTQs. Une feuille XSLT\cite{xslt} permet de transformer ce XML en 'Makefile' et d'optimiser l'analyse du projet en parallèle.
+
+\section{Description}
+Le projet XML4Bio contient un utilitaire en Java qui va chercher des fichiers FASTQs dans une arborescence, extraire les noms des échantillons et préparer la description du projet en XML. Cette structure est par ailleurs spécifiée dans un document \href{https://github.com/lindenb/xml4ngs/blob/master/src/main/resources/xsd/project.xsd}{XML-schema/xsd}. L'utilisateur a ensuite la possibilité d'éditer ce fichier XML afin de préciser les propriétés spécifiques du projet. Parmi les options disponibles se trouvent entres autres: le chemin d'accès vers le génome de référence, les étapes facultatives (recalibration, réalignement autour des indels), la manière de générer les fichiers VCF (un seul fichier par individu ou non ), les annotations fonctionnelles à appliquer, etc... Une \href{https://github.com/lindenb/xml4ngs/blob/master/stylesheets/project2make.xsl}{feuille de style XSLT} est alors appliquée afin de transformer le fichier XML en fichier Makefile. Make (ou qmake) va ensuite exécuter l'enchaînement de commandes, uniquement si elles sont nécessaires, afin de produire des fichiers VCFs annotés à partir des fichiers FASTQs ainsi que des rapports de qualité. Make va également exploiter le fait que certaines tâches sont indépendantes afin de les paralléliser.
+
+ \begin{figure}
+   \begin{center}
+     \setlength{\unitlength}{5mm}
+     % if you have pdflatex installed, you can use pdf files as graphics
+     \includegraphics[scale=0.45,angle=-90]{xml4ngs_fig1.pdf}
+     % On the other hand, you must use eps files
+     % \includegraphics[height=4cm,width=6cm]{figs/fig1.eps}
+   \end{center}
+   \caption{Un programme java analyse la structure des répertoires contenant les FASTQs et génère un fichier XML décrivant le projet ainsi que ses propriétés. Ce fichier XML est ensuite transformé en fichier Makefile grâce à XSLT. La parallélisation de l'analyse est gérée par make/qmake et nous obtenons les BAMS ainsi que les fichiers VCFs annotés à la fin du processus.}
+   \label{fig:puzzle}
+ \end{figure}
+
+
+\section{Conclusion}
+
+Notre laboratoire utilise ce système XML+XSLT en production en conjonction avec un cluster SGE (Sun Grid Engine). Ce système nous donne pleinement satisfaction tout en réduisant le nombre d'opérations manuelles à effectuer.
+
+\section{Implémentation} 
+Le projet  est disponible sur github.com à l'URL suivante: \url{https://github.com/lindenb/xml4ngs}
+
+\begin{thebibliography}{99}
+  \bibitem{xslt} \url{http://en.wikipedia.org/wiki/XSLT}
+  \bibitem{qmake} \url{http://gridscheduler.sourceforge.net/htmlman/htmlman1/qmake.html}
+  \bibitem{make} \url{http://www.gnu.org/software/make/}
+
+ \end{thebibliography}
+
+\end{document}
+%% Local Variables:
+%% ispell-local-dictionary: "american"
+%% Local IspellDict: "american"
+%% mode:latex
+%% End:
+
+% LocalWords:  ispell dictionary american IspellDict End LocalWords
