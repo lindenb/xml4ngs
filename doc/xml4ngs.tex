@@ -109,6 +109,11 @@ all:
 
 \section{Generating the XML project.}
 
+
+\section{Examples}
+
+
+
 \begin{lstlisting}[language=bash]
 $java -jar ~/src/xml4ngs/dist/ilmn2project.jar \
 	-f human_exome.xml \
@@ -159,6 +164,15 @@ you file then should look like this:
 </project>
 \end{lstlisting}
 
+
+creating a project.ml for only 3 samples using various illumina output directories using the '-S' option.
+
+\begin{lstlisting}[language=bash]
+ java -jar  ist/ilmn2project.jar \
+ 	-S SAMPLE1 -S SAMPLE2 -S SAMPLE3 \
+ 	-f human_exome.xml \
+ 	dir1/ dir2/ dir3/  > project.xml
+\end{lstlisting}
 
 \section{Generating the Makefile.}
 \begin{lstlisting}[language=bash]
@@ -295,6 +309,7 @@ maq.dir=${packages.dir}/maq/bin
 freebayes.bin=${packages.dir}/freebayes/freebayes/bin/freebayes
 VCFTOOLS.dir=${packages.dir}/vcftools/vcftools_0.1.10
 \end{lstlisting}
+
 
 \section{Ackwnoledgements}
 I'd like to thank the following persons:  Audrey Bihouée, Solena Le Scouarnec, Richard Redon, Raluca Teusan, Laetitia Duboscq-Bidot.

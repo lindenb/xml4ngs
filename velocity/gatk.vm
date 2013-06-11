@@ -43,6 +43,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		-T UnifiedGenotyper \
 		-glm BOTH \
 		-S SILENT \
+		#if(${project.getPropertyByName("is.haloplex","no")}=="yes")  --downsample_to_coverage  8000  #end \
 		#if($project.propertyMap.containsKey("gatk.unified.genotyper.options")
 			) ${project.getPropertyByName("gatk.unified.genotyper.options","")} #end \
 		$(foreach D,$(filter %.bed,$^), -L:capture,BED $(D) ) \

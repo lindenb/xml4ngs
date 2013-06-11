@@ -432,6 +432,7 @@ $(OUTDIR)/variations.samtools.vep.diseases.tsv.gz: $(OUTDIR)/variations.samtools
 		  </xsl:otherwise>
 		</xsl:choose> \
 		<xsl:if test="/project/properties/property[@key='allele.calling.in.capture']='yes'"> -L $(OUTDIR)/capture500.bed </xsl:if> \
+		<xsl:if test="/project/properties/property[@key='is.haloplex']='yes'"> --downsample_to_coverage  8000 </xsl:if> \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp:vcfinput,VCF $(known.sites) \
 		-o $(basename $@)

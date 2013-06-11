@@ -17,6 +17,7 @@ public class Ilmn2Project
 	private Set<String> seqIndexes=new TreeSet<String>();
 	private Set<Integer> lanes=new TreeSet<Integer>();
 	private PropertiesType properties=new PropertiesType();
+	private Set<String> samplesKeep=new HashSet<String>();
 	
 	private Ilmn2Project()
 		{
@@ -122,6 +123,13 @@ public class Ilmn2Project
 					System.err.println("Illegal name "+f);
 					System.exit(-1);
 					}
+				
+				if(!samplesKeep.isEmpty() && !samplesKeep.contains(tokens[0]))
+					{
+					System.err.println("Ignoring sample "+tokens[0]+" in "+f);
+					continue;
+					}
+				
 				SampleType sample=null;
 				for(SampleType S: project.getSample())
 					{
@@ -197,7 +205,12 @@ public class Ilmn2Project
 				System.out.println(" -h help (this screen)");
 				System.out.println(" -f (properties.xml)");
 				System.out.println(" -p prop.key prop.value");
+				System.out.println(" -S (sample.name) (optional: only keep those sample name, ignore the others). Can be used multiple times.");
 				return;
+				}
+			else if(args[optind].equals("-S") && optind+1< args.length)
+				{
+				this.samplesKeep.add(args[++optind]);
 				}
 			else if(args[optind].equals("-f") && optind+1< args.length)
 				{

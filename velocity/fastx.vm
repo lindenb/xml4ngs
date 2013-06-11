@@ -14,9 +14,12 @@ $(OUTDIR)/FASTX/fastx.report.pdf: #foreach($sample in $project.sample) #fastx_sa
 
 #fastx_sample_stats($sample): #foreach($pair in ${sample.sequences.pair})  #foreach($fastq in ${pair.fastq}) #fastq_preprocessed($fastq) #end #end
 	
+	@$(call timebegindb,$@,fastx)
 	mkdir -p $(dir $@)
 	gunzip -c $^ |\
 	$(FASTX.dir)/bin/fastx_quality_stats  -Q33 > $@
+	@$(call timeenddb,$@,fastx)
+	
 
 #fastx_sample_qual($sample) : #fastx_sample_stats($sample)
 	
