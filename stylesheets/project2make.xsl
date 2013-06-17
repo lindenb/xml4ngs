@@ -1875,7 +1875,7 @@ $(OUTDIR)/freebayes.vcf.gz : $(call indexed_bam,<xsl:apply-templates select="sam
 	#Annotation with VEP
 	#VEP only work as root
 	@$(call timebegindb,$@,<xsl:value-of select="$type"/>)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --offline --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o STDOUT --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --offline --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $&lt; -o - --quiet --vcf <xsl:if test="/project/properties/property[@key='discard.intergenic.variants']/text()='yes'"> --no_intergenic </xsl:if> <xsl:value-of select="/project/properties/property[@key='downstream.vcf.annotation']/text()"/> | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
 	$(VARKIT)/missingvcf -S MISSING |\
 	${TABIX.bgzip} -c &gt; $@
 	${TABIX.tabix} -f -p vcf $@ 
