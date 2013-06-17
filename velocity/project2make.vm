@@ -210,23 +210,24 @@ endef
 CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category));create table if not exists enddb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category));create table if not exists sizedb(file varchar(255) not null,size BIGINT,CONSTRAINT K3 UNIQUE (file));
 
 define timebegindb
-	lockfile -r-1 $(LOCKFILE)
-	mkdir -p $(dir $(HSQLSTATS))
-	$(JAVA) -jar $(HSQLDB.sqltool) --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);"
+	lockfile -r-1 $(LOCKFILE) && \
+	mkdir -p $(dir $(HSQLSTATS)) && \
+	$(JAVA) -jar $(HSQLDB.sqltool) --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);" && \
 	rm -f $(LOCKFILE)
 endef
 
 define timeenddb
-	lockfile -r-1 $(LOCKFILE)
-	mkdir -p $(dir $(HSQLSTATS))
-	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);"
+	lockfile -r-1 $(LOCKFILE) && \
+	mkdir -p $(dir $(HSQLSTATS)) && \
+	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);" && \
 	rm -f $(LOCKFILE)
 endef
 
 
 define sizedb
-	mkdir -p $(dir $(HSQLSTATS))
-	stat -c "%s" $(1) | while read L; do lockfile -r-1 $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" ; rm -f $(LOCKFILE);done
+	mkdir -p $(dir $(HSQLSTATS)) && \
+	stat -c "%s" $(1) | while read L; do lockfile -r-1 $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" && \
+	rm -f $(LOCKFILE);done
 endef
 
 
@@ -302,8 +303,8 @@ TOP_TARGETS+= coverage
 
 coverage:$(OUTDIR)/Statistics/mean_coverage01.pdf
 $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach($sample in $project.sample) #sample_coverage($sample) #end)
-	mkdir -p $(dir $@)
-	echo "sample	mean-coverage" > $(patsubst %.pdf,%.tsv,$@)
+	mkdir -p $(dir $@) && \
+	echo "sample	mean-coverage" > $(patsubst %.pdf,%.tsv,$@) && \
 	cat $^ | sort | grep -v -E  '^(Total|sample_id)'  |\
 		cut -d '	' -f1,3 >> $(patsubst %.pdf,%.tsv,$@)
 	echo 'pdf("$@",paper="A4r"); T<-read.table("$(patsubst %.pdf,%.tsv,$@)",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
@@ -682,7 +683,7 @@ $(addprefix #sample_coverage($sample), .sample_cumulative_coverage_counts .sampl
 
 ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(capture.bed)
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
@@ -754,7 +755,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 		$(known.sites) \
 		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )
 	@$(call timebegindb,$@_tableRecalibaration,recalibration)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T PrintReads \
 		-R $(REF) \
@@ -776,7 +777,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 			#XCAPTURE_CHROM(${chrom}) \
 			$(known.sites)
 	@$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
 		--validation_strictness LENIENT \
@@ -811,14 +812,14 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 #sample_markdup_chrom(${sample} ${chrom}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
 #if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
 	@$(call sizedb,$@)
 	
 
 #else	$(call timebegindb,$@_markdup,markdup)
-	mkdir -p $(dir $@)
-	mkdir -p $(addsuffix tmp.rmdup,$(dir $@))
+	mkdir -p $(dir $@) && \
+	mkdir -p $(addsuffix tmp.rmdup,$(dir $@)) && \
 	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
@@ -857,7 +858,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) 
 		
 		@$(call timebegindb,$@_indelrealigner,indelrealign)
-		mkdir -p $(dir $@)
+		mkdir -p $(dir $@) && \
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
   			-R $(REF) \
@@ -882,7 +883,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 		#XCAPTURE_CHROM(${chrom})
 		
 		@$(call timebegindb,$@_targetcreator,targetcreator)
-		mkdir -p $(dir $@)
+		mkdir -p $(dir $@) && \
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
@@ -961,7 +962,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #
 #sample_bamstat01_tsv($sample) : $(call indexed_bam, #sample_recal($sample) ) $(capture.bed)
 	@$(call timebegindb,$@,bamstats01)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) |\
 		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
 	@$(call timeendb,$@,bamstats01)
@@ -1033,8 +1034,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	#fastq_sai(${pair.reverse}) \
 	${REF}
 	@$(call timebegindb,$@,bwasampe)
-	mkdir -p #sample_BAM(${pair.sample})
-	
+	mkdir -p #sample_BAM(${pair.sample}) && \
 	$(BWA) sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
 		) ${project.propertyMap["bwa.sampe.options"]}  #else  -a 500  #end \
 		-r "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
@@ -1062,17 +1062,17 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 
 #fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF) #if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end
 	
-	mkdir -p $(dir $@)
-	@$(call timebegindb,$@,sai)
-	@$(call sizedb,$<)
+	$(call timebegindb,$@,sai) && \
+	$(call sizedb,$<) && \
+	mkdir -p $(dir $@) && \
 	$(BWA) aln #if($project.propertyMap.containsKey("bwa.aln.options")
 		) ${project.getPropertyByName("bwa.aln.options","")} #end \
 		 -f $@ \
 		 $(REF) \
-		 $<
-	@$(call timeenddb,$@,sai)
-	@$(call sizedb,$@)
-	@$(call notempty,$@)
+		 $<  && \
+	$(call timeenddb,$@,sai) && \
+	$(call sizedb,$@) && \
+	$(call notempty,$@)
 
 
 
@@ -1084,18 +1084,18 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 #
 #fastq_preprocessed($fastq) : #fastq_raw($fastq)
 
-	mkdir -p $(dir $@)
-	@$(call timebegindb,$@,cutadapt)
-	@$(call sizedb,$<)
+	$(call timebegindb,$@,cutadapt) && \
+	$(call sizedb,$<) && \
+	mkdir -p $(dir $@) && \
 	$(CUTADAPT) -b #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
 		)${project.propertyMap["cutadapt.sequence.for"]}#elseif(
 		$project.propertyMap.containsKey("cutadapt.sequence.rev") &&  ${fastq.index}==2
 		)${project.propertyMap["cutadapt.sequence.rev"]}#elseif(
 		${fastq.index}==1)AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC#elseif(
-		${fastq.index}==2)AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT#else${utils.warning("cutadapt params undefined for ${fastq} index=${fastq.index}")}#end  $< -o $(basename $@) > $(addsuffix .report.txt,$@)
-	gzip --best --force $(basename $@)
-	@$(call timeenddb,$@,cutadapt)
-	@$(call sizedb,$@)
+		${fastq.index}==2)AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT#else${utils.warning("cutadapt params undefined for ${fastq} index=${fastq.index}")}#end  $< -o $(basename $@) > $(addsuffix .report.txt,$@) && \
+	gzip --best --force $(basename $@) && \
+	@$(call timeenddb,$@,cutadapt) && \
+	@$(call sizedb,$@) && \
 	$(call notempty,$@)
 
 #end
