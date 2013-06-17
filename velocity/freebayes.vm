@@ -5,9 +5,9 @@
 	$(freebayes.bin) $(foreach B,$(filter %.bam,$^), -b ${B} ) \
 		-m  $(MIN_MAPPING_QUALITY) \
 		$(foreach D,$(filter %.bed,$^), -t $(D) ) \
-		-v $(basename $@) -f ${REF} 2> $@.errors
-	${TABIX.bgzip} -f $(basename $@)
-	${TABIX.tabix} -f -p vcf $@ 
+		-v $(basename $@) -f ${REF} 2> $@.errors && \
+	${TABIX.bgzip} -f $(basename $@) && \
+	${TABIX.tabix} -f -p vcf $@  && \
 	$(call timeenddb,$@,freebayes)
 	$(call sizedb,$@)
 

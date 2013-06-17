@@ -2,19 +2,18 @@
 
 ${target} : ${dependencies}
 	#Annotation with VEP
-	#VEP only work as root
-	@$(call timebegindb,$@,$type)
-	mkdir -p $(dir $@)
-	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --offline --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $< -o STDOUT --quiet --vcf #if(${project.propertyMap["discard.intergenic.variants"]}=="yes") --no_intergenic #end ${project.propertyMap["downstream.vcf.annotation"]} |\
-	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
+	$(call timebegindb,$@,$type)  && \
+	mkdir -p $(dir $@) && \
+	$(VEP.bin) $(VEP.args) $(VEP.cache) --fasta $(REF) --offline --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  -i $< -o - --quiet --vcf #if(${project.propertyMap["discard.intergenic.variants"]}=="yes") --no_intergenic #end ${project.propertyMap["downstream.vcf.annotation"]} |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) |\
 	$(VARKIT)/missingvcf -S "${sample.name}" |\
-	$(TABIX.bgzip) -c > $@
+	$(TABIX.bgzip) -c > $@ && \
 	${TABIX.tabix} -f -p vcf $@ 
 	#VEP done,calling gatk variant filtration
 	#gatk_variant_filtration("$@","${variantfiltration}")
 	
-	@$(call timeenddb,$@,$type)
-	@$(call sizedb,$@)
+	$(call timeenddb,$@,$type)  && \
+	$(call sizedb,$@) && \
 	$(call notempty,$@)
 	
 #end

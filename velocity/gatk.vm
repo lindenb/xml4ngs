@@ -3,13 +3,13 @@
 # distribution of coverage for ${dependencies}
 #
 ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
-	$(call timebegindb,$@,${type})
-	mkdir -p $(dir $@)
+	$(call timebegindb,$@,${type})  && \
+	mkdir -p $(dir $@) && \
 	${VARKIT}/depthofcoverage -m $(MIN_MAPPING_QUALITY) -B $(capture.bed) $(filter %.bam,$^) |\
 		grep -v bam | cut -d '	' -f 4 > $(patsubst %.pdf,%.tsv,$@)
 	echo 'pdf("$@",paper="A4r");  hist(as.integer(as.matrix(read.table("$(patsubst %.pdf,%.tsv,$@)"))), main="coverage for $(filter %.bam,$^) q=$(MIN_MAPPING_QUALITY)",breaks = 100, xlim = c(1,150)); dev.off()' |\
-		${R.exe} --no-save 
-	$(call timeenddb,$@,${type})
+		${R.exe} --no-save  && \
+	$(call timeenddb,$@,${type}) && \
 	$(call sizedb,$@)
 
 #end
@@ -19,25 +19,22 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"
 	)#set( $tmpgz = "$(addsuffix .gz,"+${tmp}+")"
 	)#filtering with GATK variant filtration
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T VariantFiltration \
 		-R $(REF) \
 		-o ${tmp} \
 		-U LENIENT_VCF_PROCESSING \
 		--variant:vcfinput,VCF ${vcffile} \
-		${variantfiltration.trim()}
-	#compress filtered VCF
-	${TABIX.bgzip} -f  ${tmp}
-	#replace with target
-	mv -f ${tmpgz} ${vcffile}
-	#index VCF with tabix.
+		${variantfiltration.trim()} && \
+	${TABIX.bgzip} -f  ${tmp} && \
+	mv -f ${tmpgz} ${vcffile} && \
 	${TABIX.tabix} -f -p vcf ${vcffile}
 	#end#end
 
 
 #macro(call_with_gatk)		$(call timebegindb,$@,UnifiedGenotyper)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T UnifiedGenotyper \
@@ -49,10 +46,10 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		$(foreach D,$(filter %.bed,$^), -L:capture,BED $(D) ) \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp:vcfinput,VCF $(known.sites) \
-		-o $(basename $@)
-	$(TABIX.bgzip) -f $(basename $@)
-	@$(call timeendb,$@,UnifiedGenotyper)
-	@$(call sizedb,$@)
+		-o $(basename $@) && \
+	$(TABIX.bgzip) -f $(basename $@) && \
+	$(call timeendb,$@,UnifiedGenotyper) && \
+	$(call sizedb,$@) && \
 	$(call notempty,$@)
 
 #end
