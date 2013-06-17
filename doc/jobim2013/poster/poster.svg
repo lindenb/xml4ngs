@@ -30,18 +30,18 @@
      borderopacity="1"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.22627417"
-     inkscape:cx="1913.2754"
-     inkscape:cy="2695.1876"
+     inkscape:zoom="0.45254835"
+     inkscape:cx="911.82399"
+     inkscape:cy="616.45349"
      inkscape:document-units="px"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="layer5"
      showgrid="false"
      inkscape:showpageshadow="true"
      borderlayer="true"
-     inkscape:window-width="1521"
-     inkscape:window-height="899"
-     inkscape:window-x="69"
-     inkscape:window-y="18"
+     inkscape:window-width="1300"
+     inkscape:window-height="979"
+     inkscape:window-x="168"
+     inkscape:window-y="29"
      inkscape:window-maximized="0"
      showguides="true"
      inkscape:guide-bbox="true" />
@@ -2235,7 +2235,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
      style="display:inline">
     <path
        style="fill:#d0c894;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:7.5914073;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       d="m 28.3125,374.71875 0,3805.93745 2921.3437,0 0,-3805.93745 z m 79.03125,397.15625 534.53125,2 -13.59375,761.2188 -537.46875,4.25 z m 1663.59375,279.3438 485.6563,9.9374 -4.4063,150.8438 -462.5,-10.2812 z m -194.6431,693.7356 11.2056,608.8388 -771.875,-1.8306 2.05267,-618.9721 c 605.87513,17.9403 182.33953,25.6873 758.61673,11.9639 z m 635.6579,-62.8522 695.056,-4.4194 -16.0215,601.903 c 0,0 74.2341,-10.6161 -115.899,5.7374 -190.1331,16.3536 -556.3016,10.7479 -556.3016,10.7479 z m 656.9906,764.6382 26.7233,469.9984 -215.5177,-0.5529 4.255,79.4145 -773.0262,4.2632 3.4521,-255.6373 -1.2202,-294.593 555.1236,-7.9405 z m -2726.31124,46.4911 c 366.67932,10.9285 746.14706,-7.2903 1014.32744,3.6562 -4.0666,56.3226 18.9317,123.4662 21.0763,184.7672 3.5768,102.2353 -11.4849,192.1561 -18.267,217.3843 L 137.57407,2915.4356 114.81539,2699.3397 z M 2852.6875,3043.2188 2862.7812,4069.5312 2014.25,4065.5 1996.0625,3059.4062 c 362.0342,-17.9917 467.8945,9.9034 856.625,-16.1874 z M 794.36677,1302.3504 l 390.89493,-1.4907 313.9042,5.9427 15.2459,382.922 -316.9635,-21.94 -379.94461,2.3667 -18.41983,-156.4454 z"
+       d="m 28.3125,21.165359 0,4159.490841 2921.3437,0 0,-4163.910258 z m 79.03125,750.709641 534.53125,2 -13.59375,761.2188 -537.46875,4.25 z m 1663.59375,279.3438 485.6563,9.9374 -4.4063,150.8438 -462.5,-10.2812 z m -194.6431,693.7356 11.2056,608.8388 -771.875,-1.8306 2.05267,-618.9721 c 605.87513,17.9403 182.33953,25.6873 758.61673,11.9639 z m 635.6579,-62.8522 695.056,-4.4194 -16.0215,601.903 c 0,0 74.2341,-10.6161 -115.899,5.7374 -190.1331,16.3536 -556.3016,10.7479 -556.3016,10.7479 z m 656.9906,764.6382 26.7233,469.9984 -215.5177,-0.5529 4.255,79.4145 -773.0262,4.2632 3.4521,-255.6373 -1.2202,-294.593 555.1236,-7.9405 z m -2726.31124,46.4911 c 366.67932,10.9285 746.14706,-7.2903 1014.32744,3.6562 -4.0666,56.3226 18.9317,123.4662 21.0763,184.7672 3.5768,102.2353 -11.4849,192.1561 -18.267,217.3843 L 137.57407,2915.4356 114.81539,2699.3397 z M 2852.6875,3043.2188 2862.7812,4069.5312 2014.25,4065.5 1996.0625,3059.4062 c 362.0342,-17.9917 467.8945,9.9034 856.625,-16.1874 z M 794.36677,1302.3504 l 390.89493,-1.4907 313.9042,5.9427 15.2459,382.922 -316.9635,-21.94 -379.94461,2.3667 -18.41983,-156.4454 z"
        id="rect3887"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccccccccccccccccccccczcccccccccccccsccccccccccccccccc" />
@@ -2271,7 +2271,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#ffffff;fill-opacity:0.93607309;fill-rule:nonzero;stroke:#000000;stroke-width:6.93107557;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 802.10233,878.86537 690.22227,47.64308 -11.6964,162.11365 -29.4175,173.4242 -675.03506,10.4705 -1.73758,-174.5246 z"
+       d="m 753.48874,883.28479 738.83586,43.22366 -11.6964,162.11365 -29.4175,173.4242 -679.45448,19.3093 -28.25408,-178.944 z"
        id="rect5341-4-8-7"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccccc" />
@@ -2301,10 +2301,10 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:11.69995785;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 82.796946,3384.9607 1254.665754,-13.3774 617.3237,-9.4905 3.4357,281.8038 -912.1814,-2.7549 -5.4799,67.0619 -969.478464,-4.4605 -3.471545,-153.643 z"
+       d="m 82.796946,3384.9607 1254.665754,-13.3774 394.8291,-6.07 c 1.2445,43.054 10.4872,48.543 14.782,98.2261 l 208.8188,8.9698 2.3295,171.1874 -912.1814,-2.7549 -5.4799,67.0619 -969.478464,-4.4605 -3.471545,-153.643 z"
        id="rect5341-4-8-7-0-2-4-9-2-8"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccccc" />
+       sodipodi:nodetypes="ccccccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:10.29129791;stroke-miterlimit:4;stroke-opacity:1;display:inline"
        d="m 52.926509,3080.4209 1950.114391,15.8602 -2.4957,210.0127 -681.2845,-14.0444 -3.2522,54.0363 -941.014,9.1328 -318.157603,-9.1284 z"
@@ -2432,7 +2432,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="4150.2241"
            x="471.15344"
            sodipodi:role="line"
-           id="tspan5380">utilisé pour gêrer la</tspan><tspan
+           id="tspan5380">utilisé pour gérer la</tspan><tspan
            style="font-size:48px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="4215.5684"
            x="471.15344"
@@ -2833,7 +2833,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="3585.5969"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5213">Nous avons intégrés ces outils en production dans à  notre plateforme à</tspan><tspan
+           id="tspan5213">Nous avons intégré ces outils en production à  notre plateforme à</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3664.0076"
            x="52.843307"
@@ -2895,12 +2895,12 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="3804.9182"
            x="687.21832"
            sodipodi:role="line"
-           id="tspan5303">sous Galaxy Mais nous pouvont imaginer générer un Workflow pour</tspan><tspan
+           id="tspan5303">sous Galaxy Mais nous pouvonS imaginer générer un Workflow pour</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3881.1531"
            x="687.21832"
            sodipodi:role="line"
-           id="tspan5313">galaxy en utilisant un autre jeux de ``templaTes`.</tspan><tspan
+           id="tspan5313">galaxy en utilisant un autre jeu de ``templaTes`.</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3951.1531"
            x="687.21832"
@@ -2991,7 +2991,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
      transform="translate(0,3160.6299)"
      style="display:inline">
     <rect
-       style="fill:#b4c0a8;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:9.20625401;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       style="fill:#fafff6;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:9.20625401000000032;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        id="rect3808"
        width="2876.4312"
        height="420.85876"
@@ -3006,21 +3006,17 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        sodipodi:linespacing="125%"
        transform="scale(0.98320123,1.0170858)"><tspan
          sodipodi:role="line"
-         x="1504.2029"
+         x="1504.2028"
          y="-2966.3394"
          style="font-size:62.92488098px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-         id="tspan3798"><tspan
+         id="tspan3800"><tspan
    style="font-size:70px"
-   id="tspan3882">XML4NGS</tspan> : A XML-based description of a Next-Generation sequencing project</tspan><tspan
+   id="tspan3882">XML4NGS</tspan> : Une description en XML de projets de séquençage à haut débit</tspan><tspan
          sodipodi:role="line"
          x="1504.2029"
-         y="-2876.9236"
+         y="-2877.1699"
          style="font-size:62.92488098px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-         id="tspan3800">allowing the generation of a <tspan
-   style="font-size:70.7904892px;text-align:center;text-anchor:middle"
-   id="tspan3806">’<tspan
-   style="font-size:72px"
-   id="tspan3884">Makefile</tspan>’</tspan>-driven workflow.</tspan></text>
+         id="tspan3535">permettant la génération de scripts d'analyse basés sur 'Make'..</tspan></text>
     <flowRoot
        xml:space="preserve"
        id="flowRoot3788"
@@ -3074,7 +3070,7 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
          x="1450.7192"
          y="-2739.645"
          style="font-size:40px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
-         id="tspan3872">Institut-du-thorax. INSERM U1087. 44400. Nantes.</tspan><tspan
+         id="tspan3872">Institut-du-thorax. INSERM U1087. 44000. Nantes.</tspan><tspan
          sodipodi:role="line"
          x="1462.7505"
          y="-2689.645"
