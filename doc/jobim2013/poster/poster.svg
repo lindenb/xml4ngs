@@ -16,9 +16,9 @@
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="poster.svg"
-   inkscape:export-filename="/home/lindenb/jeter.png"
-   inkscape:export-xdpi="150.60001"
-   inkscape:export-ydpi="150.60001">
+   inkscape:export-filename="/home/lindenb/poster.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300">
   <title
      id="title2985">XML4NGS : A XML-based description of a Next-Generation sequencing project allowing the generation of a ’Makefile’-driven workflow.</title>
   <defs
@@ -30,9 +30,9 @@
      borderopacity="1"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.45254835"
-     inkscape:cx="911.82399"
-     inkscape:cy="616.45349"
+     inkscape:zoom="0.9050967"
+     inkscape:cx="1236.4509"
+     inkscape:cy="2135.7751"
      inkscape:document-units="px"
      inkscape:current-layer="layer5"
      showgrid="false"
@@ -2301,10 +2301,10 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
        sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:11.69995785;stroke-miterlimit:4;stroke-opacity:1;display:inline"
-       d="m 82.796946,3384.9607 1254.665754,-13.3774 394.8291,-6.07 c 1.2445,43.054 10.4872,48.543 14.782,98.2261 l 208.8188,8.9698 2.3295,171.1874 -912.1814,-2.7549 -5.4799,67.0619 -969.478464,-4.4605 -3.471545,-153.643 z"
+       d="m 82.796946,3384.9607 1254.665754,-13.3774 394.8291,-6.07 c 1.2445,43.054 10.4872,22.0265 14.782,71.7096 l 226.4965,4.5504 -15.3482,202.1233 -635.9678,-16.0132 -40.8353,84.7396 -682.60891,-22.6858 -527.727754,13.8059 -3.471545,-153.643 z"
        id="rect5341-4-8-7-0-2-4-9-2-8"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccccccc" />
+       sodipodi:nodetypes="cccccccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:10.29129791;stroke-miterlimit:4;stroke-opacity:1;display:inline"
        d="m 52.926509,3080.4209 1950.114391,15.8602 -2.4957,210.0127 -681.2845,-14.0444 -3.2522,54.0363 -941.014,9.1328 -318.157603,-9.1284 z"
@@ -2833,27 +2833,27 @@ stylesheet transforming the XML into a Makefile-driven workflow allowing a paral
            y="3585.5969"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5213">Nous avons intégré ces outils en production à  notre plateforme à</tspan><tspan
+           id="tspan5213">Nous avons intégré ces outils en production dans  notre plateforme</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3664.0076"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5215">haut-débit (cluster SGE). L'utilisation de QMAKE/SGE/vElocity a ete </tspan><tspan
+           id="tspan5215">de séquençage à haut-débit (cluster SGE). L'utilisation de QMAKE/SGE/vElocity</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3740.2424"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5221">particulierement efficace pour nos Projets  mais ces technologies pourraient</tspan><tspan
+           id="tspan5221">a ete  particulierement efficace pour nos Projets,  mais ces technologies</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3812.4182"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5227">s'adapter tres facilement à d'autres types d'Analyses (RNASEQ...) en changeant</tspan><tspan
+           id="tspan5227">pourraient s'adapter tres facilement à d'autres types d'Analyses (RNASEQ...) en </tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3888.6531"
            x="52.843307"
            sodipodi:role="line"
-           id="tspan5338">uniquement les `templates` de velocity.</tspan><tspan
+           id="tspan5338">changeant uniquement les `templates` de velocity.</tspan><tspan
            style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:CreativeBlock BB;-inkscape-font-specification:CreativeBlock BB Bold"
            y="3958.6531"
            x="52.843307"
