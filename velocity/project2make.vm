@@ -18,6 +18,7 @@
 #parse("snpeff.vm")
 #parse("samtools.vm")
 #parse("freebayes.vm")
+#parse("loghsql.vm")
 ## PROXY SETTING 
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
@@ -136,7 +137,7 @@ PICARD_MAX_RECORDS_IN_RAM=$project.propertyMap["picard.max.records.in.ram"]
 # file that will be used to lock the SQL-related resources
 #
 LOCKFILE=$(OUTDIR)/_tmp.${project.generateId}.lock
-HSQLSTATS=$(OUTDIR)/HSQLDB/hsqldb.stats
+
 
 
 
@@ -206,36 +207,9 @@ define check_no_sge
 endef
 
 
-
-CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K1 UNIQUE (file,category));create table if not exists enddb(file varchar(255) not null,category varchar(255) not null,w TIMESTAMP,CONSTRAINT K2 UNIQUE (file,category));create table if not exists sizedb(file varchar(255) not null,size BIGINT,CONSTRAINT K3 UNIQUE (file));
-
-define timebegindb
-	lockfile -r-1 $(LOCKFILE) && \
-	mkdir -p $(dir $(HSQLSTATS)) && \
-	$(JAVA) -jar $(HSQLDB.sqltool) --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);" && \
-	rm -f $(LOCKFILE)
-endef
-
-define timeenddb
-	lockfile -r-1 $(LOCKFILE) && \
-	mkdir -p $(dir $(HSQLSTATS)) && \
-	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);" && \
-	rm -f $(LOCKFILE)
-endef
+#HSQLDB_DEFS()
 
 
-define sizedb
-	mkdir -p $(dir $(HSQLSTATS)) && \
-	stat -c "%s" $(1) | while read L; do lockfile -r-1 $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" && \
-	rm -f $(LOCKFILE);done
-endef
-
-
-
-
-define delete_and_touch
-	
-endef
 
 ##########################################################################################################
 #
@@ -286,7 +260,7 @@ toptarget:
 	@echo "This is the top target. Please select a specific target"
 	@echo "e.g: ${TOP_TARGETS} "
 
-all: ${TOP_TARGETS}  fastx hsqldb_statistics 
+all: ${TOP_TARGETS}  fastx 
 
 
 
@@ -370,10 +344,10 @@ variations.${genotyper}.${annotator} : #foreach($sample in $project.sample) #sam
 
 #sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.chromosomeGroups}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
 	
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ |\
 	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-sort |\
-	$(TABIX.bgzip) -c > $@ 
+	$(TABIX.bgzip) -c > $@ && \
 	$(TABIX.tabix) -f -p vcf $@
 	
 
@@ -601,11 +575,11 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/Statistics
 # count of mapped-reads, quality per sample	
 #
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_final_bam($sample) #end)  $(capture.bed) 
-	@$(call timebegindb,$@,$@)
-	mkdir -p $(dir $@)
-	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@
-	@$(call timeendb,$@,$@)
-	@$(call sizedb,$@)
+	@$(call timebegindb,$@,$@) && \
+	mkdir -p $(dir $@) && \
+	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@ && \
+	@$(call timeenddb,$@,$@) && \
+	@$(call sizedb,$@) && \
 	$(call notempty,$@)
 
 
@@ -619,11 +593,10 @@ $(OUTDIR)/BED/ensembl.genes.bed:
 	mkdir -p $(dir $@)
 	curl ${set_curl_proxy} -d 'query=<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
 		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="start_position" /><Attribute name="end_position" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
-	grep -v '_' |grep -v 'GL' |grep -v 'MT' |\
 	awk -F '	' '(int($$2) < int($$3))' |\
 	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -i - | uniq > $@
-	$(call timeendb,$@,$@)
+	$(call timeenddb,$@,$@)
 	$(call sizedb,$@)
 	$(call notempty,$@)
 
@@ -694,7 +667,7 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 		-I $(filter %.bam,$^) \
 		-o #sample_coverage(${sample}) \
 		-omitBaseOutput
-	$(call timeendb,#sample_coverage(${sample}),coverage.gatk)
+	$(call timeenddb,#sample_coverage(${sample}),coverage.gatk)
 
 
 
@@ -965,7 +938,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 	mkdir -p $(dir $@) && \
 	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) |\
 		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
-	@$(call timeendb,$@,bamstats01)
+	@$(call timeenddb,$@,bamstats01)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
@@ -977,7 +950,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 	mkdir -p $(dir $@)
 	$(JAVA) -jar ${JVARKIT}/bamstats04.jar -b $(capture.bed) $(filter %.bam,$^) |\
 		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
-	@$(call timeendb,$@,bamstats04)
+	@$(call timeenddb,$@,bamstats04)
 	@$(call sizedb,$@)
 	$(call notempty,$@)
 	
@@ -1131,48 +1104,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 ##############################################################################
 
 
-
-
-##############################################################################
-#
-# statistics from HSQLDB
-##############################################################################
-
-LIST_PHONY_TARGET+= hsqldb_statistics 
-
-TOP_TARGETS+= hsqldb_statistics 
-
-hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
-
-$(OUTDIR)/durations.stats.txt:
-	lockfile -r-1 $(LOCKFILE)
-	mkdir -p $(dir $(HSQLSTATS) )
-	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
-		--sql "select B.category$(foreach T,SECOND MINUTE HOUR DAY, ,AVG(TIMESTAMPDIFF(SQL_TSI_${T},B.W,E.W)) as duration_${T}) from begindb as B ,enddb as E where B.file=E.file group by B.category;" > $@
-	rm -f $(LOCKFILE)
-
-$(OUTDIR)/filesize.stats.txt:
-	lockfile -r-1 $(LOCKFILE)
-	mkdir -p $(dir $(HSQLSTATS) )
-	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
-		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
-	rm -f $(LOCKFILE)
-
-##############################################################################
-#
-# list target(s) for which processing has been canceled or is still
-# an ongoing process.
-#
-LIST_PHONY_TARGET+= ongoing
-
-TOP_TARGETS+= ongoing
-
-ongoing:
-	lockfile -r-1 $(LOCKFILE)
-	mkdir -p $(dir $(HSQLSTATS) )
-	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
-		--sql "select B.file,B.w,E.file,E.w,B.category from begindb as B LEFT JOIN enddb as E on ( B.file=E.file and B.category=E.category ) where E.file is NULL or B.w >= E.w order by B.file ;" 
-	rm -f $(LOCKFILE)	
+#HSQLDB_TARGETS()
 
 
 #########################################################################################################

@@ -48,7 +48,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		--dbsnp:vcfinput,VCF $(known.sites) \
 		-o $(basename $@) && \
 	$(TABIX.bgzip) -f $(basename $@) && \
-	$(call timeendb,$@,UnifiedGenotyper) && \
+	$(call timeenddb,$@,UnifiedGenotyper) && \
 	$(call sizedb,$@) && \
 	$(call notempty,$@)
 

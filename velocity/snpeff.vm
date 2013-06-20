@@ -9,7 +9,6 @@ ${target} : ${dependencies} $(REF)
 	$(call timebegindb,$@,${type}) && \
 	mkdir -p $(dir $@) && \
 	gunzip -c  $< |\
-	egrep -v '^GL' |\
 	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf \
 		#if( ${project.propertyMap["discard.intergenic.variants"]}=="yes" ) -no-intergenic #end \
 		-sequenceOntolgy -lof \
