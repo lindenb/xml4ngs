@@ -23,6 +23,8 @@
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
 
+SHELL=/bin/bash
+
 .SUFFIXES:            # Delete the default suffixes
 .SUFFIXES: .bam .bai   # Define our suffix list
 
@@ -567,7 +569,7 @@ $(OUTDIR)/Statistics/#output_files_prefix()all.distribution.recal.pdf : #foreach
 # create a PDF for bamstats03.tsv
 #
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
@@ -575,11 +577,11 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/Statistics
 # count of mapped-reads, quality per sample	
 #
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv : $(call indexed_bam,#foreach($sample in $project.sample) #sample_final_bam($sample) #end)  $(capture.bed) 
-	@$(call timebegindb,$@,$@) && \
+	$(call timebegindb,$@,$@) && \
 	mkdir -p $(dir $@) && \
 	${VARKIT}/bamstats03 -b $(capture.bed) $(filter %.bam,$^) | awk -F '/' '{print $$NF;}'  | sort  > $@ && \
-	@$(call timeenddb,$@,$@) && \
-	@$(call sizedb,$@) && \
+	$(call timeenddb,$@,$@) && \
+	$(call sizedb,$@) && \
 	$(call notempty,$@)
 
 
@@ -889,9 +891,9 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 
 #sample_merged_chrom(${sample} ${chrom}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted_chrom(${pair} ${chrom}) #end
 	
-	@$(call timebegindb,$@,merge)
-	mkdir -p $(dir $@)
-	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
+	@$(call timebegindb,$@,merge) && \
+	mkdir -p $(dir $@) && \
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^ && \
 	#else
 	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
@@ -901,10 +903,10 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 		VALIDATION_STRINGENCY=SILENT \
 		USE_THREADING=true \
 		COMMENT="Merged for chromosome ${chrom} from $^" \
-		$(foreach B,$^, I=$(B) )
+		$(foreach B,$^, I=$(B) ) && \
 	#end
-	$(DELETEFILE) $^
-	@$(call timeenddb,$@,merge)
+	$(DELETEFILE) $^ && \
+	@$(call timeenddb,$@,merge) && \
 	@$(call sizedb,$@)
 
 #if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
@@ -933,25 +935,25 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #
 # bamstats01 for sample: ${sample.name}
 #
-#sample_bamstat01_tsv($sample) : $(call indexed_bam, #sample_recal($sample) ) $(capture.bed)
-	@$(call timebegindb,$@,bamstats01)
+#sample_bamstat01_tsv($sample) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
+	$(call timebegindb,$@,bamstats01) && \
 	mkdir -p $(dir $@) && \
 	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) |\
-		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
-	@$(call timeenddb,$@,bamstats01)
-	@$(call sizedb,$@)
+		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@ && \
+	$(call timeenddb,$@,bamstats01) && \
+	$(call sizedb,$@) && \
 	$(call notempty,$@)
 	
 #
 # bamstats04 for sample: ${sample.name}
 #
-#sample_bamstat04_tsv($sample) : $(call indexed_bam, #sample_recal($sample) ) $(capture.bed)
-	@$(call timebegindb,$@,bamstats04)
-	mkdir -p $(dir $@)
+#sample_bamstat04_tsv($sample) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
+	$(call timebegindb,$@,bamstats04) && \
+	mkdir -p $(dir $@) && \
 	$(JAVA) -jar ${JVARKIT}/bamstats04.jar -b $(capture.bed) $(filter %.bam,$^) |\
-		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@
-	@$(call timeenddb,$@,bamstats04)
-	@$(call sizedb,$@)
+		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@ && \
+	$(call timeenddb,$@,bamstats04) && \
+	$(call sizedb,$@) && \
 	$(call notempty,$@)
 	
 
@@ -960,14 +962,14 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 
 #DISTRIBUTION_OF_COVERAGE(
 	"#sample_distribution_of_coverage_recal($sample)"
-	"#sample_recal($sample)"
+	"#sample_final_bam(${sample})"
 	"depthofcovdist"
 	)
 
 
 #VARKIT_BEDDEDPTH(
 	"#sample_beddepth($sample)"
-	"#sample_recal($sample)"
+	"#sample_final_bam(${sample})"
 	)
 
 
