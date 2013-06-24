@@ -15,6 +15,15 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 #end
 
 
+
+#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		-T VariantFiltration \
+		-R $(REF) \
+		-o ${outvcf} \
+		-U LENIENT_VCF_PROCESSING \
+		--variant:vcfinput,VCF ${invcf} \
+		${gatkfilterparam.trim()}#end#end
+
 #macro(gatk_variant_filtration $vcffile $variantfiltration)#if( ${variantfiltration.trim().length()} >0
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"
 	)#set( $tmpgz = "$(addsuffix .gz,"+${tmp}+")"

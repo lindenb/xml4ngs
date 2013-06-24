@@ -1,32 +1,7 @@
-
-
-#macro(annotate_with_snpeff $target $dependencies $type $variantfiltration)
-#
-# Annotation of ${dependencies}
-#
-${target} : ${dependencies} $(REF)
-	#Annotation of ${dependencies} with SNPEFF 
-	$(call timebegindb,$@,${type}) && \
-	mkdir -p $(dir $@) && \
-	gunzip -c  $< |\
-	$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf \
+#macro(annotate_with_snpeff $invcf,$outvcf)$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf \
 		#if( ${project.propertyMap["discard.intergenic.variants"]}=="yes" ) -no-intergenic #end \
 		-sequenceOntolgy -lof \
 		-c $(SNPEFF)/snpEff.config \
 		-s $(addsuffix .snpeff.report,$@) \
-		#if(! $project.propertyMap.containsKey("snpEff.build") )GRCh37.70#else${project.propertyMap["snpEff.build"]}#end |\
-	$(SNPEFF)/scripts/vcfEffOnePerLine.pl   ${project.propertyMap["downstream.vcf.annotation"]} | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5  |\
-	$(VARKIT)/missingvcf -S "${sample.name}" |\
-	${TABIX.bgzip} -c > $@ && \
-	${TABIX.tabix} -f -p vcf $@ && \
-	gzip -f $(addsuffix .snpeff.report,$@)
-	##VEP done
-	#gatk_variant_filtration("$@","$variantfiltration")
-	$(call timeenddb,$@,${type}) && \
-	$(call sizedb,$@) && \
-	$(call notempty,$@)
-
-#end
-
-
+		#if(! $project.propertyMap.containsKey("snpEff.build") )GRCh37.70#else${project.propertyMap["snpEff.build"]}#end ${invcf}  > $outvcf #end
 
