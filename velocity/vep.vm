@@ -1,4 +1,3 @@
 #macro(annotate_with_vep $invcf,$outvcf)$(VEP.bin) $(VEP.args) $(VEP.cache) \
 	--fasta $(REF) --offline --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  \
-	-i ${invcf} -o ${outvcf} --quiet --vcf #if(${project.propertyMap["discard.intergenic.variants"]}=="yes") --no_intergenic #end  |\
-	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) > ${outvcf} #end
+	-i ${invcf} -o ${outvcf} --quiet --vcf #if(${project.propertyMap["discard.intergenic.variants"]}=="yes") --no_intergenic #end  #end

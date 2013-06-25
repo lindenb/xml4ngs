@@ -16,13 +16,19 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 
 
 
-#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)$(JAVA)  -jar ${JVARKITGIT}/sortvcfonref.jar \
+		I=$invcf \
+		O=$(addsuffix .tmp2.vcf,$outvcf) \
+		R=${REF} \
+		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} && \
+		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T VariantFiltration \
 		-R $(REF) \
 		-o ${outvcf} \
 		-U LENIENT_VCF_PROCESSING \
-		--variant:vcfinput,VCF ${invcf} \
-		${gatkfilterparam.trim()}#end#end
+		--variant:vcfinput,VCF $(addsuffix .tmp2.vcf,$outvcf) \
+		${gatkfilterparam.trim()} && \
+		rm -f $(addsuffix .tmp2.vcf,$outvcf) #end#end
 
 #macro(gatk_variant_filtration $vcffile $variantfiltration)#if( ${variantfiltration.trim().length()} >0
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"

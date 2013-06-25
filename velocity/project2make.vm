@@ -225,11 +225,11 @@ endef
 # create BAM index for ${bam}
 #
 .bam.bai:
-	@$(call timebegindb,$@,bai)
+	$(call timebegindb,$@,bai)
 	#some indexes are created by picard, no need to recreate it, or just check the timestamp
 	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
-	@$(call timeenddb,$@,bai)
-	@$(call sizedb,$@)
+	$(call timeenddb,$@,bai)
+	$(call sizedb,$@)
 	$(call notempty,$@)
 
 #macro(call_index_genome_rules $extension)
@@ -379,8 +379,8 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 # predictions ${genotyper} for  sample ${sample.name}
 #
 
-#set($tmp1pvcf="$(addsuffix .tmp1.vcf, #sample_vcf_genotyper_annotations($sample $genotyper  ))")
-#set($tmp2pvcf="$(addsuffix .tmp2.vcf, #sample_vcf_genotyper_annotations($sample $genotyper  ))")
+#set($tmp1vcf="$(addsuffix .tmp1.vcf, #sample_vcf_genotyper_annotations($sample $genotyper  ))")
+#set($tmp2vcf="$(addsuffix .tmp2.vcf, #sample_vcf_genotyper_annotations($sample $genotyper  ))")
 #set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
 #set($annotatorfilterproperty=${annotator}+".vcf.filtration")
 #set($gatkfilterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
@@ -390,16 +390,14 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
-	gunzip -c $< > $tmp1pvcf && \
-	#foreach($annotator in $annotationMethods) #annotate_with("$tmp1pvcf","$tmp2pvcf","$annotator") && mv $tmp2pvcf $tmp1pvcf &&  #end  \
-	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) ${tmp1vcf} > $(basename $@) && \
-	rm -f  "${tmp1vcf}" && \
+	gunzip -c $< > $tmp1vcf && \
+	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) $tmp1vcf > $(basename $@) && \
+	rm -f  "$tmp1vcf" && \
 	$(TABIX.bgzip) -f $(basename $@) && \
 	${TABIX.tabix} -f -p vcf $@ && \
 	$(call timeenddb,$@,"annotations") && \
 	$(call sizedb,$@)
-
-
 
 
 #end
@@ -445,18 +443,18 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 #end 
 
 
-#set($tmp1pvcf="$(addsuffix .tmp1.vcf, $(OUTDIR)/VCF/variations.${genotyper} )")
-#set($tmp2pvcf="$(addsuffix .tmp2.vcf, $(OUTDIR)/VCF/variations.${genotyper} )")
+#set($tmp1vcf="$(addsuffix .tmp1.vcf, $(OUTDIR)/VCF/variations.${genotyper} )")
+#set($tmp2vcf="$(addsuffix .tmp2.vcf, $(OUTDIR)/VCF/variations.${genotyper} )")
 #set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
 #set($annotatorfilterproperty=${annotator}+".vcf.filtration")
 #set($gatkfilterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
 $(OUTDIR)/VCF/variations.${genotyper}.annotations.vcf.gz : $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
-	gunzip -c $< > $tmp1pvcf && \
-	#foreach($annotator in $annotationMethods) #annotate_with("$tmp1pvcf","$tmp2pvcf","$annotator") && mv $tmp2pvcf $tmp1pvcf &&  #end  \
-	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) ${tmp1vcf} > $(basename $@) && \
-	rm -f  "${tmp1vcf}" && \
+	gunzip -c $< > $tmp1vcf && \
+	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) $tmp1vcf > $(basename $@) && \
+	rm -f  "$tmp1vcf" && \
 	$(TABIX.bgzip) -f $(basename $@) && \
 	${TABIX.tabix} -f -p vcf $@ && \
 	$(call timeenddb,$@,"annotations") && \
@@ -654,7 +652,7 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 #sample_final_bam(${sample}) : #foreach($g in ${project.chromosomeGroups}) #sample_recal_chrom( ${sample} ${g})  #end \
 	#sample_merged_chrom(${sample} "Unmapped")
 	
-	@$(call timebegindb,$@,merge_chroms)
+	$(call timebegindb,$@,merge_chroms)
 	mkdir -p $(dir $@)
 	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
 	#else
@@ -668,9 +666,9 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) )
 	#end
-	$(DELETEFILE) $^
-	@$(call timeenddb,$@,merge_chroms)
-	@$(call sizedb,$@)
+	
+	$(call timeenddb,$@,merge_chroms)
+	$(call sizedb,$@)
 	$(call notempty,$@)
 
 
@@ -700,7 +698,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 		#XCAPTURE_CHROM(${chrom}) \
 		$(known.sites) \
 		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )
-	@$(call timebegindb,$@_tableRecalibaration,recalibration)
+	$(call timebegindb,$@_tableRecalibaration,recalibration)
 	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T PrintReads \
@@ -712,8 +710,8 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 		-o $@ \
 		--validation_strictness LENIENT \
 		-l INFO
-	@$(call timeenddb,$@_tableRecalibaration,recalibration)
-	@$(call sizedb,$@)
+	$(call timeenddb,$@_tableRecalibaration,recalibration)
+	$(call sizedb,$@)
 	$(call notempty,$@)
 
 
@@ -722,7 +720,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chrom}) ) \
 			#XCAPTURE_CHROM(${chrom}) \
 			$(known.sites)
-	@$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
+	$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
@@ -739,7 +737,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		-cov QualityScoreCovariate \
 		-cov CycleCovariate \
 		-cov ContextCovariate
-	@$(call timeenddb,#sample_recal_chrom(${sample} ${chrom}),covariates)
+	$(call timeenddb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 
 #end
 #end
@@ -757,10 +755,10 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 
 
 #sample_markdup_chrom(${sample} ${chrom}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
-#if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	@$(call timebegindb,$@_markdup,markdup)
+#if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@) && \
 	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
-	@$(call sizedb,$@)
+	$(call sizedb,$@)
 	
 
 #else	$(call timebegindb,$@_markdup,markdup)
@@ -778,8 +776,8 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 			) ${project.propertyMap.get("picard.mark.duplicates.options")} #end \
 		VALIDATION_STRINGENCY=SILENT \
 		CREATE_INDEX=true
-	@$(call timeenddb,$@_markdup,markdup)
-	@$(call sizedb,$@)
+	$(call timeenddb,$@_markdup,markdup)
+	$(call sizedb,$@)
 
 #end
 
@@ -803,7 +801,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 #sample_realigned_chrom(${sample} ${chrom}) :	$(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
 				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) 
 		
-		@$(call timebegindb,$@_indelrealigner,indelrealign)
+		$(call timebegindb,$@_indelrealigner,indelrealign)
 		mkdir -p $(dir $@) && \
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
@@ -818,8 +816,8 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 			  ${utils.error("known.indels.vcf undefined")}	 
 			#end \
 			-S SILENT 
-		@$(call timeenddb,$@_indelrealigner,indelrealign)
-		@$(call sizedb,$@)
+		$(call timeenddb,$@_indelrealigner,indelrealign)
+		$(call sizedb,$@)
 
 
 #fake_index_bam_with_samtools("#sample_realigned_chrom(${sample} ${chrom})")
@@ -828,7 +826,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chrom}) ) \
 		#XCAPTURE_CHROM(${chrom})
 		
-		@$(call timebegindb,$@_targetcreator,targetcreator)
+		$(call timebegindb,$@_targetcreator,targetcreator)
 		mkdir -p $(dir $@) && \
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
@@ -843,7 +841,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 			  ${utils.error("known.indels.vcf undefined")}	 
 			#end \
 			-S SILENT 
-		@$(call timeenddb,$@_targetcreator,targetcreator)
+		$(call timeenddb,$@_targetcreator,targetcreator)
 
 
 #end
@@ -862,7 +860,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 
 #sample_merged_chrom(${sample} ${chrom}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted_chrom(${pair} ${chrom}) #end
 	
-	@$(call timebegindb,$@,merge) && \
+	$(call timebegindb,$@,merge) && \
 	mkdir -p $(dir $@) && \
 	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^ && \
 	#else
@@ -877,8 +875,8 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 		$(foreach B,$^, I=$(B) ) && \
 	#end
 	$(DELETEFILE) $^ && \
-	@$(call timeenddb,$@,merge) && \
-	@$(call sizedb,$@)
+	$(call timeenddb,$@,merge) && \
+	$(call sizedb,$@)
 
 #if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")
 
@@ -979,7 +977,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	#fastq_sai(${pair.forward}) \
 	#fastq_sai(${pair.reverse}) \
 	${REF}
-	@$(call timebegindb,$@,bwasampe)
+	$(call timebegindb,$@,bwasampe)
 	mkdir -p #sample_BAM(${pair.sample}) && \
 	$(BWA) sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
 		) ${project.propertyMap["bwa.sampe.options"]}  #else  -a 500  #end \
@@ -993,7 +991,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 			--mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	
-	@$(call timeenddb,$@,bwasampe)
+	$(call timeenddb,$@,bwasampe)
 
 
 
@@ -1040,8 +1038,8 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		${fastq.index}==1)AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC#elseif(
 		${fastq.index}==2)AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT#else${utils.warning("cutadapt params undefined for ${fastq} index=${fastq.index}")}#end  $< -o $(basename $@) > $(addsuffix .report.txt,$@) && \
 	gzip --best --force $(basename $@) && \
-	@$(call timeenddb,$@,cutadapt) && \
-	@$(call sizedb,$@) && \
+	$(call timeenddb,$@,cutadapt) && \
+	$(call sizedb,$@) && \
 	$(call notempty,$@)
 
 #end
