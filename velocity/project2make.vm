@@ -353,7 +353,7 @@ variations.${genotyper}.annotations : #foreach($sample in $project.sample) #samp
 
 #foreach($c in ${project.chromosomeGroups})
 
-#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_recal_chrom( ${sample} $c) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #else  #XWHOLE_CHROM($c) #end
+#sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_recal_chrom( ${sample} $c) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") #XCAPTURE_CHROM($c) #else  #XWHOLE_CHROM($c) #end
 
 #if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
@@ -392,7 +392,8 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 	mkdir -p $(dir $@) && \
 	gunzip -c $< > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
-	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) $tmp1vcf > $(basename $@) && \
+	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@)  > $(basename $@) && \
 	rm -f  "$tmp1vcf" && \
 	$(TABIX.bgzip) -f $(basename $@) && \
 	${TABIX.tabix} -f -p vcf $@ && \
@@ -453,7 +454,8 @@ $(OUTDIR)/VCF/variations.${genotyper}.annotations.vcf.gz : $(OUTDIR)/VCF/variati
 	mkdir -p $(dir $@) && \
 	gunzip -c $< > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
-	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@) $tmp1vcf > $(basename $@) && \
+	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@)  > $(basename $@) && \
 	rm -f  "$tmp1vcf" && \
 	$(TABIX.bgzip) -f $(basename $@) && \
 	${TABIX.tabix} -f -p vcf $@ && \
@@ -627,7 +629,7 @@ $(addprefix #sample_coverage($sample), .sample_cumulative_coverage_counts .sampl
 
 ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(capture.bed)
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
-	mkdir -p $(dir $@) && \
+	mkdir -p $(dir #sample_coverage(${sample}) ) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T DepthOfCoverage \
