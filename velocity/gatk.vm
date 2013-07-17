@@ -21,14 +21,14 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		O=$(addsuffix .tmp2.vcf,$outvcf) \
 		R=${REF} \
 		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} && \
-		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T VariantFiltration \
 		-R $(REF) \
 		-o ${outvcf} \
 		-U LENIENT_VCF_PROCESSING \
 		--variant:vcfinput,VCF $(addsuffix .tmp2.vcf,$outvcf) \
 		${gatkfilterparam.trim()} && \
-		rm -f $(addsuffix .tmp2.vcf,$outvcf) #end#end
+		rm -f $(addsuffix .tmp2.vcf,$outvcf) $(addsuffix .tmp2.vcf.idx,$outvcf) $(addsuffix .idx,$outvcf) #end#end
 
 #macro(gatk_variant_filtration $vcffile $variantfiltration)#if( ${variantfiltration.trim().length()} >0
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"
@@ -42,6 +42,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		-U LENIENT_VCF_PROCESSING \
 		--variant:vcfinput,VCF ${vcffile} \
 		${variantfiltration.trim()} && \
+	rm -f $(addsuffix .idx,${tmp}) && \
 	${TABIX.bgzip} -f  ${tmp} && \
 	mv -f ${tmpgz} ${vcffile} && \
 	${TABIX.tabix} -f -p vcf ${vcffile}

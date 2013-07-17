@@ -1,6 +1,5 @@
 package com.github.lindenb.xml4ngs;
 
-import com.github.lindenb.xml4ngs.ObjectFactory;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.regex.Pattern;
@@ -19,7 +18,7 @@ public class Ilmn2Project
 	private PropertiesType properties=new PropertiesType();
 	private Set<String> samplesKeep=new HashSet<String>();
 	private Set<String> samplesDiscard=new HashSet<String>();
-	
+	private PrintStream out=System.out;
 	private Ilmn2Project()
 		{
 		
@@ -188,18 +187,22 @@ public class Ilmn2Project
 			);
 		jaxbMarshaller.marshal(
 			new JAXBElement<ProjectType>(new QName("project"), ProjectType.class, project),
-			System.out
+			this.out
 			);
 		}
+	
+	
 	private void readPropertyFile(File f)  throws Exception
 		{
 		JAXBContext jaxbContext = JAXBContext.newInstance(PropertiesType.class);
 		Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
 		
-		JAXBElement e=unmarshaller.unmarshal(new  javax.xml.transform.stream.StreamSource(f),PropertiesType.class);
+		JAXBElement<PropertiesType> e=unmarshaller.unmarshal(new  javax.xml.transform.stream.StreamSource(f),PropertiesType.class);
 		PropertiesType p2=(PropertiesType)((e).getValue());
 		this.properties.getProperty().addAll(p2.getProperty());
 		}
+	
+	
 	
 	private void run(String args[]) throws Exception
 		{
