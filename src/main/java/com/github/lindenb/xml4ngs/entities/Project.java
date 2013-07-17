@@ -2,8 +2,11 @@
 package com.github.lindenb.xml4ngs.entities;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -12,7 +15,7 @@ import javax.xml.stream.XMLStreamWriter;
 public class Project {
 
     protected PropertyMap properties=new PropertyMap();
-    protected List<Sample> sample;
+    protected List<Sample> sample=new ArrayList<Sample>();
 
     /**
      * Gets the value of the properties property.
@@ -39,32 +42,8 @@ public class Project {
     }
 
 
-    /**
-     * Gets the value of the sample property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the sample property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getSample().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Sample }
-     * 
-     * 
-     */
     public List<Sample> getSample() {
-        if (sample == null) {
-            sample = new ArrayList<Sample>();
-        }
+      
         return this.sample;
     }
     
@@ -282,4 +261,14 @@ public class Project {
 	 w.writeEndElement();
   	}
   
+  public void write(PrintStream out) throws XMLStreamException
+  {
+	  XMLOutputFactory xof=XMLOutputFactory.newFactory();
+	  XMLStreamWriter sw=xof.createXMLStreamWriter(out, "UTF-8");
+		sw.writeStartDocument( "UTF-8","1.0");
+		this.write(sw);
+		sw.writeEndDocument();
+		sw.flush();
+		sw.close();
+  }
 }

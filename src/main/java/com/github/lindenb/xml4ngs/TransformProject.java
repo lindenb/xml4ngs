@@ -3,12 +3,13 @@ package com.github.lindenb.xml4ngs;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.File;
-import com.github.lindenb.xml4ngs.*;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
-import javax.xml.transform.stream.StreamSource;
+
+import com.github.lindenb.xml4ngs.entities.Project;
+
 
 import java.util.Properties;
 
@@ -79,16 +80,8 @@ public class TransformProject
 			usage(System.out);
 			System.exit(-1);
 			}
-	        javax.xml.bind.JAXBContext jaxbCtxt=javax.xml.bind.JAXBContext.newInstance(
-				  	ProjectType.class
-				  	);
-				  	
-		javax.xml.bind.Unmarshaller unmarshaller=jaxbCtxt.createUnmarshaller();
-		ProjectType project=unmarshaller.unmarshal(new StreamSource(new File(args[optind++])),
-					ProjectType.class
-					).getValue();
-		project.link();
-		
+
+		Project project=ProjectReader.readProject(new File(args[optind++]));
 		File  templateFile=new File(args[optind++]);
 		
 		

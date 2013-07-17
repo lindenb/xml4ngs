@@ -338,6 +338,44 @@ public class ProjectReader
 		throw new XMLStreamException("illegal state");
 		}
 	
+	private PropertyMap readPropertyMap() throws XMLStreamException
+		{
+		while(r.hasNext())
+			{
+			XMLEvent evt=r.nextEvent();
+			if(evt.isStartElement())
+				{
+				StartElement E=evt.asStartElement();
+				if(E.getName().getLocalPart().equals("properties"))
+					{	
+					return readPropertyMap(E);
+					}
+				else
+					{
+					fatal(E);
+					}
+				}
+			else if(evt.isEndElement())
+				{
+				fatal(evt);
+				}
+			}
+		throw new XMLStreamException("illegal state");
+		}
+	
+	public static PropertyMap readProperties(File f) throws XMLStreamException,IOException
+		{
+		ProjectReader pr=new ProjectReader();
+		FileReader fr=new FileReader(f);
+		XMLInputFactory xif=XMLInputFactory.newFactory();
+		pr.r=xif.createXMLEventReader(fr);
+		PropertyMap p=pr.readPropertyMap();
+		pr.r.close();
+		fr.close();
+		return p;
+		}
+	
+	
 	public static Project readProject(File f) throws XMLStreamException,IOException
 		{
 		ProjectReader pr=new ProjectReader();

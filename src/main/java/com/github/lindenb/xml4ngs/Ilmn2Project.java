@@ -3,22 +3,27 @@ package com.github.lindenb.xml4ngs;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.regex.Pattern;
-import javax.xml.bind.*;
-import javax.xml.namespace.QName;
+
+import com.github.lindenb.xml4ngs.entities.Fastq;
+import com.github.lindenb.xml4ngs.entities.Pair;
+import com.github.lindenb.xml4ngs.entities.Project;
+import com.github.lindenb.xml4ngs.entities.PropertyMap;
+import com.github.lindenb.xml4ngs.entities.PropertyString;
+import com.github.lindenb.xml4ngs.entities.Sample;
+import com.github.lindenb.xml4ngs.entities.Sequences;
+
 import java.util.*;
 
 
 public class Ilmn2Project
 	{
 	private static final String SUFFIX=".fastq.gz";
-	private ProjectType project= new ProjectType();
+	private Project project= new Project();
 	private Pattern uscore=Pattern.compile("_");
 	private Set<String> seqIndexes=new TreeSet<String>();
 	private Set<Integer> lanes=new TreeSet<Integer>();
-	private PropertiesType properties=new PropertiesType();
 	private Set<String> samplesKeep=new HashSet<String>();
 	private Set<String> samplesDiscard=new HashSet<String>();
-	private PrintStream out=System.out;
 	private Ilmn2Project()
 		{
 		
@@ -135,8 +140,8 @@ public class Ilmn2Project
 					continue;
 					}
 				
-				SampleType sample=null;
-				for(SampleType S: project.getSample())
+				Sample sample=null;
+				for(Sample S: project.getSample())
 					{
 					if(S.getName().equals(tokens[0]))
 						{
@@ -146,25 +151,25 @@ public class Ilmn2Project
 					}
 				if(sample==null)
 					{
-					sample=new SampleType();
+					sample=new Sample();
 					sample.setName(tokens[0]);
 					project.getSample().add(sample);
-					SequencesType sequences=new SequencesType();
+					Sequences sequences=new Sequences();
 					sample.setSequences(sequences);
 					}
-				PairType p=new PairType();
+				Pair p=new Pair();
 				p.setLane(lane);
 				p.setSplitIndex(split);
 				p.setSampleIndex(seqIndex);
 				sample.getSequences().getPair().add(p);
 				
-				FastqType fq=new FastqType();
+				Fastq fq=new Fastq();
 				fq.setIndex(1);
-				fq.setPath(f.getPath());
+				fq.setPath(f);
 				
-				p.getFastq().add(fq);
+				p.put(fq);
 			
-				fq=new FastqType();
+				fq=new Fastq();
 				fq.setIndex(2);
 				File mate=new File(f.getParentFile(),tokens[0]+"_"+tokens[1]+"_"+tokens[2]+"_R2_"+tokens[4]);
 				if(!mate.exists())
@@ -172,34 +177,21 @@ public class Ilmn2Project
 					System.err.println("Cannot find "+mate);
 					System.exit(-1);
 					}
-				fq.setPath(mate.getPath());
-				p.getFastq().add(fq);
+				fq.setPath(mate);
+				p.put(fq);
 				}
 			}
 		}
 	private void dump() throws Exception
 		{
-		JAXBContext jaxbContext = JAXBContext.newInstance("com.github.lindenb.xml4ngs");
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		jaxbMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-			"https://raw.github.com/lindenb/xml4ngs/master/src/main/resources/xsd/project.xsd"
-			);
-		jaxbMarshaller.marshal(
-			new JAXBElement<ProjectType>(new QName("project"), ProjectType.class, project),
-			this.out
-			);
+		this.project.write(System.out);
 		}
 	
 	
 	private void readPropertyFile(File f)  throws Exception
 		{
-		JAXBContext jaxbContext = JAXBContext.newInstance(PropertiesType.class);
-		Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
-		
-		JAXBElement<PropertiesType> e=unmarshaller.unmarshal(new  javax.xml.transform.stream.StreamSource(f),PropertiesType.class);
-		PropertiesType p2=(PropertiesType)((e).getValue());
-		this.properties.getProperty().addAll(p2.getProperty());
+		PropertyMap p2=ProjectReader.readProperties(f);
+		this.project.getProperties().putAll(p2);
 		}
 	
 	
@@ -234,10 +226,8 @@ public class Ilmn2Project
 				{
 				String key=args[++optind];
 				String val=args[++optind];
-				PropertyType prop=new PropertyType();
-				prop.setKey(key);
-				prop.setValue(val);
-				this.properties.getProperty().add(prop);
+				PropertyString prop=new PropertyString(val);
+				this.project.getProperties().put(key,prop);
 				}
 			else if(args[optind].equals("--"))
 				{
@@ -273,15 +263,14 @@ public class Ilmn2Project
 				
 		
 		/* finalize object : add lanes */
-		LanesType lanes=new LanesType();
+		/* LanesType lanes=new LanesType();
 		for(Integer i:this.lanes)
 			{
 			lanes.getLane().add(String.valueOf(i));
 			}
-		this.project.setLanes(lanes);
-		
-		this.project.setProperties(this.properties);
-			
+		//this.project.setLanes(lanes);
+		//this.project.setProperties(this.properties);
+			*/
 		dump();
 		}
 	public static void main(String args[]) throws Exception

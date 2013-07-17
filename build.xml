@@ -6,26 +6,14 @@
 <target name="all" depends="dist/ilmn2project.jar,dist/transformngsproject.jar">
 </target>
 
- <target name="generate-sources">
-   <mkdir dir="src/main/generated-sources/xjc"/>
-   <exec executable="xjc">
-       <arg value="-extension"/>
-       <arg value="-Xinject-code"/>
-       <arg value="-b"/> <arg value="src/main/resources/xsd/project.jxb"/>
-       <arg value="-d"/> <arg value="src/main/generated-sources/xjc"/>
-       <arg value="-p"/> <arg value="com.github.lindenb.xml4ngs"/>
-       <arg value="src/main/resources/xsd/project.xsd"/>
-   </exec>
-</target> 
 
- <target name="dist/ilmn2project.jar" depends="generate-sources">
+ <target name="dist/ilmn2project.jar" >
    <mkdir dir="tmp"/>
    <mkdir dir="dist"/>
           
    
    <javac destdir="tmp" includeAntRuntime="false" debug="true">
    		<src path="src/main/java"/>
-   		<src path="src/main/generated-sources/xjc"/>
    		<include name="**/Ilmn2Project.java"/>
    		
    </javac>
@@ -41,7 +29,7 @@
  </target>
  
  
-<target name="dist/transformngsproject.jar" depends="generate-sources,ivy.libs">
+<target name="dist/transformngsproject.jar" depends="ivy.libs">
     <mkdir dir="tmp"/>
    <mkdir dir="dist"/>
     
