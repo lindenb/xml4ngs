@@ -59,8 +59,16 @@ public class Project {
   	return v==null?def:v.toString();
   	}
   
+  public boolean hasProperty(String key)
+  	{
+	return getProperties().hasProperty(key);
+  	}
   
-  @javax.xml.bind.annotation.XmlTransient
+  public String getProperty(String key)
+	{
+	return getProperties().getProperty(key);
+	}
+  
   public String getGenerateId()
   	{
   	return "p1";
@@ -196,10 +204,8 @@ public class Project {
 	return  new java.util.ArrayList<String>(chroms);
 	}
 	
-  @javax.xml.bind.annotation.XmlTransient
   private java.util.List<String> _chromosomes=null;
   
-  @javax.xml.bind.annotation.XmlTransient
   public java.util.List<String> getRefChromosomes() throws java.io.IOException
   	{
   	if(_chromosomes==null)
@@ -223,7 +229,6 @@ public class Project {
   	return _chromosomes;
   	}
   
-  @javax.xml.bind.annotation.XmlTransient
   public String getUnmappedChromosomeName()
   	{
   	return "Unmapped";

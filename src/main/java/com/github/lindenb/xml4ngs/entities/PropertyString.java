@@ -47,5 +47,8 @@ public void write(XMLStreamWriter w, String key) throws XMLStreamException {
 	w.writeEndElement();
   	}
   
-  
+	public boolean isArray() { return false;}
+	public boolean isObject() { return false;}
+	public boolean isString() { return true;}
+
 }

@@ -25,4 +25,47 @@ public class PropertyMap
     		}
     	w.writeEndElement();
     	}
+	public boolean isArray() { return false;}
+	public boolean isObject() { return true;}
+	public boolean isString() { return false;}
+
+	
+	public boolean hasProperty(String key)
+		{
+		while(key.startsWith("/")) key=key.substring(1);
+		int i=key.indexOf('/');
+		if(i==-1)
+			{
+			ProjectProperty pp= this.get(key);
+			if(pp!=null) return true; //NO  && pp.isString()
+			return false;
+			}
+		else
+			{
+			ProjectProperty pp= this.get(key.substring(0, i));
+			if(pp==null || !pp.isObject()) return false;
+			return ((PropertyMap)pp).hasProperty(key.substring(i+1));
+			}
+		}
+
+	
+	public String getProperty(String key)
+		{
+		while(key.startsWith("/")) key=key.substring(1);
+		int i=key.indexOf('/');
+		if(i==-1)
+			{
+			ProjectProperty pp= this.get(key);
+			if(pp!=null && pp.isString()) return ((PropertyString)pp).getValue();
+			return "";
+			}
+		else
+			{
+			ProjectProperty pp= this.get(key.substring(0, i));
+			if(pp==null || !pp.isObject()) return "";
+			return ((PropertyMap)pp).getProperty(key.substring(i+1));
+			}
+		}
+	
+	
 	}

@@ -22,5 +22,8 @@ implements ProjectProperty
     		}
     	w.writeEndElement();
 		}
-  
+	public boolean isArray() { return true;}
+	public boolean isObject() { return false;}
+	public boolean isString() { return false;}
+
 	}

@@ -24,6 +24,9 @@
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
 
+#
+# http://unix.stackexchange.com/questions/16702
+#
 SHELL=/bin/bash
 
 .SUFFIXES:            # Delete the default suffixes
@@ -390,7 +393,8 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
-	gunzip -c $< > $tmp1vcf && \
+	gunzip -c $< | \
+	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6<0) $$6=0; print;}' > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
 	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@)  > $(basename $@) && \
@@ -567,6 +571,7 @@ $(OUTDIR)/BED/ensembl.genes.bed:
 	curl ${set_curl_proxy} -d 'query=<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="#if($project.propertyMap.containsKey["ensembl.dataset.name"])
 		)${project.propertyMap["ensembl.dataset.name"]}#{else}hsapiens_gene_ensembl#end" interface="default" ><Attribute name="chromosome_name" /><Attribute name="start_position" /><Attribute name="end_position" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
 	awk -F '	' '(int($$2) < int($$3))' |\
+	awk -F '	' '{OFS="	";if($$1==" -%- " #foreach($chrom in ${project.refChromosomes}) || $$1=="${chrom}" #end ) { print;} }' |\
 	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -i - | uniq > $@
 	$(call timeenddb,$@,$@)
@@ -588,8 +593,8 @@ endif
 $(extended_capture_bed): $(capture.bed)
 	mkdir -p $(dir $@)
 	cut -d '	' -f1,2,3 $< |\
-	awk -F '	'  -v x=$(extend.bed) '{S=int($$2)-int(x); if(S<0) S=0; printf("%s\t%d\t%d\n",$$1,S,int($$3)+int(x));}' |\
-	sort -t '	' -k1,1 -k2,2n -k3,3n |\
+	$(JAVA) -jar ${JVARKIT}/extendbed.jar REF=${REF} X=$(extend.bed) VALIDATION_STRINGENCY=LENIENT |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
 
@@ -631,6 +636,7 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
 	mkdir -p $(dir #sample_coverage(${sample}) ) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		#gatk_no_phone_home() \
 		-R $(REF) \
 		-T DepthOfCoverage \
 		-L:capture,BED $(filter %.bed,$^) \
@@ -704,6 +710,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T PrintReads \
+		#gatk_no_phone_home() \
 		-R $(REF) \
 		-BQSR $(filter %.grp,$^) \
 		-I $(filter %.bam,$^) \
@@ -726,6 +733,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
+		#gatk_no_phone_home() \
 		--validation_strictness LENIENT \
 		-R $(REF) \
 		-I $(filter %.bam,$^) \
@@ -807,6 +815,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		mkdir -p $(dir $@) && \
 		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
+  			#gatk_no_phone_home() \
   			-R $(REF) \
   			-I $(filter %.bam,$^) \
 			#if(${project.propertyMap.containsKey("gatk.indel.realigner.options")}
@@ -833,6 +842,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
+  			#gatk_no_phone_home() \
 			-L:capture,BED $(filter %.bed,$^) \
   			-I $(filter %.bam,$^) \
 			#if(${project.propertyMap.containsKey("gatk.realigner.target.creator.options")}
