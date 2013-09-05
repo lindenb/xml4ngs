@@ -593,7 +593,7 @@ endif
 $(extended_capture_bed): $(capture.bed)
 	mkdir -p $(dir $@)
 	cut -d '	' -f1,2,3 $< |\
-	$(JAVA) -jar ${JVARKIT}/extendbed.jar REF=${REF} X=$(extend.bed) VALIDATION_STRINGENCY=LENIENT |\
+	$(JAVA) -jar ${JVARKITGIT}/extendbed.jar REF=${REF} X=$(extend.bed) VALIDATION_STRINGENCY=LENIENT |\
 	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
