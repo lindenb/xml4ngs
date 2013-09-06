@@ -72,7 +72,16 @@ public class ProjectReader
 			XMLEvent evt=r.nextEvent();
 			if(evt.isStartElement())
 				{
-				fatal(evt);
+				StartElement E=evt.asStartElement();
+				if(E.getName().getLocalPart().equals("properties"))
+					{	
+					PropertyMap pm=readPropertyMap(E);
+					o.getProperties().putAll(pm);
+					}
+				else
+					{
+					fatal(evt);
+					}
 				}
 			else if(evt.isEndElement())
 				{
@@ -102,6 +111,11 @@ public class ProjectReader
 					Fastq fq=readFastq(E);
 					fq.setPair(o);
 					o.put(fq);
+					}
+				else if(E.getName().getLocalPart().equals("properties"))
+					{	
+					PropertyMap pm=readPropertyMap(E);
+					o.getProperties().putAll(pm);
 					}
 				else
 					{

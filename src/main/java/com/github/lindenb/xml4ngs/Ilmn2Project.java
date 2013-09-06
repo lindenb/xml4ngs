@@ -47,6 +47,146 @@ public class Ilmn2Project
 		return nLines<4;
 		}
 
+	private void readFatqList(File listFile) throws IOException
+		{
+		BufferedReader r=new BufferedReader(new FileReader(listFile));
+		String line;
+		while((line=r.readLine())!=null)
+			{
+			if(line.trim().isEmpty() || line.startsWith("#")) continue;
+			File f=new File(line);
+			if(!f.exists())
+				{
+				throw new FileNotFoundException(line);
+				}
+			
+			scanFile(f);
+			}
+		
+		r.close();
+		}
+	
+	private void scanFile(File f)throws IOException
+		{
+		if(!f.getName().endsWith(SUFFIX))
+			{
+			throw new IOException("should ends with "+SUFFIX+" "+f);
+			}
+
+		if(isEmptyFastQ(f))
+			{
+			System.err.println("WARNING: empty fastq: "+f);
+			return;
+			}
+		//SAMPLENAME_GATCAG_L007_R2_001.fastq.gz
+		String tokens[]=uscore.split(f.getName());
+		
+		if(tokens.length<5)
+			{
+			 System.err.println("Illegal name "+f);
+			 return;
+			}
+		else if(tokens.length>5)
+			{
+			String tokens2[]=new String[5];
+			tokens2[0]=tokens[0];
+			int name_count=(tokens.length-5);
+			for(int i=1;i<= name_count;++i)
+				{
+				tokens2[0]+="_"+tokens[i];
+				}
+			for(int i=name_count+1; i< tokens.length;++i)
+				{
+				tokens2[i-name_count]=tokens[i];
+				}
+			tokens=tokens2;
+			}
+
+		if(tokens[0].equalsIgnoreCase("Undetermined") ||  tokens[1].equalsIgnoreCase("Undetermined"))
+			{
+			System.err.println("Ignoring "+f);
+			return;
+			}
+
+
+		if(!tokens[2].startsWith("L"))
+			{
+			System.err.println("Illegal lane");
+			return;
+			}	
+		String seqIndex=tokens[1];
+		this.seqIndexes.add(seqIndex);
+		int lane=Integer.parseInt(tokens[2].substring(1));
+		this.lanes.add(lane);
+		int split=Integer.parseInt(tokens[4].substring(0,tokens[4].length()-SUFFIX.length()));
+		if(tokens[3].equals("R1"))
+			{
+			//ok
+			}
+		else if(tokens[3].equals("R2"))
+			{
+			return;
+			}
+		else
+			{
+			System.err.println("Illegal name "+f);
+			System.exit(-1);
+			}
+		
+		if(!samplesKeep.isEmpty() && !samplesKeep.contains(tokens[0]))
+			{
+			System.err.println("Ignoring sample "+tokens[0]+" in "+f);
+			return;
+			}
+		if(samplesDiscard.contains(tokens[0]))
+			{
+			System.err.println("Ignoring sample "+tokens[0]+" in "+f);
+			return;
+			}
+		
+		Sample sample=null;
+		for(Sample S: project.getSample())
+			{
+			if(S.getName().equals(tokens[0]))
+				{
+				sample=S;
+				break;
+				}
+			}
+		if(sample==null)
+			{
+			sample=new Sample();
+			sample.setName(tokens[0]);
+			project.getSample().add(sample);
+			Sequences sequences=new Sequences();
+			sample.setSequences(sequences);
+			}
+		Pair p=new Pair();
+		p.setLane(lane);
+		p.setSplitIndex(split);
+		p.setSampleIndex(seqIndex);
+		sample.getSequences().getPair().add(p);
+		
+		Fastq fq=new Fastq();
+		fq.setIndex(1);
+		fq.setPath(f);
+		
+		p.put(fq);
+	
+		fq=new Fastq();
+		fq.setIndex(2);
+		File mate=new File(f.getParentFile(),tokens[0]+"_"+tokens[1]+"_"+tokens[2]+"_R2_"+tokens[4]);
+		if(!mate.exists())
+			{
+			System.err.println("Cannot find "+mate);
+			System.exit(-1);
+			}
+		fq.setPath(mate);
+		p.put(fq);
+		
+		}
+	
+	
 	private void scan(File dir) throws IOException
 		{
 		if(dir==null) return;
@@ -69,116 +209,7 @@ public class Ilmn2Project
 				}
 			else if(f.getName().endsWith(SUFFIX))
 				{
-				if(isEmptyFastQ(f))
-					{
-					System.err.println("WARNING: empty fastq: "+f);
-					continue;
-					}
-				//SAMPLENAME_GATCAG_L007_R2_001.fastq.gz
-				String tokens[]=uscore.split(f.getName());
-				
-				if(tokens.length<5)
-					{
-					 System.err.println("Illegal name "+f);
-					continue;
-					}
-				else if(tokens.length>5)
-					{
-					String tokens2[]=new String[5];
-					tokens2[0]=tokens[0];
-					int name_count=(tokens.length-5);
-					for(int i=1;i<= name_count;++i)
-						{
-						tokens2[0]+="_"+tokens[i];
-						}
-					for(int i=name_count+1; i< tokens.length;++i)
-						{
-						tokens2[i-name_count]=tokens[i];
-						}
-					tokens=tokens2;
-					}
-
-				if(tokens[0].equalsIgnoreCase("Undetermined") ||  tokens[1].equalsIgnoreCase("Undetermined"))
-					{
-					 System.err.println("Ignoring "+f);
-					continue;
-					}
-
-
-				if(!tokens[2].startsWith("L"))
-					{
-					System.err.println("Illegal lane");
-					continue;
-					}	
-				String seqIndex=tokens[1];
-				this.seqIndexes.add(seqIndex);
-				int lane=Integer.parseInt(tokens[2].substring(1));
-				this.lanes.add(lane);
-				int split=Integer.parseInt(tokens[4].substring(0,tokens[4].length()-SUFFIX.length()));
-				if(tokens[3].equals("R1"))
-					{
-					//ok
-					}
-				else if(tokens[3].equals("R2"))
-					{
-					continue;//ignore
-					}
-				else
-					{
-					System.err.println("Illegal name "+f);
-					System.exit(-1);
-					}
-				
-				if(!samplesKeep.isEmpty() && !samplesKeep.contains(tokens[0]))
-					{
-					System.err.println("Ignoring sample "+tokens[0]+" in "+f);
-					continue;
-					}
-				if(samplesDiscard.contains(tokens[0]))
-					{
-					System.err.println("Ignoring sample "+tokens[0]+" in "+f);
-					continue;
-					}
-				
-				Sample sample=null;
-				for(Sample S: project.getSample())
-					{
-					if(S.getName().equals(tokens[0]))
-						{
-						sample=S;
-						break;
-						}
-					}
-				if(sample==null)
-					{
-					sample=new Sample();
-					sample.setName(tokens[0]);
-					project.getSample().add(sample);
-					Sequences sequences=new Sequences();
-					sample.setSequences(sequences);
-					}
-				Pair p=new Pair();
-				p.setLane(lane);
-				p.setSplitIndex(split);
-				p.setSampleIndex(seqIndex);
-				sample.getSequences().getPair().add(p);
-				
-				Fastq fq=new Fastq();
-				fq.setIndex(1);
-				fq.setPath(f);
-				
-				p.put(fq);
-			
-				fq=new Fastq();
-				fq.setIndex(2);
-				File mate=new File(f.getParentFile(),tokens[0]+"_"+tokens[1]+"_"+tokens[2]+"_R2_"+tokens[4]);
-				if(!mate.exists())
-					{
-					System.err.println("Cannot find "+mate);
-					System.exit(-1);
-					}
-				fq.setPath(mate);
-				p.put(fq);
+				scanFile(f);
 				}
 			}
 		}
@@ -208,6 +239,7 @@ public class Ilmn2Project
 				System.out.println(" -p prop.key prop.value");
 				System.out.println(" -S (sample.name) (optional: only keep those sample name, ignore the others). Can be used multiple times.");					      
 				System.out.println(" -D (sample.name) (optional: always discard those sample name). Can be used multiple times.");
+				System.out.println(" -q (file) (optional: read list of fastqs)");
 				return;
 				}
 			else if(args[optind].equals("-S") && optind+1< args.length)
@@ -221,6 +253,10 @@ public class Ilmn2Project
 			else if(args[optind].equals("-f") && optind+1< args.length)
 				{
 				readPropertyFile(new File(args[++optind]));
+				}
+			else if(args[optind].equals("-q") && optind+1< args.length)
+				{
+				readFatqList(new File(args[++optind]));
 				}
 			else if(args[optind].equals("-p") && optind+2< args.length)
 				{

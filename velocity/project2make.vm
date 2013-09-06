@@ -984,8 +984,8 @@ LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 
 
 ${sample.name}_sampe_pair${pair.index}_chromosomes : \
-	#fastq_preprocessed(${pair.forward}) \
-	#fastq_preprocessed(${pair.reverse}) \
+	#fastq_cutadapt(${pair.forward}) \
+	#fastq_cutadapt(${pair.reverse}) \
 	#fastq_sai(${pair.forward}) \
 	#fastq_sai(${pair.reverse}) \
 	${REF}
@@ -997,8 +997,8 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		$(REF) \
 		#fastq_sai(${pair.forward}) \
 		#fastq_sai(${pair.reverse}) \
-		#fastq_preprocessed(${pair.forward}) \
-		#fastq_preprocessed(${pair.reverse}) |\
+		#fastq_cutadapt(${pair.forward}) \
+		#fastq_cutadapt(${pair.reverse}) |\
 		$(JAVA) -jar $(JVARKIT)/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) -G  ${project.propertyMap["chromosomes.groups"]} #end \
 			--mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
@@ -1016,7 +1016,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 
 
 
-#fastq_sai(${fastq}) : #fastq_preprocessed($fastq) $(REF) #if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end
+#fastq_sai(${fastq}) : #fastq_cutadapt($fastq) $(REF) #if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end
 	
 	$(call timebegindb,$@,sai) && \
 	$(call sizedb,$<) && \
@@ -1038,7 +1038,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 #
 # Preprocess FASTQ
 #
-#fastq_preprocessed($fastq) : #fastq_raw($fastq)
+#fastq_cutadapt($fastq) : #fastq_trim5($fastq)
 
 	$(call timebegindb,$@,cutadapt) && \
 	$(call sizedb,$<) && \
@@ -1055,6 +1055,23 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	$(call notempty,$@)
 
 #end
+
+#if(${fastq.hasProperty("trim5")})
+
+#
+# remove ${fastq.getProperty("trim5")} bases from 5'
+# 
+
+#fastq_trim5($fastq) : #fastq_raw($fastq)
+	$(call timebegindb,$@,trim5) && \
+	$(call sizedb,$<) && \
+	mkdir -p $(dir $@) && \
+	gunzip -c $< |\
+	awk '{if(NR%4==2 || NR%4==0) {if(length($$0)<=${fastq.getProperty("trim5")}) {printf("\n");} else {printf("%s\n",subst($$0,${fastq.getProperty("trim5")}));} } else {print;}}' |\
+	gzip --best > $@ && \
+	$(call timeenddb,$@,trim5) && \
+	$(call sizedb,$@) && \
+	$(call notempty,$@)
 
 
 #end

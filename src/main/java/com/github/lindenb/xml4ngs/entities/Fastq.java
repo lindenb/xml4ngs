@@ -15,7 +15,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 
 
-public class Fastq
+public class Fastq extends AbstractHasProperties
 	{
     private int index=-1;
     private File path=null;
@@ -74,6 +74,12 @@ public class Fastq
   	}
   
   @Override
+public AbstractHasProperties getParentProperties()
+	{
+	return getPair();
+	}
+  
+  @Override
   public String toString()
   	{
   	return getPath().getPath();
@@ -81,9 +87,23 @@ public class Fastq
   
   public void write(XMLStreamWriter w) throws XMLStreamException
 	{
-	 w.writeEmptyElement("fastq");
+	 if(!properties.isEmpty())
+		 {
+		 w.writeStartElement("fastq");
+		 properties.write(w, null);
+		 }
+	 else
+		 {
+		 w.writeEmptyElement("fastq");
+		 }
+	
 	 w.writeAttribute("index",String.valueOf(getIndex()));
 	 w.writeAttribute("path",getPath().getPath());
+	 
+	 if(!properties.isEmpty())
+		 {
+		 w.writeEndElement();
+		 }
 	 }
 
   

@@ -12,34 +12,11 @@ import javax.xml.stream.XMLStreamWriter;
 
 
 
-public class Project {
-
-    protected PropertyMap properties=new PropertyMap();
+public class Project extends AbstractHasProperties
+	{
     protected List<Sample> sample=new ArrayList<Sample>();
 
-    /**
-     * Gets the value of the properties property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link PropertyMap }
-     *     
-     */
-    public PropertyMap getProperties() {
-        return properties;
-    }
 
-    /**
-     * Sets the value of the properties property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link PropertyMap }
-     *     
-     */
-    public void setProperties(PropertyMap value) {
-        this.properties = value;
-    }
 
 
     public List<Sample> getSample() {
@@ -48,26 +25,6 @@ public class Project {
     }
     
   
-  public PropertyMap getPropertyMap()
-  	{
-  	return properties;
-  	}
-  	
-  public String getPropertyByName(String key,String def)
-  	{
-  	ProjectProperty v=this.properties.get(key);
-  	return v==null?def:v.toString();
-  	}
-  
-  public boolean hasProperty(String key)
-  	{
-	return getProperties().hasProperty(key);
-  	}
-  
-  public String getProperty(String key)
-	{
-	return getProperties().getProperty(key);
-	}
   
   public String getGenerateId()
   	{
@@ -276,4 +233,11 @@ public class Project {
 		sw.flush();
 		sw.close();
   }
+  
+  
+  @Override
+public AbstractHasProperties getParentProperties()
+	{
+	return null;
+	}
 }

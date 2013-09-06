@@ -20,7 +20,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 
 
-public class Pair {
+public class Pair extends AbstractHasProperties
+	{
 
     @XmlElement(required = true)
     protected Fastq fastqs[]=new Fastq[]{null,null};
@@ -32,6 +33,9 @@ public class Pair {
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     @XmlSchemaType(name = "normalizedString")
     protected String sampleIndex;
+    
+    
+    protected PropertyMap properties=new PropertyMap();
 
     
     public List<Fastq> getFastq() {
@@ -195,11 +199,22 @@ public class Pair {
   public void write(XMLStreamWriter w) throws XMLStreamException
 	{
 	 w.writeStartElement("pair");
+	 
+	 
 	 if(getLane()!=null) w.writeAttribute("lane",String.valueOf(getLane()));
 	 if(getSampleIndex()!=null) w.writeAttribute("sample-index",String.valueOf(getSampleIndex()));
+	 
+	 if(!properties.isEmpty()) properties.write(w, null);
+
+	 
 	 for(Fastq p:getFastq()) p.write(w);
 	 w.writeEndElement();
 	}
 
+  @Override
+public AbstractHasProperties getParentProperties()
+	{
+	return getSample().getProject();
+	}
   
 }

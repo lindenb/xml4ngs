@@ -12,7 +12,7 @@ $(OUTDIR)/FASTX/fastx.report.pdf: #foreach($sample in $project.sample) #fastx_sa
 #foreach($sample in $project.sample)
 
 
-#fastx_sample_stats($sample): #foreach($pair in ${sample.sequences.pair})  #foreach($fastq in ${pair.fastq}) #fastq_preprocessed($fastq) #end #end
+#fastx_sample_stats($sample): #foreach($pair in ${sample.sequences.pair})  #foreach($fastq in ${pair.fastq}) #fastq_cutadapt($fastq) #end #end
 	
 	@$(call timebegindb,$@,fastx)
 	mkdir -p $(dir $@) && \
