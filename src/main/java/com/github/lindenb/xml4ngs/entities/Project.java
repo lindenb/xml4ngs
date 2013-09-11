@@ -17,7 +17,23 @@ public class Project extends AbstractHasProperties
     protected List<Sample> sample=new ArrayList<Sample>();
 
 
-
+    public List<Sample> getEnabledSamples()
+    	{
+    	List<Sample> L=new ArrayList<>(this.getSample());
+    	int i=0;
+    	while(i<L.size())
+    		{
+    		if(L.get(i).isDisabled())
+    			{
+    			L.remove(i);
+    			}
+    		else
+    			{
+    			++i;
+    			}
+    		}
+    	return L;
+    	}
 
     public List<Sample> getSample() {
       

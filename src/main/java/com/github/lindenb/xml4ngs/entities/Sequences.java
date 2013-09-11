@@ -24,7 +24,27 @@ public class Sequences {
     	{
         return this.pair;
     	}
+    
+    public List<Pair> getEnabledPairs()
+		{
+		List<Pair> L=new ArrayList<>(this.getPair());
+		int i=0;
+		while(i<L.size())
+			{
+			if(L.get(i).isDisabled())
+				{
+				L.remove(i);
+				}
+			else
+				{
+				++i;
+				}
+			}
+		return L;
+		}
 
+    
+    
     public void write(XMLStreamWriter w) throws XMLStreamException
   	{
   	 w.writeStartElement("sequences");

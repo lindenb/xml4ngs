@@ -10,11 +10,6 @@ package com.github.lindenb.xml4ngs.entities;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -23,19 +18,28 @@ import javax.xml.stream.XMLStreamWriter;
 public class Pair extends AbstractHasProperties
 	{
 
-    @XmlElement(required = true)
     protected Fastq fastqs[]=new Fastq[]{null,null};
-    @XmlAttribute(name = "lane")
     protected Integer lane;
-    @XmlAttribute(name = "split-index")
     protected Integer splitIndex;
-    @XmlAttribute(name = "sample-index")
-    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
-    @XmlSchemaType(name = "normalizedString")
     protected String sampleIndex;
+    private boolean enabled=true;
     
     
-    protected PropertyMap properties=new PropertyMap();
+	 public boolean isEnabled()
+	 	{
+		return enabled;
+	 	}
+	 
+	 public final boolean isDisabled()
+	 	{
+		return !isEnabled(); 
+	 	}
+	 
+	 public void setEnabled(boolean enabled)
+	 	{
+		this.enabled = enabled;
+	 }
+
 
     
     public List<Fastq> getFastq() {
@@ -162,13 +166,11 @@ public class Pair extends AbstractHasProperties
    
   
   
-   @javax.xml.bind.annotation.XmlTransient
    public Fastq getForward()
    	{
    	return this.getFastq().get(0);
    	}
    
-    @javax.xml.bind.annotation.XmlTransient
    public Fastq getReverse()
    	{
    	return this.getFastq().get(1);
@@ -200,6 +202,10 @@ public class Pair extends AbstractHasProperties
 	{
 	 w.writeStartElement("pair");
 	 
+	 if(!isEnabled())
+	 	{
+		 w.writeAttribute("enabled","false");
+	 	}
 	 
 	 if(getLane()!=null) w.writeAttribute("lane",String.valueOf(getLane()));
 	 if(getSampleIndex()!=null) w.writeAttribute("sample-index",String.valueOf(getSampleIndex()));
@@ -214,7 +220,7 @@ public class Pair extends AbstractHasProperties
   @Override
 public AbstractHasProperties getParentProperties()
 	{
-	return getSample().getProject();
+	return getSample();
 	}
   
 }

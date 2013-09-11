@@ -142,9 +142,12 @@ public class ProjectReader
 				{
 				StartElement E=evt.asStartElement();
 				if(E.getName().getLocalPart().equals("pair"))
-					{	
+					{
 					Pair pair=readPair(E);
-					o.getPair().add(pair);
+					if(pair.isEnabled())
+						{
+						o.getPair().add(pair);
+						}
 					}
 				else
 					{
@@ -164,6 +167,13 @@ public class ProjectReader
 		{
 		Sample o=new Sample();
 		o.setName(requiredAtt(root, "name").trim());
+		Attribute att=root.getAttributeByName(new QName("enabled"));
+		if(att!=null && (att.getValue().equals("false") || att.getValue().equals("no")))
+			{
+			o.setEnabled(false);
+			}
+		
+		
 		while(r.hasNext())
 			{
 			XMLEvent evt=r.nextEvent();
@@ -305,8 +315,11 @@ public class ProjectReader
 				if(E.getName().getLocalPart().equals("sample"))
 					{	
 					Sample sample=readSample(E);
-					o.getSample().add(sample);
-					sample.setProject(o);
+					if(sample.isEnabled())
+						{
+						o.getSample().add(sample);
+						sample.setProject(o);
+						}
 					}
 				else if(E.getName().getLocalPart().equals("properties"))
 					{	

@@ -6,7 +6,7 @@
 		-q $(MIN_MAPPING_QUALITY) \
 		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
 		-f $(REF) $(filter %.bam,$^) |\
-	$(BCFTOOLS) view -vcg - | $(JAVA) -jar ${JVARKITGIT}/vcffixindels.jar | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\
+	$(BCFTOOLS) view -vcg - #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes") | $(JAVA) -jar ${JVARKITGIT}/vcffixindels.jar #end | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\
 	$(TABIX.bgzip) -c > $@ && \
 	$(TABIX.tabix) -f -p vcf $@ && \
 	$(call timeenddb,$@,mpileup) && \

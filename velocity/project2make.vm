@@ -999,8 +999,16 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		#fastq_sai(${pair.reverse}) \
 		#fastq_cutadapt(${pair.forward}) \
 		#fastq_cutadapt(${pair.reverse}) |\
-		$(JAVA) -jar $(JVARKIT)/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) -G  ${project.propertyMap["chromosomes.groups"]} #end \
-			--mock -R ${REF} -p '#pair_bam_sorted_chrom($pair "__CHROM__" )'  --tmp #sample_BAM(${pair.sample}) --index -u Unmapped
+		$(JAVA) -jar ${JVARKITGIT}/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
+			EMPTY_BAM=true MOCK=true \
+			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
+			REF=${REF} \
+			OUT_FILE_PATTERN=#pair_bam_sorted_chrom($pair "__CHROM__" )  \
+			TMP_DIR=#sample_BAM(${pair.sample}) \
+			IS=false \
+			VALIDATION_STRINGENCY=LENIENT \
+			CREATE_INDEX=true \
+			UNDERTERMINED_NAME=Unmapped
 	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
 	
 	$(call timeenddb,$@,bwasampe)
@@ -1043,12 +1051,14 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	$(call timebegindb,$@,cutadapt) && \
 	$(call sizedb,$<) && \
 	mkdir -p $(dir $@) && \
-	$(CUTADAPT) -b #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
+	$(CUTADAPT) -a #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
 		)${project.propertyMap["cutadapt.sequence.for"]}#elseif(
 		$project.propertyMap.containsKey("cutadapt.sequence.rev") &&  ${fastq.index}==2
 		)${project.propertyMap["cutadapt.sequence.rev"]}#elseif(
 		${fastq.index}==1)AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC#elseif(
 		${fastq.index}==2)AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT#else${utils.warning("cutadapt params undefined for ${fastq} index=${fastq.index}")}#end  $< -o $(basename $@) > $(addsuffix .report.txt,$@) && \
+	awk '{if(NR%4==2 && length($$0)==0) { printf("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN\n");} else if(NR%4==0 && length($$0)==0) { printf("#[[##################################################]]#\n");} else {print;}}'  $(basename $@) > $(addsuffix .tmp,$(basename $@)) && \
+	mv $(addsuffix .tmp,$(basename $@)) $(basename $@) && \
 	gzip --best --force $(basename $@) && \
 	$(call timeenddb,$@,cutadapt) && \
 	$(call sizedb,$@) && \
@@ -1073,6 +1083,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	$(call sizedb,$@) && \
 	$(call notempty,$@)
 
+#end
 
 #end
 

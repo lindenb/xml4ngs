@@ -12,72 +12,60 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 
-public class Sample {
+public class Sample extends AbstractHasProperties{
 
-    protected PropertyMap properties=new PropertyMap();
+    //protected PropertyMap properties=new PropertyMap();
     protected Sequences sequences=new Sequences();
+    protected Bam bam=new Bam();
     protected String name=null;
-
-    /**
-     * Gets the value of the properties property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link PropertyMap }
-     *     
-     */
-    public PropertyMap getProperties() {
-        return properties;
-    }
-
-    /**
-     * Sets the value of the properties property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link PropertyMap }
-     *     
-     */
-    public void setProperties(PropertyMap value) {
-        this.properties = value;
-    }
-
-    /**
-     * Gets the value of the sequences property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Sequences }
-     *     
-     */
+    private boolean enabled=true;
+    
+	 @Override
+	public AbstractHasProperties getParentProperties()
+	 	{
+		return owner;
+	 	}
+	 
+	 public boolean isEnabled()
+	 	{
+		return enabled && !getSequences().getEnabledPairs().isEmpty();
+	 	}
+	 
+	 public final boolean isDisabled()
+	 	{
+		return !isEnabled(); 
+	 	}
+	 
+	 public void setEnabled(boolean enabled)
+	 	{
+		this.enabled = enabled;
+	 }
+	 
+  
     public Sequences getSequences() {
         return sequences;
     }
 
-    /**
-     * Sets the value of the sequences property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Sequences }
-     *     
-     */
+    
     public void setSequences(Sequences value) {
         this.sequences = value;
     }
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
+ 
     public String getName() {
         return name;
     }
+    
+    public Bam getBam()
+    	{
+		return bam;
+		}
 
+    
+    public void setBam(Bam bams) {
+		this.bam = bams;
+	}
+    
     /**
      * Sets the value of the name property.
      * 
@@ -106,8 +94,16 @@ public class Sample {
   public void write(XMLStreamWriter w) throws XMLStreamException
 	{
 	 w.writeStartElement("sample");
+	 if(!isEnabled())
+	 	{
+		 w.writeAttribute("enabled","false");
+	 	}
 	 w.writeAttribute("name", getName());
-	if(getSequences()!=null) getSequences().write(w);
+	 
+	 if(!properties.isEmpty()) properties.write(w, null);
+	 
+		if(getSequences()!=null) getSequences().write(w);
+		if(getBam()!=null) getBam().write(w);
 	 w.writeEndElement();
 	}
 
@@ -122,6 +118,12 @@ public class Sample {
 	  		o.setSample(this);
 	  		o.link();
 	  		}
+  		}
+  	if(this.bam!=null)
+  		{
+  		
+  		this.bam.setSample(this);
+	  		
   		}
   	}
  
