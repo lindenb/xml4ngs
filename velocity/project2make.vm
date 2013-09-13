@@ -310,7 +310,11 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 
 LIST_PHONY_TARGET+= all_predictions
 TOP_TARGETS+= all_predictions
-all_predictions: final_bams #foreach($genotyper in ${project.genotypeMethods}) variations.${genotyper} variations.${genotyper}.annotations  #end
+all_predictions: final_bams \
+				coverage \
+				$(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
+				#foreach($genotyper in ${project.genotypeMethods}) variations.${genotyper} variations.${genotyper}.annotations  #end \
+				
 
 
 #foreach($genotyper in ${project.genotypeMethods})
@@ -325,7 +329,17 @@ variations.${genotyper} : #foreach($sample in $project.sample) #sample_vcf_genot
 
 LIST_PHONY_TARGET+= variations.${genotyper}.annotations
 TOP_TARGETS+= variations.${genotyper}.annotations
-variations.${genotyper}.annotations : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotations($sample $genotyper ) #end
+variations.${genotyper}.annotations : $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz
+
+
+$(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotations($sample $genotyper ) #end
+	
+	mkdir -p $(dir $@) && \
+	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-merge $^ > $(basename $@) && \
+	$(TABIX.bgzip) -f $(basename $@) && \
+	${TABIX.tabix} -f -p vcf $@
+
+
 
 
 ## END LOOP OVER GENOTYPER
@@ -389,12 +403,13 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 #set($gatkfilterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
 
 
-#sample_vcf_genotyper_annotations($sample $genotyper  ) :  #sample_vcf_genotyper($sample $genotyper)
+#sample_vcf_genotyper_annotations($sample $genotyper  ) :  #sample_vcf_genotyper($sample $genotyper) $(capture.bed)  #sample_final_bam( ${sample} ) 
 
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
 	gunzip -c $< | \
-	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6<0) $$6=0; print;}' > $tmp1vcf && \
+	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6<0) $$6=0; print;}' |\
+	$(JAVA) -jar ${JVARKITGIT}/vcfannobam.jar BED=$(capture.bed) BAM=#sample_final_bam( ${sample} ) VALIDATION_STRINGENCY=SILENT > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
 	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k4,4 -k5,5 --temporary-directory=$(dir $@)  > $(basename $@) && \
@@ -416,7 +431,10 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 LIST_PHONY_TARGET+=all_predictions
 TOP_TARGETS+=all_predictions
 
-all_predictions: final_bams #foreach($genotyper in ${project.genotypeMethods}) $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz $(OUTDIR)/VCF/variations.${genotyper}.annotations.vcf.gz #end
+all_predictions: final_bams \
+				coverage \
+				$(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
+				#foreach($genotyper in ${project.genotypeMethods}) $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz #end
 	
 
 #foreach($genotyper in ${project.genotypeMethods})
@@ -425,9 +443,9 @@ all_predictions: final_bams #foreach($genotyper in ${project.genotypeMethods}) $
 # Create VCF for all samples with ${genotyper} 
 #
 
-TOP_TARGETS+= $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz 
+TOP_TARGETS+= $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz 
 
-$(OUTDIR)/VCF/variations.${genotyper}.vcf.gz : $(call indexed_bam, #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end ) \
+$(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz : $(call indexed_bam, #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end ) \
 		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
 	
 #if( $genotyper == "samtools")
@@ -453,7 +471,7 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 #set($genotyperfilterproperty=${genotyper}+".vcf.filtration")
 #set($annotatorfilterproperty=${annotator}+".vcf.filtration")
 #set($gatkfilterparam=${project.getPropertyByName($genotyperfilterproperty,"")}+" "+${project.getPropertyByName($annotatorfilterproperty,"")})
-$(OUTDIR)/VCF/variations.${genotyper}.annotations.vcf.gz : $(OUTDIR)/VCF/variations.${genotyper}.vcf.gz
+$(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz : $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
 	gunzip -c $< > $tmp1vcf && \

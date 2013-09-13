@@ -49,21 +49,28 @@ public class Ilmn2Project
 
 	private void readFatqList(File listFile) throws IOException
 		{
-		BufferedReader r=new BufferedReader(new FileReader(listFile));
-		String line;
-		while((line=r.readLine())!=null)
+		BufferedReader r=null;
+		try
 			{
-			if(line.trim().isEmpty() || line.startsWith("#")) continue;
-			File f=new File(line);
-			if(!f.exists())
-				{
-				throw new FileNotFoundException(line);
-				}
+			r=new BufferedReader(new FileReader(listFile));
 			
-			scanFile(f);
+			String line;
+			while((line=r.readLine())!=null)
+				{
+				if(line.trim().isEmpty() || line.startsWith("#")) continue;
+				File f=new File(line);
+				if(!f.exists())
+					{
+					throw new FileNotFoundException(line);
+					}
+				
+				scanFile(f);
+				}
 			}
-		
-		r.close();
+		finally
+			{
+			r.close();
+			}
 		}
 	
 	private void scanFile(File f)throws IOException

@@ -144,10 +144,8 @@ public class ProjectReader
 				if(E.getName().getLocalPart().equals("pair"))
 					{
 					Pair pair=readPair(E);
-					if(pair.isEnabled())
-						{
-						o.getPair().add(pair);
-						}
+					//if(pair.isEnabled()) NO!!!: keep for group-id
+					o.getPair().add(pair);
 					}
 				else
 					{
@@ -261,7 +259,11 @@ public class ProjectReader
 			else if(evt.isEndElement())
 				{
 				if(!evt.asEndElement().getName().equals(root.getName())) fatal(evt);	
-				if(b==null) throw new XMLStreamException("empty element",evt.getLocation());
+				if(b==null)
+					{
+					System.err.println("warning empty property string "+evt.getLocation());
+					return new PropertyString("");
+					}
 				return new PropertyString(b.toString());
 				}
 			else if(evt.isCharacters())
@@ -315,11 +317,9 @@ public class ProjectReader
 				if(E.getName().getLocalPart().equals("sample"))
 					{	
 					Sample sample=readSample(E);
-					if(sample.isEnabled())
-						{
-						o.getSample().add(sample);
-						sample.setProject(o);
-						}
+					//if(sample.isEnabled()) NO: keep for Group-ID
+					o.getSample().add(sample);
+					sample.setProject(o);
 					}
 				else if(E.getName().getLocalPart().equals("properties"))
 					{	
