@@ -89,7 +89,7 @@ TOP_TARGETS=
 #
 # fix PATH (tophat needs this)
 #
-export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${R.dir}/bin:/usr/bin
+export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${TABIX}:${R.dir}/bin:/usr/bin
 
 ###
 # FIX LOCALE (http://unix.stackexchange.com/questions/61985)
@@ -311,8 +311,6 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 LIST_PHONY_TARGET+= all_predictions
 TOP_TARGETS+= all_predictions
 all_predictions: final_bams \
-				coverage \
-				$(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
 				#foreach($genotyper in ${project.genotypeMethods}) variations.${genotyper} variations.${genotyper}.annotations  #end \
 				
 
@@ -329,13 +327,18 @@ variations.${genotyper} : #foreach($sample in $project.sample) #sample_vcf_genot
 
 LIST_PHONY_TARGET+= variations.${genotyper}.annotations
 TOP_TARGETS+= variations.${genotyper}.annotations
-variations.${genotyper}.annotations : $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz
+variations.${genotyper}.annotations : $(OUTDIR)/VCF/#output_files_prefix()variations.merged.${genotyper}.annotations.vcf.gz
 
 
-$(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotations($sample $genotyper ) #end
+$(OUTDIR)/VCF/#output_files_prefix()variations.merged.${genotyper}.annotations.vcf.gz : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotations($sample $genotyper ) #end
 	
 	mkdir -p $(dir $@) && \
-	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-merge $^ > $(basename $@) && \
+	$(JAVA) -jar ${JVARKITGIT}/vcfmerge.jar \
+			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM}  \
+			$(foreach B,$(filter %.vcf.gz,$^), I=$(B) ) \
+			REF=$(REF) \
+			O=$(basename $@)  \
+			TMP_DIR=$(dir $@) && \
 	$(TABIX.bgzip) -f $(basename $@) && \
 	${TABIX.tabix} -f -p vcf $@
 
@@ -432,8 +435,6 @@ LIST_PHONY_TARGET+=all_predictions
 TOP_TARGETS+=all_predictions
 
 all_predictions: final_bams \
-				coverage \
-				$(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf \
 				#foreach($genotyper in ${project.genotypeMethods}) $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz #end
 	
 
@@ -514,11 +515,15 @@ beddepth:  #foreach($sample in $project.sample) #sample_beddepth(${sample}) #end
 #
 # create a PDF for bamstats01.tsv
 #
-TOP_TARGETS+= $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf
+
+LIST_PHONY_TARGET+= bamstats01
+TOP_TARGETS+= bamstats01
+bamstats01: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf
+
 
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv
-	mkdir -p $(dir $@)
-	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(8),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
+	mkdir -p $(dir $@) && \
+	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(35),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
 	${R.exe} --no-save
 
 #
@@ -526,8 +531,8 @@ $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/Statistics
 #
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv : #foreach($sample in $project.sample) #sample_bamstat01_tsv($sample) #end
 
-	mkdir -p $(dir $@)
-	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
+	mkdir -p $(dir $@) && \
+	cut -d	'	' -f 2- $^  | sed 's/^Sample/#Sample/'|  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
 #
@@ -538,7 +543,7 @@ TOP_TARGETS+= $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv
 
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats04.tsv : #foreach($sample in $project.sample)  #sample_bamstat04_tsv($sample) #end
 
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	cat $^ |  LC_ALL=C sort -t '	' -k1,1 | uniq > $@
 
 
@@ -937,8 +942,11 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #sample_bamstat01_tsv($sample) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
 	$(call timebegindb,$@,bamstats01) && \
 	mkdir -p $(dir $@) && \
-	${VARKIT}/bamstats01 -b $(capture.bed) $(filter %.bam,$^) |\
-		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@ && \
+	$(JAVA) -jar ${JVARKITGIT}/bamstats01.jar \
+		BED=$(capture.bed) \
+		IN=$(filter %.bam,$^) \
+		OUT=$@ \
+		VALIDATION_STRINGENCY=SILENT && \
 	$(call timeenddb,$@,bamstats01) && \
 	$(call sizedb,$@) && \
 	$(call notempty,$@)
@@ -949,8 +957,11 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #sample_bamstat04_tsv($sample) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
 	$(call timebegindb,$@,bamstats04) && \
 	mkdir -p $(dir $@) && \
-	$(JAVA) -jar ${JVARKIT}/bamstats04.jar -b $(capture.bed) $(filter %.bam,$^) |\
-		sed -e 's/_recal.bam//' -e "s%$(dir $(filter %.bam,$^))%%" > $@ && \
+	$(JAVA) -jar ${JVARKITGIT}/bamstats04.jar \
+		BED=$(capture.bed) \
+		IN=$(filter %.bam,$^) \
+		MIN_COV=10 \
+		VALIDATION_STRINGENCY=SILENT > $@ && \
 	$(call timeenddb,$@,bamstats04) && \
 	$(call sizedb,$@) && \
 	$(call notempty,$@)

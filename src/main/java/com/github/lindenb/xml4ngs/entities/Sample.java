@@ -16,7 +16,7 @@ public class Sample extends AbstractHasProperties{
 
     //protected PropertyMap properties=new PropertyMap();
     protected Sequences sequences=new Sequences();
-    protected Bam bam=new Bam();
+    protected Bam bam=null;
     protected String name=null;
     private boolean enabled=true;
     
@@ -103,7 +103,7 @@ public class Sample extends AbstractHasProperties{
 	 if(!properties.isEmpty()) properties.write(w, null);
 	 
 		if(getSequences()!=null) getSequences().write(w);
-		if(getBam()!=null) getBam().write(w);
+	if(getBam()!=null) getBam().write(w);
 	 w.writeEndElement();
 	}
 
