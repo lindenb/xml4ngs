@@ -1,11 +1,14 @@
-#macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup) && \
-	mkdir -p $(dir $@) && \
-	$(SAMTOOLS) mpileup #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 -L 8000 #end \
+#macro(param_samtool_mpileup) #if(${project.getPropertyByName("is.haloplex","no")}=="yes") -A  -d 8000 -L 8000 #end \
 		#if(${project.propertyMap.containsKey("samtools.mpileup.options")}) ${project.propertyMap["samtools.mpileup.options"]} #else -E -C50 -m3 -F0.002   #end \
-		-uD \
 		-q $(MIN_MAPPING_QUALITY) \
 		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
-		-f $(REF) $(filter %.bam,$^) |\
+		-f $(REF) $(filter %.bam,$^) #end
+
+
+
+#macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup) && \
+	mkdir -p $(dir $@) && \
+	$(SAMTOOLS) mpileup -uD  #param_samtool_mpileup() |\
 	$(BCFTOOLS) view -vcg - #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes") | $(JAVA) -jar ${JVARKITGIT}/vcffixindels.jar #end | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\
 	$(TABIX.bgzip) -c > $@ && \
 	$(TABIX.tabix) -f -p vcf $@ && \

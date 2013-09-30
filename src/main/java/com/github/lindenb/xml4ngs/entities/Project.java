@@ -218,7 +218,7 @@ public class Project extends AbstractHasProperties
    @javax.xml.bind.annotation.XmlTransient
   public java.util.Set<String> getGenotypeMethods()
   	{
-  	String methods[]=new String[]{"samtools", "gatk","freebayes"};
+  	String methods[]=new String[]{"samtools", "gatk","freebayes","varscan"};
   	java.util.Set<String> S= new java.util.HashSet<String>(methods.length);
   	for(String m:methods)
   		{

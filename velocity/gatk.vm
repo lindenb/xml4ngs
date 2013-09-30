@@ -31,7 +31,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		-U LENIENT_VCF_PROCESSING \
 		--variant:vcfinput,VCF $(addsuffix .tmp2.vcf,$outvcf) \
 		${gatkfilterparam.trim()} && \
-		rm -f $(addsuffix .tmp2.vcf,$outvcf) $(addsuffix .tmp2.vcf.idx,$outvcf) $(addsuffix .idx,$outvcf) #end#end
+		rm -f $(addsuffix .tmp2.vcf,$outvcf) $(addsuffix .tmp2.vcf.idx,$outvcf) $(addsuffix .idx,$outvcf) #else cp $invcf $outvcf #end#end
 
 #macro(gatk_variant_filtration $vcffile $variantfiltration)#if( ${variantfiltration.trim().length()} >0
 )#set( $tmp = "$(addsuffix .tmp.vcf,"+${vcffile}+")"

@@ -20,6 +20,7 @@
 #parse("freebayes.vm")
 #parse("loghsql.vm")
 #parse("annotations.vm")
+#parse("varscan.vm")
 ## PROXY SETTING 
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
@@ -382,6 +383,9 @@ $(OUTDIR)/VCF/#output_files_prefix()variations.merged.${genotyper}.annotations.v
 #call_with_gatk()
 #elseif( $genotyper == "freebayes")
 #call_with_freebayes()
+#elseif( $genotyper == "varscan")
+#call_with_varscan()
+
 
 #else
 
@@ -411,7 +415,8 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
 	gunzip -c $< | \
-	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6<0) $$6=0; print;}' |\
+	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6!="." && $$6<0) $$6=0; print;}' |\
+	$(JAVA) -jar ${JVARKITGIT}/vcfpolyx.jar REF=${REF} |\
 	$(JAVA) -jar ${JVARKITGIT}/vcfannobam.jar BED=$(capture.bed) BAM=#sample_final_bam( ${sample} ) VALIDATION_STRINGENCY=SILENT > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
@@ -457,6 +462,9 @@ $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz : $(call inde
 
 #elseif( $genotyper == "freebayes")
 #call_with_freebayes()
+
+#elseif( $genotyper == "varscan")
+#call_with_varscan()
 
 #else
 
@@ -961,6 +969,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 		BED=$(capture.bed) \
 		IN=$(filter %.bam,$^) \
 		MIN_COV=10 \
+		#if(${project.getPropertyByName("is.haloplex","no")}=="yes") NO_ORPHAN=false #end \
 		VALIDATION_STRINGENCY=SILENT > $@ && \
 	$(call timeenddb,$@,bamstats04) && \
 	$(call sizedb,$@) && \

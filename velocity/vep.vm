@@ -1,3 +1,11 @@
 #macro(annotate_with_vep $invcf,$outvcf)$(VEP.bin) $(VEP.args) $(VEP.cache) \
-	--fasta $(REF) --offline --hgnc --format vcf --force_overwrite --sift=b --polyphen=b  --refseq --xref_refseq \
-	-i ${invcf} -o ${outvcf} --quiet --vcf #if(${project.propertyMap["discard.intergenic.variants"]}=="yes") --no_intergenic #end  #end
+	--fasta $(REF) \
+	--offline \
+	--hgnc \
+	--format vcf \
+	--force_overwrite \
+	--sift=b --polyphen=b \
+	--refseq --xref_refseq \
+	-i ${invcf} \
+	-o ${outvcf} \
+	--quiet --vcf #if(${project.propertyMap["discard.intergenic.variants"]}=="yes") --no_intergenic #end  #end
