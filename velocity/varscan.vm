@@ -2,10 +2,12 @@
 
 
 
-#macro(call_with_varscan)		$(call timebegindb,$@,varscan)
+#macro(call_with_varscan)
+
+	$(call timebegindb,$@,varscan)
 	mkdir -p $(dir $@) && \
 	$(SAMTOOLS) mpileup #param_samtool_mpileup()  | gzip --best > $(addsuffix .mpileup.gz,$@) \
-	$(foreach algo,snp indel, && gunzip -c $(addsuffix .mpileup.gz,$@) | ${JAVA} -jar ${VARSCAN.jar} mpileup2${algo} --min-coverage 10 --min-var-freq 0.08 --output-vcf --p-value 0.05 | $(TABIX.bgzip) -c  > $(addsuffix .${algo}.vcf.gz,$@)   ) && \
+	$(foreach algo,snp indel, && gunzip -c $(addsuffix .mpileup.gz,$@) | ${JAVA} -jar ${VARSCAN.jar} mpileup2${algo} --min-coverage 10 --min-var-freq 0.08 --output-vcf --p-value 0.05 | $(JAVA) -jar ${JVARKITGIT}/fixvarscanmissingheader.jar #foreach($sample2 in $genotyped_samples )  SAMPLES=${sample2} #end | $(TABIX.bgzip) -c  > $(addsuffix .${algo}.vcf.gz,$@)   ) && \
 	rm -f $(addsuffix .mpileup.gz,$@) && \
 	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $(foreach algo,snp indel,$(addsuffix .${algo}.vcf.gz,$@) ) |\
 	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-sort | uniq | \

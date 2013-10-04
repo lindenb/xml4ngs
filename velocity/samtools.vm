@@ -6,7 +6,9 @@
 
 
 
-#macro(call_with_samtools_mpileup)	$(call timebegindb,$@,mpileup) && \
+#macro(call_with_samtools_mpileup)
+
+	$(call timebegindb,$@,mpileup) && \
 	mkdir -p $(dir $@) && \
 	$(SAMTOOLS) mpileup -uD  #param_samtool_mpileup() |\
 	$(BCFTOOLS) view -vcg - #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes") | $(JAVA) -jar ${JVARKITGIT}/vcffixindels.jar #end | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\

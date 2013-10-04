@@ -53,7 +53,9 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	#end#end
 
 
-#macro(call_with_gatk)		$(call timebegindb,$@,UnifiedGenotyper)
+#macro(call_with_gatk)
+
+	$(call timebegindb,$@,UnifiedGenotyper)
 	mkdir -p $(dir $@) && \
 	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \

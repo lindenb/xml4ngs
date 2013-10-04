@@ -375,14 +375,16 @@ $(OUTDIR)/VCF/#output_files_prefix()variations.merged.${genotyper}.annotations.v
 #foreach($c in ${project.chromosomeGroups})
 
 #sample_vcf_genotyper_chrom($sample $genotyper $c): $(call indexed_bam, #sample_recal_chrom( ${sample} $c) ) #if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") #XCAPTURE_CHROM($c) #else  #XWHOLE_CHROM($c) #end
-
+#set($genotyped_samples=["${sample}"])
 #if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
 
 #elseif( $genotyper == "gatk")
 #call_with_gatk()
+
 #elseif( $genotyper == "freebayes")
 #call_with_freebayes()
+
 #elseif( $genotyper == "varscan")
 #call_with_varscan()
 
@@ -453,7 +455,7 @@ TOP_TARGETS+= $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz
 
 $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.vcf.gz : $(call indexed_bam, #foreach($sample in ${project.sample}) #sample_final_bam( ${sample} ) #end ) \
 		#if(${project.getPropertyByName("allele.calling.in.capture","no")}=="yes") $(extended_capture_bed) #end
-	
+#set($genotyped_samples=${project.sample})
 #if( $genotyper == "samtools")
 #call_with_samtools_mpileup()
 
