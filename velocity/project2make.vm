@@ -416,6 +416,7 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 
 	$(call timebegindb,$@,"annotations") && \
 	mkdir -p $(dir $@) && \
+	rm -f $(addsuffix .tbi,$@ $tmp1vcf $tmp2vcf) && \
 	gunzip -c $< | \
 	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6!="." && $$6<0) $$6=0; print;}' |\
 	$(JAVA) -jar ${JVARKITGIT}/vcfpolyx.jar REF=${REF} |\
@@ -427,6 +428,7 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 	$(TABIX.bgzip) -f $(basename $@) && \
 	${TABIX.tabix} -f -p vcf $@ && \
 	$(call timeenddb,$@,"annotations") && \
+	rm -f $(addsuffix .tbi,$@ $tmp1vcf $tmp2vcf) && \
 	$(call sizedb,$@)
 
 
