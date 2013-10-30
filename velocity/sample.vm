@@ -38,7 +38,7 @@
 #macro(sample_vcf_gatk_vep $sample)#sample_VCF($sample)/#output_files_prefix()${sample.name}_variations.gatk.vcf.vep.gz #end
 
 #macro(sample_bamstat01_tsv $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}_bamstats01.tsv #end
-#macro(sample_bamstat04_tsv $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}_bamstats04.tsv #end
+#macro(sample_bamstat04_tsv $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}_bamstats04.tsv.gz #end
 #macro(sample_beddepth $sample)#sample_STATS($sample)/#output_files_prefix()${sample.name}_beddepth.tsv.gz #end
 
 
