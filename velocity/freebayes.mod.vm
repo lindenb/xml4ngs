@@ -1,0 +1,4 @@
+#parse("common.mod.vm")
+#set( $freebayes_exe = $packages_dir + "/freebayes/freebayes/bin/freebayes")
+
+

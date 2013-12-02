@@ -22,10 +22,10 @@ $(OUTDIR)/CONTAMINATIONS/contaminations.tsv: #foreach($sample in $project.sample
 	$(call timebegindb,$@,contaminations)
 	$(call sizedb,$<)
 	mkdir -p $(dir $@) && \
-	$(SAMTOOLS) view -f 4   $< | awk -F '	' '{printf(">%s\n%s\n+\n%s\n",$$1,$$10,$$11);}' >  #sample_CONTAMINATIONS($sample)/tmp.fastq && \
-	$(BWA) aln -f #sample_CONTAMINATIONS($sample)/tmp.sai ${project.propertyMap["contaminations.reference.path"]} #sample_CONTAMINATIONS($sample)/tmp.fastq 
-	$(BWA) samse ${project.propertyMap["contaminations.reference.path"]} #sample_CONTAMINATIONS($sample)/tmp.sai  #sample_CONTAMINATIONS($sample)/tmp.fastq |\
-		$(SAMTOOLS) view -F 4 -S - | cut -d '	' -f 3 | LC_ALL=C sort --temporary-directory=$(dir $@) | uniq -c | awk -v S=${sample.name} '{printf("%s %s\n",S,$$0);}' | tr -s " " | tr " " "	" > $@ && \
+	${samtools_exe} view -f 4   $< | awk -F '	' '{printf(">%s\n%s\n+\n%s\n",$$1,$$10,$$11);}' >  #sample_CONTAMINATIONS($sample)/tmp.fastq && \
+	${bwa_exe} aln -f #sample_CONTAMINATIONS($sample)/tmp.sai ${project.propertyMap["contaminations.reference.path"]} #sample_CONTAMINATIONS($sample)/tmp.fastq 
+	${bwa_exe} samse ${project.propertyMap["contaminations.reference.path"]} #sample_CONTAMINATIONS($sample)/tmp.sai  #sample_CONTAMINATIONS($sample)/tmp.fastq |\
+		${samtools_exe} view -F 4 -S - | cut -d '	' -f 3 | LC_ALL=C sort --temporary-directory=$(dir $@) | uniq -c | awk -v S=${sample.name} '{printf("%s %s\n",S,$$0);}' | tr -s " " | tr " " "	" > $@ && \
 	rm -f #sample_CONTAMINATIONS($sample)/tmp.fastq #sample_CONTAMINATIONS($sample)/tmp.sai
 	$(call timeenddb,$@,contaminations)
 	$(call sizedb,$@)

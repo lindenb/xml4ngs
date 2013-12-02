@@ -1,0 +1,5 @@
+#parse("java.mod.vm")
+#set( $jvarkit_version = "latest")
+#set( $jvarkit_dir = $packages_dir + "/jvarkit-git")
+#macro(execjvarkitcmd $command)${java_exe} -jar ${jvarkit_dir}/${command}.jar #end
+

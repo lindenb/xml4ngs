@@ -18,12 +18,12 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 
 
 
-#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)$(JAVA)  -jar ${JVARKITGIT}/sortvcfonref.jar \
+#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)#execjvarkitcmd("sortvcfonref") \
 		I=$invcf \
 		O=$(addsuffix .tmp2.vcf,$outvcf) \
 		R=${REF} \
 		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} && \
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar ${gatk_jar} $(GATK.flags) \
 		-T VariantFiltration \
 		#gatk_no_phone_home() \
 		-R $(REF) \
@@ -38,7 +38,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 	)#set( $tmpgz = "$(addsuffix .gz,"+${tmp}+")"
 	)#filtering with GATK variant filtration
 	mkdir -p $(dir $@) && \
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar ${gatk_jar} $(GATK.flags) \
 		-T VariantFiltration \
 		#gatk_no_phone_home() \
 		-R $(REF) \
@@ -47,9 +47,9 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		--variant:vcfinput,VCF ${vcffile} \
 		${variantfiltration.trim()} && \
 	rm -f $(addsuffix .idx,${tmp}) && \
-	${TABIX.bgzip} -f  ${tmp} && \
+	${bgzip_exe} -f  ${tmp} && \
 	mv -f ${tmpgz} ${vcffile} && \
-	${TABIX.tabix} -f -p vcf ${vcffile}
+	${tabix_exe} -f -p vcf ${vcffile}
 	#end#end
 
 
@@ -57,7 +57,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 
 	$(call timebegindb,$@,UnifiedGenotyper)
 	mkdir -p $(dir $@) && \
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-R $(REF) \
 		-T UnifiedGenotyper \
 		#gatk_no_phone_home() \
@@ -70,7 +70,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
 		--dbsnp:vcfinput,VCF $(known.sites) \
 		-o $(basename $@) && \
-	$(TABIX.bgzip) -f $(basename $@) && \
+	${bgzip_exe} -f $(basename $@) && \
 	$(call timeenddb,$@,UnifiedGenotyper) && \
 	$(call sizedb,$@) && \
 	$(call notempty,$@)

@@ -1,7 +1,7 @@
-#macro(annotate_with_snpeff $invcf,$outvcf)$(JAVA) -jar $(SNPEFF)/snpEff.jar eff -i vcf -o vcf \
+#macro(annotate_with_snpeff $invcf,$outvcf)${exec_snpeff_eff} -i vcf -o vcf \
 		#if( ${project.propertyMap["discard.intergenic.variants"]}=="yes" ) -no-intergenic #end \
 		-sequenceOntolgy -lof \
-		-c $(SNPEFF)/snpEff.config \
+		-c ${snpeff_config} \
 		-s $(addsuffix .snpeff.report,$@) \
-		#if(! $project.propertyMap.containsKey("snpEff.build") )GRCh37.70#else${project.propertyMap["snpEff.build"]}#end ${invcf}  > $outvcf #end
+		#if(! $project.propertyMap.containsKey("snpEff.build") )${snpeff_database}#else${project.propertyMap["snpEff.build"]}#end ${invcf}  > $outvcf #end
 

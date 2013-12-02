@@ -12,6 +12,19 @@
 #parse("fastq.vm")
 #parse("pair.vm")
 #parse("sample.vm")
+
+#parse("bcftools.mod.vm")
+#parse("common.mod.vm")
+#parse("gatk.mod.vm")
+#parse("java.mod.vm")
+#parse("jvarkit.mod.vm")
+#parse("picard.mod.vm")
+#parse("samtools.mod.vm")
+#parse("snpeff.mod.vm")
+#parse("tabix.mod.vm")
+#parse("vep.mod.vm")
+
+
 #parse("varkit.vm")
 #parse("gatk.vm")
 #parse("vep.vm")
@@ -21,6 +34,7 @@
 #parse("loghsql.vm")
 #parse("annotations.vm")
 #parse("varscan.vm")
+
 ## PROXY SETTING 
 #if($project.propertyMap.containsKey("http.proxy.host")
 )#set($set_curl_proxy= " --proxy "+$project.propertyMap["http.proxy.host"]+":"+$project.propertyMap["http.proxy.port"])#set($set_jvm_proxy= " -Dhttp.proxyHost="+$project.propertyMap["http.proxy.host"]+" -Dhttp.proxyPort="+$project.propertyMap["http.proxy.port"])#else#set($set_curl_proxy ="")#set($set_jvm_proxy ="")#end
@@ -90,7 +104,7 @@ TOP_TARGETS=
 #
 # fix PATH (tophat needs this)
 #
-export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${TABIX}:${R.dir}/bin:/usr/bin
+export PATH:=$(PATH):${BOWTIE2.dir}:${samtools.dir}:${CUFFLINKS.dir}:${tabix_dir}:${Rstats_bindir}:/usr/bin
 
 ###
 # FIX LOCALE (http://unix.stackexchange.com/questions/61985)
@@ -104,9 +118,6 @@ export LC_ALL:=C
 GHOSTVIEW ?= gs
 
 
-
-TABIX.bgzip?=${TABIX}/bgzip
-TABIX.tabix?=${TABIX}/tabix
 
 
 
@@ -231,7 +242,7 @@ endef
 .bam.bai:
 	$(call timebegindb,$@,bai)
 	#some indexes are created by picard, no need to recreate it, or just check the timestamp
-	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
+	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then ${samtools_exe} index $< $@; else echo "OK. $< already indexed."; fi
 	$(call timeenddb,$@,bai)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -241,15 +252,15 @@ endef
 
 #index with bwa
 %.amb %.ann %.bwt %.pac %.sa : %$extension
-	$(BWA) index -a bwtsw $<
+	${bwa_exe} index -a bwtsw $<
 
 #index with samtools
 ${extension}.fai : %$extension
-	$(SAMTOOLS) faidx $<
+	${samtools_exe} faidx $<
 
 #picard dictionnary
 %.dict: %${extension}
-	 $(JAVA) -jar $(PICARD)/CreateSequenceDictionary.jar \
+	 ${java_exe} -jar $(PICARD)/CreateSequenceDictionary.jar \
 		R=$< \
 		O=$@ \
 		GENOME_ASSEMBLY=$(basename $(notdir $<)) \
@@ -281,7 +292,7 @@ final_bams :  #foreach($sample in $project.sample)  #sample_final_bam(${sample})
 
 $(OUTDIR)/Statistics/tools.txt : 
 	mkdir -p $(dir $@) && \
-	echo -e "GATK: ${GATK.jar}\nSAMTOOLS:${SAMTOOLS}\nPICARD: ${PICARD}\nBWA: ${BWA}\nTABIX: ${TABIX}\nSNPEFF: ${SNPEFF}\nBEDTOOL: ${BEDTOOLS}\nCUTADAPT: ${CUTADAPT}\nFREEBAYES: ${VCFTOOLS.dir}" > $@
+	echo -e "GATK: ${GATK.jar}\nSAMTOOLS:${samtools_exe}\nPICARD: ${PICARD}\nBWA: ${bwa_exe}\nTABIX: ${TABIX}\nSNPEFF: ${SNPEFF}\nBEDTOOL: ${bedtools_version}\nCUTADAPT: ${cutadapt_exe}\nFREEBAYES: todo " > $@
 
 
 LIST_PHONY_TARGET+= coverage
@@ -294,7 +305,7 @@ $(OUTDIR)/Statistics/mean_coverage01.pdf: $(addsuffix .sample_summary, #foreach(
 	cat $^ | sort | grep -v -E  '^(Total|sample_id)'  |\
 		cut -d '	' -f1,3 >> $(patsubst %.pdf,%.tsv,$@)
 	echo 'pdf("$@",paper="A4r"); T<-read.table("$(patsubst %.pdf,%.tsv,$@)",header=T,sep="\t",row.names=1); barplot(as.matrix(t(T)),legend=colnames(T),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8); dev.off()' |\
-	${R.exe} --no-save
+	${Rstats_R_exe} --no-save
 	
 
 
@@ -339,14 +350,14 @@ variations.${genotyper}.annotations : $(OUTDIR)/VCF/#output_files_prefix()variat
 $(OUTDIR)/VCF/#output_files_prefix()variations.merged.${genotyper}.annotations.vcf.gz : #foreach($sample in $project.sample) #sample_vcf_genotyper_annotations($sample $genotyper ) #end
 	
 	mkdir -p $(dir $@) && \
-	$(JAVA) -jar ${JVARKITGIT}/vcfmerge.jar \
+	#execjvarkitcmd("vcfmerge") \
 			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM}  \
 			$(foreach B,$(filter %.vcf.gz,$^), I=$(B) ) \
 			OUT=$(basename $@)  \
 			REF=${REF} \
 			TMP_DIR=$(dir $@) && \
-	$(TABIX.bgzip) -f $(basename $@) && \
-	${TABIX.tabix} -f -p vcf $@
+	${bgzip_exe} -f $(basename $@) && \
+	${tabix_exe} -f -p vcf $@
 
 
 
@@ -371,10 +382,10 @@ $(OUTDIR)/VCF/#output_files_prefix()variations.merged.${genotyper}.annotations.v
 #sample_vcf_genotyper($sample $genotyper) : #foreach($c in ${project.chromosomeGroups}) #sample_vcf_genotyper_chrom($sample $genotyper $c) #end
 	
 	mkdir -p $(dir $@) && \
-	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-concat $^ |\
-	perl -I $(VCFTOOLS.dir)/perl $(VCFTOOLS.dir)/perl/vcf-sort |\
-	$(TABIX.bgzip) -c > $@ && \
-	$(TABIX.tabix) -f -p vcf $@
+	#execute_vcftools_cmd("vcf-concat") $^ |\
+	#execute_vcftools_cmd("vcf-sort") |\
+	${bgzip_exe} -c > $@ && \
+	${tabix_exe} -f -p vcf $@
 	
 
 #foreach($c in ${project.chromosomeGroups})
@@ -424,14 +435,15 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 	rm -f $(addsuffix .tbi,$@ $tmp1vcf $tmp2vcf) && \
 	gunzip -c $< | \
 	awk -F	'	' '/^#/ {print;next;}	{OFS="	";if($$6!="." && $$6<0) $$6=0; print;}' |\
-	$(JAVA) -jar ${JVARKITGIT}/vcfpolyx.jar REF=${REF} |\
-	$(JAVA) -jar ${JVARKITGIT}/vcfannobam.jar BED=$(capture.bed) BAM=#sample_final_bam( ${sample} ) VALIDATION_STRINGENCY=SILENT > $tmp1vcf && \
+	#execjvarkitcmd("nozerovariationvcf") -r ${REF} |\
+	#execjvarkitcmd("vcfpolyx") REF=${REF} |\
+	#execjvarkitcmd("vcfannobam") BED=$(capture.bed) BAM=#sample_final_bam( ${sample} ) VALIDATION_STRINGENCY=SILENT > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
-	$(JAVA) -jar ${JVARKITGIT}/sortvcfonref.jar R=${REF}  MAX_RECORDS_IN_RAM=500000 TMP_DIR=$(dir $@)  > $(basename $@) && \
+	#execjvarkitcmd("sortvcfonref") R=${REF}  MAX_RECORDS_IN_RAM=500000 TMP_DIR=$(dir $@)  > $(basename $@) && \
 	rm -f  "$tmp1vcf" && \
-	$(TABIX.bgzip) -f $(basename $@) && \
-	${TABIX.tabix} -f -p vcf $@ && \
+	${bgzip_exe} -f $(basename $@) && \
+	${tabix_exe} -f -p vcf $@ && \
 	$(call timeenddb,$@,"annotations") && \
 	rm -f $(addsuffix .tbi,$@ $tmp1vcf $tmp2vcf) && \
 	$(call sizedb,$@)
@@ -495,10 +507,10 @@ $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz :
 	gunzip -c $< > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
-	$(JAVA) -jar ${JVARKITGIT}/sortvcfonref.jar R=${REF}  MAX_RECORDS_IN_RAM=500000 TMP_DIR=$(dir $@)   > $(basename $@) && \
+	#execjvarkitcmd("sortvcfonref") R=${REF}  MAX_RECORDS_IN_RAM=500000 TMP_DIR=$(dir $@)   > $(basename $@) && \
 	rm -f  "$tmp1vcf" && \
-	$(TABIX.bgzip) -f $(basename $@) && \
-	${TABIX.tabix} -f -p vcf $@ && \
+	${bgzip_exe} -f $(basename $@) && \
+	${tabix_exe} -f -p vcf $@ && \
 	$(call timeenddb,$@,"annotations") && \
 	$(call sizedb,$@)
 
@@ -541,7 +553,7 @@ bamstats01: $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats01.tsv
 	mkdir -p $(dir $@) && \
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(35),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
-	${R.exe} --no-save
+	${Rstats_R_exe} --no-save
 
 #
 # count of mapped-reads	
@@ -590,7 +602,7 @@ $(OUTDIR)/Statistics/#output_files_prefix()all.distribution.recal.pdf : #foreach
 $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.pdf : $(OUTDIR)/Statistics/#output_files_prefix()bamstats03.tsv
 	mkdir -p $(dir $@) && \
 	echo 'pdf("$@",paper="A4r"); T<-read.delim("$<",header=T,sep="\t",row.names=1);barplot(as.matrix(t(T)),beside=TRUE,col=rainbow(7),las=2,cex.names=0.8,legend=colnames(T)); dev.off()' |\
-	${R.exe} --no-save
+	${Rstats_R_exe} --no-save
 
 #
 # count of mapped-reads, quality per sample	
@@ -617,7 +629,7 @@ $(OUTDIR)/BED/ensembl.genes.bed:
 	awk -F '	' '(int($$2) < int($$3))' |\
 	awk -F '	' '{OFS="	";if($$1==" -%- " #foreach($chrom in ${project.refChromosomes}) || $$1=="${chrom}" #end ) { print;} }' |\
 	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
-	$(BEDTOOLS)/mergeBed -i - | uniq > $@
+	${bedtools_bindir}/mergeBed -i - | uniq > $@
 	$(call timeenddb,$@,$@)
 	$(call sizedb,$@)
 	$(call notempty,$@)
@@ -637,9 +649,9 @@ endif
 $(extended_capture_bed): $(capture.bed)
 	mkdir -p $(dir $@)
 	cut -d '	' -f1,2,3 $< |\
-	$(JAVA) -jar ${JVARKITGIT}/extendbed.jar REF=${REF} X=$(extend.bed) VALIDATION_STRINGENCY=LENIENT |\
+	#execjvarkitcmd("extendbed") REF=${REF} X=$(extend.bed) VALIDATION_STRINGENCY=LENIENT |\
 	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
-	$(BEDTOOLS)/mergeBed -d $(extend.bed) -i - > $@
+	${bedtools_bindir}/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
 
 #foreach($chrom in ${project.chromosomeGroups})
@@ -679,7 +691,7 @@ $(addprefix #sample_coverage($sample), .sample_cumulative_coverage_counts .sampl
 ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(capture.bed)
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
 	mkdir -p $(dir #sample_coverage(${sample}) ) && \
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		#gatk_no_phone_home() \
 		-R $(REF) \
 		-T DepthOfCoverage \
@@ -706,9 +718,9 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 	
 	$(call timebegindb,$@,merge_chroms)
 	mkdir -p $(dir $@)
-	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	${samtools_exe} merge $@ $^
 	#else
-	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
+	${java_exe} -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
@@ -752,7 +764,7 @@ LIST_BAM_RECAL+=#sample_recal_chrom( ${sample} ${chrom})
 		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )
 	$(call timebegindb,$@_tableRecalibaration,recalibration)
 	mkdir -p $(dir $@) && \
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T PrintReads \
 		#gatk_no_phone_home() \
 		-R $(REF) \
@@ -775,7 +787,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 			$(known.sites)
 	$(call timebegindb,#sample_recal_chrom(${sample} ${chrom}),covariates)
 	mkdir -p $(dir $@) && \
-	$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 		-T BaseRecalibrator \
 		#gatk_no_phone_home() \
 		--validation_strictness LENIENT \
@@ -811,14 +823,14 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 #sample_markdup_chrom(${sample} ${chrom}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chrom}) )
 #if( ${project.getPropertyByName("use.samtools.rmdup","no")} == "yes" )	$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@) && \
-	$(SAMTOOLS) rmdup $(filter %.bam,$^) $@
+	${samtools_exe} rmdup $(filter %.bam,$^) $@
 	$(call sizedb,$@)
 	
 
 #else	$(call timebegindb,$@_markdup,markdup)
 	mkdir -p $(dir $@) && \
 	mkdir -p $(addsuffix tmp.rmdup,$(dir $@)) && \
-	$(JAVA) $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
+	${java_exe} $(PICARD.jvm) -jar $(PICARD)/MarkDuplicates.jar \
 		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
 		INPUT=$(filter %.bam,$^) \
@@ -857,7 +869,7 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chrom}) )   : $(cal
 		
 		$(call timebegindb,$@_indelrealigner,indelrealign)
 		mkdir -p $(dir $@) && \
-		$(JAVA) $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
+		${java_exe} $(GATK.jvm) -jar  $(GATK.jar) $(GATK.flags) \
   			-T IndelRealigner \
   			#gatk_no_phone_home() \
   			-R $(REF) \
@@ -883,7 +895,7 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chrom})) : $(call indexe
 		
 		$(call timebegindb,$@_targetcreator,targetcreator)
 		mkdir -p $(dir $@) && \
-		$(JAVA) $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+		${java_exe} $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
 			-T RealignerTargetCreator \
   			-R $(REF) \
   			#gatk_no_phone_home() \
@@ -918,9 +930,9 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 	
 	$(call timebegindb,$@,merge) && \
 	mkdir -p $(dir $@) && \
-	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	$(SAMTOOLS) merge $@ $^ && \
+	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	${samtools_exe} merge $@ $^ && \
 	#else
-	$(JAVA) -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
+	${java_exe} -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
@@ -963,7 +975,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #sample_bamstat01_tsv($sample) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
 	$(call timebegindb,$@,bamstats01) && \
 	mkdir -p $(dir $@) && \
-	$(JAVA) -jar ${JVARKITGIT}/bamstats01.jar \
+	#execjvarkitcmd("bamstats01") \
 		BED=$(capture.bed) \
 		IN=$(filter %.bam,$^) \
 		OUT=$@ \
@@ -978,7 +990,7 @@ LIST_BAM_MERGED+=  #sample_merged_chrom(${sample} ${chrom})
 #sample_bamstat04_tsv($sample) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
 	$(call timebegindb,$@,bamstats04) && \
 	mkdir -p $(dir $@) && \
-	$(JAVA) -jar ${JVARKITGIT}/bamstats04.jar \
+	#execjvarkitcmd("bamstats04") \
 		BED=$(capture.bed) \
 		IN=$(filter %.bam,$^) \
 		MIN_COV=10 \
@@ -1043,7 +1055,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	${REF}
 	$(call timebegindb,$@,bwasampe)
 	mkdir -p #sample_BAM(${pair.sample}) && \
-	$(BWA) sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
+	${bwa_exe} sampe #if($project.propertyMap.containsKey("bwa.sampe.options")
 		) ${project.propertyMap["bwa.sampe.options"]}  #else  -a 500  #end \
 		-r "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
 		$(REF) \
@@ -1051,7 +1063,7 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		#fastq_sai(${pair.reverse}) \
 		#fastq_cutadapt(${pair.forward}) \
 		#fastq_cutadapt(${pair.reverse}) |\
-		$(JAVA) -jar ${JVARKITGIT}/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
+		#execjvarkitcmd("splitbam") #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
 			EMPTY_BAM=true MOCK=true \
 			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 			REF=${REF} \
@@ -1073,12 +1085,12 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 	${REF}
 	$(call timebegindb,$@,bwamem)
 	mkdir -p #sample_BAM(${pair.sample}) && \
-	$(BWA) mem  \
+	${bwa_exe} mem  \
 		-R "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
 		$(REF) \
 		#fastq_cutadapt(${pair.forward}) \
 		#fastq_cutadapt(${pair.reverse}) |\
-		$(JAVA) -jar ${JVARKITGIT}/splitbam.jar #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
+		#execjvarkitcmd("splitbam") #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
 			EMPTY_BAM=true MOCK=true \
 			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
 			REF=${REF} \
@@ -1109,7 +1121,7 @@ ${utils.error("undefined aligner")}
 	$(call timebegindb,$@,sai) && \
 	$(call sizedb,$<) && \
 	mkdir -p $(dir $@) && \
-	$(BWA) aln #if($project.propertyMap.containsKey("bwa.aln.options")
+	${bwa_exe} aln #if($project.propertyMap.containsKey("bwa.aln.options")
 		) ${project.getPropertyByName("bwa.aln.options","")} #end \
 		 -f $@ \
 		 $(REF) \
@@ -1131,7 +1143,7 @@ ${utils.error("undefined aligner")}
 	$(call timebegindb,$@,cutadapt) && \
 	$(call sizedb,$<) && \
 	mkdir -p $(dir $@) && \
-	$(CUTADAPT) -a #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
+	${cutadapt_exe} -a #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
 		)${project.propertyMap["cutadapt.sequence.for"]}#elseif(
 		$project.propertyMap.containsKey("cutadapt.sequence.rev") &&  ${fastq.index}==2
 		)${project.propertyMap["cutadapt.sequence.rev"]}#elseif(

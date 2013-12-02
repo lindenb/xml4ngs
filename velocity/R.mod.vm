@@ -1,0 +1,5 @@
+#parse("common.mod.vm")
+#set( $Rstats_version = "2.15.2")
+#set( $Rstats_dir = $packages_dir + "/R" )
+#set( $Rstats_bindir = $Rstats_dir + "/bin" )
+#set( $Rstats_R_exe = $Rstats_bindir + "/R" )

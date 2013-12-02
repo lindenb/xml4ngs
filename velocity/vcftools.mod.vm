@@ -1,0 +1,5 @@
+#parse("common.mod.vm")
+#set( $vcftools_version = "0.1.10")
+#set( $vcftools_dir = $packages_dir + "/vcftools/vcftools_" + $vcftools_version)
+#macro(execute_vcftools_cmd $command) perl -I ${vcftools_dir}/perl ${vcftools_dir}/perl/${command}  #end
+

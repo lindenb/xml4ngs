@@ -1,0 +1,4 @@
+#parse("common.mod.vm")
+#set( $cutadapt_version = "1.2.1")
+#set( $cutadapt_dir = $packages_dir + "/cutadapt-" + $cutadapt_version)
+#set( $cutadapt_exe = $cutadapt_dir + "/bin/cutadapt")

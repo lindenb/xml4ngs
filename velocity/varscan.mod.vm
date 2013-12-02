@@ -1,0 +1,4 @@
+#parse("java.mod.vm")
+#set( $varscan_version = "2.3.6")
+#set( $varscan_jar = $packages_dir + "/VarScan.v" + $varscan_version + ".jar")
+

@@ -1,0 +1,5 @@
+#parse("java.mod.vm")
+#set( $gatk_version = "2.6-4-g3e5ff60")
+#set( $gatk_dir = $packages_dir + "/GenomeAnalysisTK-" + $gatk_version )
+#set( $gatk_jar = $gatk_dir + "/GenomeAnalysisTK.jar" )
+#macro(exec_gatk ) ${java_exe} -Xmx5g -jar ${gatk_jar} #end

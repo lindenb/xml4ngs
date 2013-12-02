@@ -1,0 +1,3 @@
+#parse("common.mod.vm")
+#set( $java_version = "1.7.0_25")
+#set( $java_exe =  "/usr/bin/java")

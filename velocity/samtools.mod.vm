@@ -1,0 +1,4 @@
+#parse("common.mod.vm")
+#set( $samtools_version = "0.1.19")
+#set( $samtools_dir = $packages_dir + "/samtools-" + $samtools_version)
+#set( $samtools_exe = $samtools_dir + "/samtools")

@@ -17,14 +17,14 @@ $(OUTDIR)/FASTX/fastx.report.pdf: #foreach($sample in $project.sample) #fastx_sa
 	@$(call timebegindb,$@,fastx)
 	mkdir -p $(dir $@) && \
 	gunzip -c $^ |\
-	$(FASTX.dir)/bin/fastx_quality_stats  -Q33 > $@
+	${fastx_bindir}/fastx_quality_stats  -Q33 > $@
 	@$(call timeenddb,$@,fastx)
 	
 
 #fastx_sample_qual($sample) : #fastx_sample_stats($sample)
 	
 	mkdir -p $(dir $@)
-	bash  $(FASTX.dir)/bin/fastq_quality_boxplot_graph.sh -p  \
+	bash  ${fastx_bindir}/fastq_quality_boxplot_graph.sh -p  \
 		-i $< \
 		-t "QUAL ${sample.name}" \
 		-o $@
@@ -32,7 +32,7 @@ $(OUTDIR)/FASTX/fastx.report.pdf: #foreach($sample in $project.sample) #fastx_sa
 #fastx_sample_nucl($sample) : #fastx_sample_stats($sample)
 	
 	mkdir -p $(dir $@)
-	bash $(FASTX.dir)/bin/fastx_nucleotide_distribution_graph.sh -p  \
+	bash ${fastx_bindir}/fastx_nucleotide_distribution_graph.sh -p  \
 		-i $< \
 		-t "NUCLEOTIDE-DIST ${sample.name}" \
 		-o $@

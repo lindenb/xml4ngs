@@ -1,0 +1,113 @@
+
+#parse("gatk.mod.vm")
+#parse("java.mod.vm")
+#parse("jvarkit.mod.vm")
+#parse("snpeff.mod.vm")
+#parse("vep.mod.vm")
+#parse("tabix.mod.vm")
+
+SHELL=/bin/bash
+
+PICARD_MAX_RECORDS_IN_RAM=50000
+
+export LANG=en_US.UTF-8
+export LC_ALL=C
+
+capture.bed=${config.capture}
+REF=${config.reference}
+
+all: #foreach($VCF in ${config.vcfs}) $(basename $(basename ${VCF.vcf} )).annot.vcf.gz #end
+	
+
+
+#foreach($VCF in ${config.vcfs})
+
+$(basename $(basename ${VCF.vcf} )).annot.vcf.gz : ${VCF.vcf} \
+		$(REF)
+	mkdir -p $(dir $@) && \
+	rm -f $(addsuffix .tbi,$@ $(addsuffix .tmp1.vcf,$@) $(addsuffix .tmp2.vcf, $@ )) && \
+	gunzip -c $< | \
+	awk -F  '	' '/^#/ {print;next;}   {OFS="	";gsub(/,/,".",$$6); if($$6!="." && $$6<0) $$6=0; print;}' |\
+	#execjvarkitcmd("nozerovariationvcf") -r ${REF} |\
+	#execjvarkitcmd("vcfpolyx") REF=${REF} |\
+	#execjvarkitcmd("vcfrebase") -R  ${REF} -w 8  #if(${VCF.bam}) |\
+	#execjvarkitcmd("vcfannobam") \
+		BED=$(capture.bed) \
+		BAM=$inputBamFile \
+		VALIDATION_STRINGENCY=SILENT  #end > $(addsuffix .tmp1.vcf, $@ ) &&  \
+	echo "NOW SNPEFF" && \
+   	#exec_snpeff_eff() \
+   			-i vcf \
+   			-o vcf \
+			-sequenceOntolgy \
+			-lof \
+			-c ${snpeff_config} \
+			-s $(addsuffix .snpeff.report,$@) \
+			${snpeff_database} $(addsuffix .tmp1.vcf, $@ )  > $(addsuffix .tmp2.vcf, $@ )  && \
+	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) &&  \
+	echo "NOW VEP" && \
+	${vep_bin}  ${vep_cache} \
+		--fasta $(REF) \
+		--offline \
+		--hgnc \
+		--format vcf \
+		--force_overwrite \
+		--sift=b \
+		--polyphen=b \
+		--refseq \
+		--xref_refseq \
+		-i $(addsuffix .tmp1.vcf, $@ ) \
+		-o $(addsuffix .tmp2.vcf, $@ ) \
+		--quiet --vcf	&& \
+	echo "NOW VEP DONE" && \
+	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) && \
+	#execjvarkitcmd("sortvcfonref") \
+				I=$(addsuffix .tmp1.vcf, $@ ) \
+			O=$(addsuffix .tmp2.vcf, $@  ) \
+			R=${REF} \
+			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} && \
+	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) && \
+   #exec_gatk() \
+			-T VariantFiltration \
+			  -et NO_ET -K /commun/data/packages/gatk.no_home.key  \
+			-R $(REF) \
+			-o $(addsuffix .tmp2.vcf, $@ ) \
+			-U LENIENT_VCF_PROCESSING \
+			--variant:vcfinput,VCF $(addsuffix .tmp1.vcf,$@) \
+			--filterExpression '(DP <  4 || DP > 1200 || MQ < 10)' --filterName 'StandardFilters' && \
+	rm -f $(addsuffix .tmp2.vcf,$(addsuffix .tmp2.vcf, $@ )) $(addsuffix .tmp2.vcf.idx,$(addsuffix .tmp2.vcf, $@ )) $(addsuffix .idx,$(addsuffix .tmp2.vcf, $@ ))  && \
+	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) &&	\
+	cat $(addsuffix .tmp1.vcf, $@ )   |\
+	#execjvarkitcmd("vcfbigwig") \
+		BIGWIG=/commun/data/pubdb/ucsc/hg19/bbi/All_hg19_RS_noprefix.bw \
+		TAG=GERP_SCORE |\
+	#execjvarkitcmd("vcftabixml") \
+		XSL=/commun/data/etc/evs2vcf.xsl \
+		TAGS=/commun/data/etc/evs.annot.vcf.txt \
+		BED=/commun/data/pubdb/evs.gs.washington.edu/tabix/evs.data.gz  |\
+ 	#execjvarkitcmd("vcfvcf")  \
+ 		ACF=CONFLICTALT1KG \
+ 		$(foreach FLAG,AMR_AF ASN_AF AFR_AF EUR_AF SNPSOURCE SVTYPE SVLEN, INFO=${FLAG} ) \
+ 		TABIX=/commun/data/pubdb/ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20110521/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.gz 2> /dev/null |\
+	#execjvarkitcmd("vcfvcf") \
+		ACF=CONFLICTALTDBSNP137 \
+		$(foreach FLAG,PM PMC NSF NSM NSN G5A KGValidated PH3 CDA OM, INFO=${FLAG} ) \
+		TABIX=/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/00-All.vcf.gz 2> /dev/null |\
+	#execjvarkitcmd("vcfbed") \
+		T=SEGDUP \
+		TABIX=/commun/data/pubdb/ucsc/hg19/database/genomicSuperDups_noprefix.txt.gz \
+		FMT='$${2}:$${3}-$${4}'  |\
+	#execjvarkitcmd("sortvcfonref") \
+		R=${REF}  \
+		MAX_RECORDS_IN_RAM=500000 \
+		TMP_DIR=$(dir $@)  > $(basename $@) && \
+	rm -f  "$(addsuffix .tmp1.vcf, $@ )" && \
+	${bgzip_exe} -f $(basename $@) && \
+	${tabix_exe} -f -p vcf $@ 
+
+
+#end
+
+
+
+

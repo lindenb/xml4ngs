@@ -10,10 +10,10 @@
 
 	$(call timebegindb,$@,mpileup) && \
 	mkdir -p $(dir $@) && \
-	$(SAMTOOLS) mpileup -uD  #param_samtool_mpileup() |\
-	$(BCFTOOLS) view -vcg - #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes") | $(JAVA) -jar ${JVARKITGIT}/vcffixindels.jar #end | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\
-	$(TABIX.bgzip) -c > $@ && \
-	$(TABIX.tabix) -f -p vcf $@ && \
+	${samtools_exe} mpileup -uD  #param_samtool_mpileup() |\
+	${bcftools_exe} view -vcg - #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes") | ${java_exe} -jar ${JVARKITGIT}/vcffixindels.jar #end | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\
+	${bgzip_exe} -c > $@ && \
+	${tabix_exe} -f -p vcf $@ && \
 	$(call timeenddb,$@,mpileup) && \
 	$(call sizedb,$@)
 
@@ -28,7 +28,7 @@
 $(patsubst %.bam,%.bai,${bam}):${bam}
 	@$(call timebegindb,$@,bai)
 	#some indexes are created by picard, no need to recreate it, or just check the timestamp
-	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then $(SAMTOOLS) index $< $@; else echo "OK. $< already indexed."; fi
+	if [ ! -f "$@" ] || [ "$@" -ot  "$<" ] ; then ${samtools_exe} index $< $@; else echo "OK. $< already indexed."; fi
 	@$(call timeenddb,$@,bai)
 	@$(call sizedb,$@)
 

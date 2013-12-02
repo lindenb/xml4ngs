@@ -1,0 +1,4 @@
+#parse("common.mod.vm")
+#set( $bedtools_version = "2.16.2")
+#set( $bedtools_dir = $packages_dir + "/BEDTools-Version-"+ $bedtools_version )
+#set( $bedtools_bindir = $bedtools_dir + "/bin" )

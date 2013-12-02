@@ -12,21 +12,21 @@ CREATE_HSQLDB_DATABASE=create table if not exists begindb(file varchar(255) not 
 define timebegindb
 	lockfile -r-1 $(LOCKFILE) && \
 	mkdir -p $(dir $(HSQLSTATS)) && \
-	$(JAVA) -jar $(HSQLDB.sqltool) --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);" && \
+	${java_exe} -jar $(HSQLDB.sqltool) --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from begindb where file='$(1)' and category='$(2)'; insert into begindb(file,category,w) values ('$(1)','$(2)',NOW);" && \
 	rm -f $(LOCKFILE)
 endef
 
 define timeenddb
 	lockfile -r-1 $(LOCKFILE) && \
 	mkdir -p $(dir $(HSQLSTATS)) && \
-	$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);" && \
+	${java_exe} -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from enddb where file='$(1)' and category='$(2)'; insert into enddb(file,category,w) values ('$(1)','$(2)',NOW);" && \
 	rm -f $(LOCKFILE)
 endef
 
 
 define sizedb
 	mkdir -p $(dir $(HSQLSTATS)) && \
-	stat -c "%s" $(1) | while read L; do lockfile -r-1 $(LOCKFILE); $(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" && \
+	stat -c "%s" $(1) | while read L; do lockfile -r-1 $(LOCKFILE); ${java_exe} -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) --sql "$(CREATE_HSQLDB_DATABASE) delete from sizedb where file='$(1)'; insert into sizedb(file,size) values('$(1)','$$L');" && \
 	rm -f $(LOCKFILE);done
 endef
 
@@ -71,14 +71,14 @@ hsqldb_statistics: $(OUTDIR)/durations.stats.txt $(OUTDIR)/filesize.stats.txt
 $(OUTDIR)/durations.stats.txt:
 	lockfile -r-1 $(LOCKFILE)
 	mkdir -p $(dir $(HSQLSTATS) )
-	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+	-${java_exe} -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category$(foreach T,SECOND MINUTE HOUR DAY, ,AVG(TIMESTAMPDIFF(SQL_TSI_${T},B.W,E.W)) as duration_${T}) from begindb as B ,enddb as E where B.file=E.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
 $(OUTDIR)/filesize.stats.txt:
 	lockfile -r-1 $(LOCKFILE)
 	mkdir -p $(dir $(HSQLSTATS) )
-	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+	-${java_exe} -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.category,count(*) as N, AVG(L.size) as AVG_FILESIZE from begindb as B ,sizedb as L where B.file=L.file group by B.category;" > $@
 	rm -f $(LOCKFILE)
 
@@ -97,7 +97,7 @@ TOP_TARGETS+= ongoing
 ongoing:
 	lockfile -r-1 $(LOCKFILE)
 	mkdir -p $(dir $(HSQLSTATS) )
-	-$(JAVA) -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
+	-${java_exe} -jar ${HSQLDB.sqltool} --autoCommit --inlineRc=url=jdbc:hsqldb:file:$(HSQLSTATS) \
 		--sql "select B.file,B.w,E.file,E.w,B.category from begindb as B LEFT JOIN enddb as E on ( B.file=E.file and B.category=E.category ) where E.file is NULL or B.w >= E.w order by B.file ;" 
 	rm -f $(LOCKFILE)	
 
