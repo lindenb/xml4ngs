@@ -7,23 +7,34 @@
 #
 
 
+
+
+#parse("bcftools.mod.vm")
+#parse("bedtools.mod.vm")
+#parse("bwa.mod.vm")
+#parse("common.mod.vm")
+#parse("cutadapt.mod.vm")
+#parse("fastqc.mod.vm")
+#parse("fastx.mod.vm")
+#parse("freebayes.mod.vm")
+#parse("gatk.mod.vm")
+#parse("java.mod.vm")
+#parse("jvarkit.mod.vm")
+#parse("picard.mod.vm")
+#parse("R.mod.vm")
+#parse("samtools.mod.vm")
+#parse("snpeff.mod.vm")
+#parse("tabix.mod.vm")
+#parse("varscan.mod.vm")
+#parse("vcftools.mod.vm")
+#parse("vep.mod.vm")
+
+
 #parse("common.vm")
 #parse("sample.vm")
 #parse("fastq.vm")
 #parse("pair.vm")
 #parse("sample.vm")
-
-#parse("bcftools.mod.vm")
-#parse("common.mod.vm")
-#parse("gatk.mod.vm")
-#parse("java.mod.vm")
-#parse("jvarkit.mod.vm")
-#parse("picard.mod.vm")
-#parse("samtools.mod.vm")
-#parse("snpeff.mod.vm")
-#parse("tabix.mod.vm")
-#parse("vep.mod.vm")
-
 
 #parse("varkit.vm")
 #parse("gatk.vm")
@@ -278,7 +289,7 @@ toptarget:
 	@echo "This is the top target. Please select a specific target"
 	@echo "e.g: ${TOP_TARGETS} "
 
-all: ${TOP_TARGETS}  fastx 
+all: ${TOP_TARGETS}  fastx fastqc
 
 
 
@@ -647,12 +658,23 @@ endif
 # an extended version of the capture, will be used for recalibration
 #
 $(extended_capture_bed): $(capture.bed)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	cut -d '	' -f1,2,3 $< |\
 	#execjvarkitcmd("extendbed") REF=${REF} X=$(extend.bed) VALIDATION_STRINGENCY=LENIENT |\
 	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
 	${bedtools_bindir}/mergeBed -d $(extend.bed) -i - > $@
 	$(call notempty,$@)
+
+#
+# Capture without overlaping regions
+#
+$(OUTDIR)/BED/non_redondant_capture.bed : $(capture.bed)
+	mkdir -p $(dir $@) && \
+	cut -d '	' -f1,2,3 $< |\
+	#execjvarkitcmd("extendbed") REF=${REF} X=0 VALIDATION_STRINGENCY=LENIENT |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
+	${bedtools_bindir}/mergeBed -i - > $@
+
 
 #foreach($chrom in ${project.chromosomeGroups})
 
@@ -688,10 +710,10 @@ LIST_PHONY_TARGET+= ${sample.name}_coverage_with_gatk
 $(addprefix #sample_coverage($sample), .sample_cumulative_coverage_counts .sample_cumulative_coverage_proportions .sample_interval_statistics .sample_interval_summary .sample_statistics .sample_summary) : ${sample.name}_coverage_with_gatk
 
 
-${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(capture.bed)
+${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(OUTDIR)/BED/non_redondant_capture.bed 
 	$(call timebegindb,#sample_coverage(${sample}),coverage.gatk)
 	mkdir -p $(dir #sample_coverage(${sample}) ) && \
-	${java_exe} $(GATK.jvm) -jar $(GATK.jar) $(GATK.flags) \
+	${java_exe} $(GATK.jvm) -jar  ${gatk_jar} $(GATK.flags) \
 		#gatk_no_phone_home() \
 		-R $(REF) \
 		-T DepthOfCoverage \
@@ -717,10 +739,10 @@ ${sample.name}_coverage_with_gatk  : $(call indexed_bam, #sample_final_bam( ${sa
 	#sample_merged_chrom(${sample} "Unmapped")
 	
 	$(call timebegindb,$@,merge_chroms)
-	mkdir -p $(dir $@)
+	mkdir -p $(dir $@) && \
 	#if( $project.getPropertyByName("merge.bams.with.samtools","no")=="yes")	${samtools_exe} merge $@ $^
 	#else
-	${java_exe} -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
+	${java_exe} -jar #picard_jar("MergeSamFiles") O=$@ SO=coordinate AS=true \
 		#if(${project.propertyMap.containsKey("picard.merge.options")}
 			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
 		CREATE_INDEX=true \
@@ -1116,7 +1138,9 @@ ${utils.error("undefined aligner")}
 
 #if( !${project.hasProperty("aligner")} || ${project.getProperty("aligner")}=="bwa.aln" )
 
-#fastq_sai(${fastq}) : #fastq_cutadapt($fastq) $(REF) #if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end
+#fastq_sai(${fastq}) : #fastq_cutadapt($fastq) $(REF) \
+	#if( $project.getPropertyByName("fastx.before.align","no")=="yes") #fastx_sample_qual($sample) #fastx_sample_nucl($sample) #end \
+	#if( $project.getPropertyByName("fastqc.before.align","no")=="yes") #fastqc_report($sample) #end
 	
 	$(call timebegindb,$@,sai) && \
 	$(call sizedb,$<) && \
@@ -1229,6 +1253,7 @@ git:.git/config
 
 #parse("contaminations.vm")
 #parse("fastx.vm")
+#parse("fastqc.vm")
 
 #
 # END

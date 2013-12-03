@@ -1,4 +1,4 @@
 #parse("common.mod.vm")
 #set( $bwa_version = "0.6.2")
 #set( $bwa_dir = $packages_dir + "/bwa-" + $bwa_version)
-#set( $bwa_exe = $samtools_dir + "/bwa")
+#set( $bwa_exe = $bwa_dir + "/bwa")

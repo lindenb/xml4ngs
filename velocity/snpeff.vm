@@ -1,4 +1,4 @@
-#macro(annotate_with_snpeff $invcf,$outvcf)${exec_snpeff_eff} -i vcf -o vcf \
+#macro(annotate_with_snpeff $invcf,$outvcf)#exec_snpeff_eff() -i vcf -o vcf \
 		#if( ${project.propertyMap["discard.intergenic.variants"]}=="yes" ) -no-intergenic #end \
 		-sequenceOntolgy -lof \
 		-c ${snpeff_config} \

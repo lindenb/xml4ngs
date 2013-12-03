@@ -58,3 +58,6 @@
 #macro(fastx_sample_nucl $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.nuclchart.ps#end
 #macro(fastx_sample_stats $sample)#fastx_sample_dir($sample)/${sample.name}.tmp.stats#end
 
+#macro(fastqc_dir $sample)#sample_dir($sample)/FASTQC#end
+#macro(fastqc_report $sample)#fastqc_dir($sample)/#output_files_prefix()${sample.name}_fastqc/fastqc_report.html#end
+

@@ -1,0 +1,5 @@
+#parse("common.mod.vm")
+#set( $fastqc_version = "0.10.1")
+#set( $fastqc_dir = $packages_dir + "/FastQC")
+#set( $fastqc_exe = $fastqc_dir + "/fastqc")
+
