@@ -4,21 +4,22 @@ import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.regex.Pattern;
 
-import com.github.lindenb.xml4ngs.entities.Fastq;
-import com.github.lindenb.xml4ngs.entities.Pair;
-import com.github.lindenb.xml4ngs.entities.Project;
-import com.github.lindenb.xml4ngs.entities.PropertyMap;
-import com.github.lindenb.xml4ngs.entities.PropertyString;
-import com.github.lindenb.xml4ngs.entities.Sample;
-import com.github.lindenb.xml4ngs.entities.Sequences;
 
 import java.util.*;
+
+import com.github.lindenb.jsonx.JsonArray;
+import com.github.lindenb.jsonx.JsonFactory;
+import com.github.lindenb.jsonx.JsonObject;
+import com.github.lindenb.jsonx.io.JsonPrettyWriter;
+import com.github.lindenb.jsonx.parser.JsonParser;
 
 
 public class Ilmn2Project
 	{
 	private static final String SUFFIX=".fastq.gz";
-	private Project project= new Project();
+	private JsonFactory jsonFactory=new JsonFactory();
+	
+	private JsonObject project;
 	private Pattern uscore=Pattern.compile("_");
 	private Set<String> seqIndexes=new TreeSet<String>();
 	private Set<Integer> lanes=new TreeSet<Integer>();
@@ -26,7 +27,8 @@ public class Ilmn2Project
 	private Set<String> samplesDiscard=new HashSet<String>();
 	private Ilmn2Project()
 		{
-		
+	    project= jsonFactory.newObject();
+		project.put("samples", jsonFactory.newObject());
 		}
 	
 	/** test wether the file contains at least one FASTQ record */
@@ -151,45 +153,45 @@ public class Ilmn2Project
 			return;
 			}
 		
-		Sample sample=null;
-		for(Sample S: project.getSample())
+		JsonObject sample=null;
+		if(project.get("samples").getAsJsonObject().containsKey(tokens[0]))
 			{
-			if(S.getName().equals(tokens[0]))
-				{
-				sample=S;
-				break;
-				}
+			sample=project.get("samples").getAsJsonObject().get(tokens[0]).getAsJsonObject();
 			}
+		
 		if(sample==null)
 			{
-			sample=new Sample();
-			sample.setName(tokens[0]);
-			project.getSample().add(sample);
-			Sequences sequences=new Sequences();
-			sample.setSequences(sequences);
+			sample=this.jsonFactory.newObject();
+			sample.put("name",tokens[0]);
+			project.get("samples").getAsJsonObject().put(tokens[0],sample);
+			sample.put("pairs",jsonFactory.newArray());
 			}
-		Pair p=new Pair();
-		p.setLane(lane);
-		p.setSplitIndex(split);
-		p.setSampleIndex(seqIndex);
-		sample.getSequences().getPair().add(p);
+		JsonObject p=this.jsonFactory.newObject();
+		p.put("lane",lane);
+		p.put("split-index",split);
+		p.put("dna-index",seqIndex);
+		p.put("fastqs",this.jsonFactory.newArray());
 		
-		Fastq fq=new Fastq();
-		fq.setIndex(1);
-		fq.setPath(f);
+		sample.get("pairs").getAsJsonArray().add(p);
 		
-		p.put(fq);
+		
+		
+		JsonObject fq=this.jsonFactory.newObject();
+		fq.put("index",1);
+		fq.put("path",f.toString());
+		
+		p.get("fastqs").getAsJsonArray().add(fq);
 	
-		fq=new Fastq();
-		fq.setIndex(2);
+		 fq=this.jsonFactory.newObject();
+		 fq.put("index",2);
 		File mate=new File(f.getParentFile(),tokens[0]+"_"+tokens[1]+"_"+tokens[2]+"_R2_"+tokens[4]);
 		if(!mate.exists())
 			{
 			System.err.println("Cannot find "+mate);
 			System.exit(-1);
 			}
-		fq.setPath(mate);
-		p.put(fq);
+		fq.put("path",mate.toString());
+		p.get("fastqs").getAsJsonArray().add(fq);
 		
 		}
 	
@@ -222,14 +224,14 @@ public class Ilmn2Project
 		}
 	private void dump() throws Exception
 		{
-		this.project.write(System.out);
+		new JsonPrettyWriter().print(System.out,this.project);
 		}
 	
 	
 	private void readPropertyFile(File f)  throws Exception
 		{
-		PropertyMap p2=ProjectReader.readProperties(f);
-		this.project.getProperties().putAll(p2);
+		JsonObject p2=new JsonParser(new FileReader(f)).objectNode();
+		this.project.put("properties", p2);
 		}
 	
 	
@@ -243,7 +245,7 @@ public class Ilmn2Project
 				{
 				System.out.println(" -h help (this screen)");
 				System.out.println(" -f (properties.xml)");
-				System.out.println(" -p prop.key prop.value");
+				//System.out.println(" -p prop.key prop.value");
 				System.out.println(" -S (sample.name) (optional: only keep those sample name, ignore the others). Can be used multiple times.");					      
 				System.out.println(" -D (sample.name) (optional: always discard those sample name). Can be used multiple times.");
 				System.out.println(" -q (file) (optional: read list of fastqs)");
@@ -265,13 +267,13 @@ public class Ilmn2Project
 				{
 				readFatqList(new File(args[++optind]));
 				}
-			else if(args[optind].equals("-p") && optind+2< args.length)
+			/*else if(args[optind].equals("-p") && optind+2< args.length)
 				{
 				String key=args[++optind];
 				String val=args[++optind];
 				PropertyString prop=new PropertyString(val);
 				this.project.getProperties().put(key,prop);
-				}
+				}*/
 			else if(args[optind].equals("--"))
 				{
 				++optind;

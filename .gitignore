@@ -1,3 +1,4 @@
+bin
 src/main/generated-sources
 test/test.out.dir
 test/test.mk
