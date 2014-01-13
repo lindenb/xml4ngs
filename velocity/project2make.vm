@@ -1087,18 +1087,23 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes : \
 		#fastq_sai(${pair.reverse}) \
 		#fastq_cutadapt(${pair.forward}) \
 		#fastq_cutadapt(${pair.reverse}) |\
-		${java_exe} -Xmx4g -XX:-UseConcMarkSweepGC  -jar #jvarkitjar("splitbam") #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
+		#execjvarkitcmd("splitbam") #if( ${project.propertyMap.containsKey("chromosomes.groups")}) GP=${project.propertyMap["chromosomes.groups"]} #end \
 			EMPTY_BAM=true MOCK=true \
 			COMPRESSION_LEVEL=9 \
-			MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
+			MAX_RECORDS_IN_RAM=10000 \
 			REF=${REF} \
-			OUT_FILE_PATTERN=#pair_bam_sorted_chrom($pair "__CHROM__" )  \
+			OUT_FILE_PATTERN=#pair_bam_unsorted_chrom($pair "__CHROM__" )  \
 			TMP_DIR=#sample_BAM(${pair.sample}) \
 			IS=false \
 			VALIDATION_STRINGENCY=LENIENT \
-			CREATE_INDEX=true \
-			UNDERTERMINED_NAME=Unmapped
-	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse}) 
+			CREATE_INDEX=false \
+			UNDERTERMINED_NAME=Unmapped \
+	#foreach($c in ${project.allChromosomeGroups}) && \
+	echo "SORT $c " && \
+	${samtools_exe}  sort #pair_bam_unsorted_chrom($pair $c )  $(basename  #pair_bam_sorted_chrom($pair $c ) ) && \
+	rm #pair_bam_unsorted_chrom($pair $c ) #end
+	
+	$(DELETEFILE)  #fastq_sai(${pair.forward})  #fastq_sai(${pair.reverse})
 	
 	$(call timeenddb,$@,bwasampe)
 
