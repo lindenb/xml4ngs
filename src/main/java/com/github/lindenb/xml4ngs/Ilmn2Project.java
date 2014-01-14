@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 
 import java.util.*;
 
-import com.github.lindenb.jsonx.JsonArray;
 import com.github.lindenb.jsonx.JsonFactory;
 import com.github.lindenb.jsonx.JsonObject;
 import com.github.lindenb.jsonx.io.JsonPrettyWriter;
@@ -18,7 +17,9 @@ public class Ilmn2Project
 	{
 	private static final String SUFFIX=".fastq.gz";
 	private JsonFactory jsonFactory=new JsonFactory();
-	
+	private int sampleIdGenerator=0;
+	private int fastqIdGenerator=0;
+	private int pairIdGenerator=0;
 	private JsonObject project;
 	private Pattern uscore=Pattern.compile("_");
 	private Set<String> seqIndexes=new TreeSet<String>();
@@ -161,12 +162,17 @@ public class Ilmn2Project
 		
 		if(sample==null)
 			{
+			++sampleIdGenerator;
 			sample=this.jsonFactory.newObject();
+			sample.put("id",sampleIdGenerator);
 			sample.put("name",tokens[0]);
 			project.get("samples").getAsJsonObject().put(tokens[0],sample);
 			sample.put("pairs",jsonFactory.newArray());
 			}
 		JsonObject p=this.jsonFactory.newObject();
+		pairIdGenerator++;
+		
+		p.put("id",pairIdGenerator);
 		p.put("lane",lane);
 		p.put("split-index",split);
 		p.put("dna-index",seqIndex);
@@ -177,13 +183,17 @@ public class Ilmn2Project
 		
 		
 		JsonObject fq=this.jsonFactory.newObject();
+		++fastqIdGenerator;
+		fq.put("id",fastqIdGenerator);
 		fq.put("index",1);
 		fq.put("path",f.toString());
 		
 		p.get("fastqs").getAsJsonArray().add(fq);
 	
-		 fq=this.jsonFactory.newObject();
-		 fq.put("index",2);
+		fq=this.jsonFactory.newObject();
+		++fastqIdGenerator;
+		fq.put("id",fastqIdGenerator);
+		fq.put("index",2);
 		File mate=new File(f.getParentFile(),tokens[0]+"_"+tokens[1]+"_"+tokens[2]+"_R2_"+tokens[4]);
 		if(!mate.exists())
 			{

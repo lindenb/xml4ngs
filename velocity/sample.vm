@@ -1,4 +1,4 @@
-#macro(sample_dir $sample)$(OUTDIR)/Samples/${sample.name}#end
+#macro(sample_dir $sample)$(OUTDIR)/Samples/${sample.name.value}#end
 #macro(sample_BAM $sample)#sample_dir($sample)/BAM#end
 #macro(sample_BAM_chrom $sample $chrom)#sample_BAM($sample)/${chrom}#end
 #macro(sample_VCF $sample)#sample_dir($sample)/VCF#end

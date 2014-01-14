@@ -1,5 +1,6 @@
 package com.github.lindenb.xml4ngs;
 
+import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.File;
@@ -8,13 +9,18 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 
-import com.github.lindenb.xml4ngs.entities.Project;
+import com.github.lindenb.jsonx.JsonObject;
+import com.github.lindenb.jsonx.parser.JsonParser;
+
 
 
 import java.util.Properties;
 
 public class TransformProject
 	{
+	
+	@SuppressWarnings("unused")
+	private InlineJsonDirective _fool_javacc=null;
 	public static class Utils
 		{
 		public void warning(Object o)
@@ -80,8 +86,13 @@ public class TransformProject
 			usage(System.out);
 			System.exit(-1);
 			}
-
-		Project project=ProjectReader.readProject(new File(args[optind++]));
+		
+		FileReader fr=new FileReader(new File(args[optind++]));
+		JsonParser parser=new JsonParser(fr);
+		JsonObject project=parser.objectNode();
+		parser.eof();
+		fr.close();
+		
 		File  templateFile=new File(args[optind++]);
 		
 		
@@ -92,6 +103,7 @@ public class TransformProject
 			{
 			props.put("file.resource.loader.path",templateFile.getParent());
 			}
+		props.put("userdirective","com.github.lindenb.xml4ngs.InlineJsonDirective");
 		
 		VelocityEngine ve = new VelocityEngine();
 		ve.init(props);

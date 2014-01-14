@@ -1,4 +1,4 @@
-#macro(output_files_prefix)${project.getPropertyByName("files.prefix","").trim()}#end
+#macro(output_files_prefix)${project.properties.prefix.value.trim()}#end
 #macro(VARKIT_BEDDEDPTH $target $dependencies)
 
 #

@@ -1,3 +1,2 @@
 #set($packages_dir="/commun/data/packages")
-#set($httpProxyPort="proxy-upgrade.univ-nantes.prive")
-#set($httpProxyHost="3128")
+#parse("proxy.mod.vm")

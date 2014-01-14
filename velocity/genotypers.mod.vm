@@ -1,0 +1,16 @@
+#inlineJson("genotypers")
+{
+"varscan":{
+	"enabled":false
+	},
+"samtools":{
+	"enabled":false
+	},
+"gatk":{
+	"enabled":true
+	},
+"freebayes":{
+	"enabled":true
+	}
+}
+#end

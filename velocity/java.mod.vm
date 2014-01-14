@@ -1,3 +1,8 @@
 #parse("common.mod.vm")
 #set( $java_version = "1.7.0_25")
 #set( $java_exe =  "/usr/bin/java")
+#if( $httpProxyPort && $httpProxyHost)
+#set( $java_http_proxy =  " -Dhttp.proxyHost="+ $httpProxyHost +" -Dhttp.proxyPort="+ $httpProxyPort)
+#else
+#set( $java_http_proxy =  "" )
+#end

@@ -10,10 +10,12 @@
  <target name="dist/ilmn2project.jar" >
    <mkdir dir="tmp"/>
    <mkdir dir="dist"/>
-          
+   <ant  antfile="build.xml" dir="jsonx" target="generate-sources"/>
    
    <javac destdir="tmp" includeAntRuntime="false" debug="true">
    		<src path="src/main/java"/>
+   		<src path="jsonx/src/main/java/"/>
+   		<src path="jsonx/src/main/generated-sources/javacc"/>
    		<include name="**/Ilmn2Project.java"/>
    		
    </javac>
@@ -32,11 +34,13 @@
 <target name="dist/transformngsproject.jar" depends="ivy.libs">
     <mkdir dir="tmp"/>
    <mkdir dir="dist"/>
+   <ant  antfile="build.xml" dir="jsonx" target="generate-sources"/>
     
    <javac destdir="tmp" includeAntRuntime="false" debug="true">
    		<classpath refid="lib.path.id"/>
    		<src path="src/main/java"/>
-   		<src path="src/main/generated-sources/xjc"/>
+   		<src path="jsonx/src/main/java/"/>
+   		<src path="jsonx/src/main/generated-sources/javacc"/>
    		<include name="**/TransformProject.java"/>
    		
    </javac>
