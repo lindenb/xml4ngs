@@ -1,0 +1,3 @@
+[submodule "jsonx"]
+	path = jsonx
+	url = https://github.com/lindenb/jsonx.git
