@@ -15,6 +15,8 @@ import java.util.Properties;
 
 public class TransformProject
 	{
+	@SuppressWarnings("unused")
+	private com.github.lindenb.xml4ngs.InlineJsonDirective _fool_javac=null;
 	public static class Utils
 		{
 		public void warning(Object o)
@@ -35,14 +37,14 @@ public class TransformProject
 		
 	protected void usage(PrintStream out)
 		{
-
-		
+		out.println();
+		out.println("Usage : java -jar transform.jar project.xml template.vm");
 		out.println();
 		out.println("$project is the structure passed to velocity.");
-
+		out.println();
 		}
 
-
+	
 	private void run(String args[]) throws Exception
 		{
 		int optind=0;
@@ -92,7 +94,8 @@ public class TransformProject
 			{
 			props.put("file.resource.loader.path",templateFile.getParent());
 			}
-		
+		props.put("userdirective","com.github.lindenb.xml4ngs.InlineJsonDirective");
+
 		VelocityEngine ve = new VelocityEngine();
 		ve.init(props);
 

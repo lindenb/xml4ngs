@@ -18,11 +18,7 @@ ${target} :  $(call indexed_bam, ${dependencies} ) $(capture.bed)
 
 
 
-#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)#execjvarkitcmd("sortvcfonref") \
-		I=$invcf \
-		O=$(addsuffix .tmp2.vcf,$outvcf) \
-		R=${REF} \
-		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} && \
+#macro(annotate_with_gatk $invcf,$outvcf)#if( ${gatkfilterparam.trim().length()} >0)#execjvarkitcmd("sortvcfonref2")  $invcf > $(addsuffix .tmp2.vcf,$outvcf) && \
 	${java_exe} $(GATK.jvm) -jar ${gatk_jar} $(GATK.flags) \
 		-T VariantFiltration \
 		#gatk_no_phone_home() \

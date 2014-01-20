@@ -451,7 +451,7 @@ ${utils.error("unknown genotyper [${genotyper}]")}
 	#execjvarkitcmd("vcfannobam") BED=$(capture.bed) BAM=#sample_final_bam( ${sample} ) VALIDATION_STRINGENCY=SILENT > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
-	#execjvarkitcmd("sortvcfonref") R=${REF}  MAX_RECORDS_IN_RAM=500000 TMP_DIR=$(dir $@)  > $(basename $@) && \
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@)  > $(basename $@) && \
 	rm -f  "$tmp1vcf" && \
 	${bgzip_exe} -f $(basename $@) && \
 	${tabix_exe} -f -p vcf $@ && \
@@ -518,7 +518,7 @@ $(OUTDIR)/VCF/#output_files_prefix()variations.${genotyper}.annotations.vcf.gz :
 	gunzip -c $< > $tmp1vcf && \
 	#foreach($annotator in $annotationMethods) echo "Annotate $< with $annotator" &&  #annotate_with("$tmp1vcf","$tmp2vcf","$annotator") && mv $tmp2vcf $tmp1vcf &&  #end  \
 	cat $tmp1vcf #if( ${project.propertyMap.containsKey("downstream.vcf.annotation")}) ${project.propertyMap["downstream.vcf.annotation"]} #end |\
-	#execjvarkitcmd("sortvcfonref") R=${REF}  MAX_RECORDS_IN_RAM=500000 TMP_DIR=$(dir $@)   > $(basename $@) && \
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@)   > $(basename $@) && \
 	rm -f  "$tmp1vcf" && \
 	${bgzip_exe} -f $(basename $@) && \
 	${tabix_exe} -f -p vcf $@ && \
