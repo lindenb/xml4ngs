@@ -7,11 +7,18 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
+import org.w3c.dom.Document;
 
+import com.github.lindenb.jsonx.DomParser;
+import com.github.lindenb.jsonx.JsonElement;
+import com.github.lindenb.jsonx.JsonObject;
 import com.github.lindenb.xml4ngs.entities.Project;
 
 
 import java.util.Properties;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 public class TransformProject
 	{
@@ -43,10 +50,12 @@ public class TransformProject
 		out.println("$project is the structure passed to velocity.");
 		out.println();
 		}
+	
 
 	
 	private void run(String args[]) throws Exception
 		{
+		File configFile=null;
 		int optind=0;
 		while(optind< args.length)
 			{
@@ -55,9 +64,9 @@ public class TransformProject
 				usage(System.out);
 				return;
 				}
-			else if(args[optind].equals("-f") && optind+1< args.length)
+			else if(args[optind].equals("-c") && optind+1< args.length)
 				{
-				
+				configFile=new File(args[++optind]);
 				}
 			
 			else if(args[optind].equals("--"))
@@ -76,6 +85,20 @@ public class TransformProject
 				}
 			++optind;
 			}
+		
+		if(configFile==null)
+			{
+			System.err.println("Config file is not defined -c config.xml");
+			System.exit(-1);
+			}
+		//load config
+		DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
+		dbf.setValidating(false);
+		dbf.setXIncludeAware(true);
+		dbf.setNamespaceAware(true);
+		DocumentBuilder db=dbf.newDocumentBuilder();
+		Document dom=db.parse(configFile);
+		JsonElement config=new DomParser().parse(dom);
 		
 		if(optind+2!=args.length)
 			{
@@ -100,6 +123,7 @@ public class TransformProject
 		ve.init(props);
 
 		VelocityContext ctx=new VelocityContext();
+		ctx.put("config", config);
 		ctx.put("now",new java.sql.Timestamp(System.currentTimeMillis()));
 		ctx.put("utils",new Utils());
 		ctx.put("project",project);

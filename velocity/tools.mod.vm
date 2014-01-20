@@ -1,0 +1,59 @@
+
+#R
+#set( $Rstats_R_exe = ${config.tools.rstats["${config.tools.rstats.default}"].exe})
+
+
+#tabix
+#set( $tabix_exe = ${config.tools.tabix["${config.tools.tabix.default}"].tabix_exe} )
+#set( $bgzip_exe = ${config.tools.tabix["${config.tools.tabix.default}"].bgzip_exe} )
+
+#java
+#set( $java_exe = ${config.tools.java["${config.tools.java.default}"].exe})
+
+
+#jvarkit
+#macro(jvarkitjar $command)${config.tools.jvarkit.latest.dist}/${command}.jar#end
+#macro(execjvarkitcmd $command)${java_exe} -jar #jvarkitjar(${command}) #end
+
+#vcftools
+#set( $vcftools_dir = ${config.tools.vcftools["${config.tools.vcftools.default}"].dir.value} )
+#macro(execute_vcftools_cmd $command) perl -I ${vcftools_dir}/perl ${vcftools_dir}/perl/${command}  #end
+
+
+#samtools
+#set( $samtools_exe = ${config.tools.samtools["${config.tools.samtools.default}"].exe} )
+ 
+ 
+
+#bwa
+#set( $bwa_exe = ${config.tools.bwa["${config.tools.bwa.default}"].exe})
+
+ 
+# bcftools_exe
+#set( $bcftools_exe = ${config.tools.bcftools["${config.tools.bcftools.default}"].exe})
+
+# bedtools_exe
+#set( $bedtools_exe = ${config.tools.bedtools["${config.tools.bcftools.default}"].exe})
+
+
+# cutadapt_exec
+#set( $cutadapt_exec = ${config.tools.cutadapt["${config.tools.cutadapt.default}"].exe})
+
+
+# fastqc
+#set( $fastqc_exe = ${config.tools.fastqc["${config.tools.fastqc.default}"].exe})
+
+# fastx
+#set( $fastx_bindir = ${config.tools.fastx["${config.tools.fastx.default}"].bindir})
+
+
+
+#macro(picard_jar $command)  ${config.tools.picard["${config.tools.picard.default}"].dir}/${command}.jar #end
+
+
+
+
+
+#set( $freebayes_exe = $packages_dir + "/freebayes/freebayes/bin/freebayes")
+
+

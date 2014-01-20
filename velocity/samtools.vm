@@ -8,14 +8,11 @@
 
 #macro(call_with_samtools_mpileup)
 
-	$(call timebegindb,$@,mpileup) && \
 	mkdir -p $(dir $@) && \
 	${samtools_exe} mpileup -uD  #param_samtool_mpileup() |\
 	${bcftools_exe} view -vcg - #if( $project.getPropertyByName("one.vcf.per.sample","no")=="yes") | ${java_exe} -jar ${JVARKITGIT}/vcffixindels.jar #end | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,4  --temporary-directory=$(dir $@) |\
 	${bgzip_exe} -c > $@ && \
-	${tabix_exe} -f -p vcf $@ && \
-	$(call timeenddb,$@,mpileup) && \
-	$(call sizedb,$@)
+	${tabix_exe} -f -p vcf $@
 
 #end
 

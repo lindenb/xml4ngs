@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsonx:object name="project" xmlns:jsonx="http://www.ibm.com/xmlns/prod/2009/jsonx">
+    <jsonx:object name="reference">
+   		 <jsonx:string name="ref">GRCh37</jsonx:string>
+   		 
+   		 
+    </jsonx:object>
+    <jsonx:object name="capture">
+   		 <jsonx:string name="ref">GRCh37Design5</jsonx:string>
+   		 <jsonx:number name="extend">500</jsonx:number>
+    </jsonx:object>
+    <jsonx:boolean name="haloplex">false</jsonx:boolean>
+    <jsonx:boolean name="one_vcf_per_sample">true</jsonx:boolean>
+    <jsonx:string name="chromgroup">g1</jsonx:string>
+    
+    <jsonx:object name="output">
+   		 <jsonx:string name="directory">../align</jsonx:string>
+   		 <jsonx:string name="prefix">NOPREFIX</jsonx:string>
+    </jsonx:object>
+    <jsonx:object name="make">
+   		 <jsonx:boolean name="secondary">false</jsonx:boolean>
+    </jsonx:object>
+    <jsonx:array name="annotationMethods">
+   		 <jsonx:string>snpeff</jsonx:string>
+   		 <jsonx:string>vep</jsonx:string>
+   		 <jsonx:string>gatkfilter</jsonx:string>
+    </jsonx:array>
+    <jsonx:array name="genotypeMethods">
+   		 <jsonx:string>samtools</jsonx:string>
+   		 <jsonx:string>gatk</jsonx:string>
+    </jsonx:array>
+    
+</jsonx:object>

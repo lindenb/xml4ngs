@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsonx:object
+	xmlns:xi="http://www.w3.org/2001/XInclude"
+	xmlns:jsonx="http://www.ibm.com/xmlns/prod/2009/jsonx">
+
+<jsonx:string name="packagedir">/commun/data/packages</jsonx:string>
+
+<xi:include href="project.frag.xml"/>
+<xi:include href="captures.frag.xml"/>
+<xi:include href="references.frag.xml"/>
+<xi:include href="tools.frag.xml"/>
+<xi:include href="proxy.frag.xml"/>
+
+
+</jsonx:object>

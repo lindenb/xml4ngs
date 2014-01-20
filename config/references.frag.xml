@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsonx:object name="references" xmlns:jsonx="http://www.ibm.com/xmlns/prod/2009/jsonx">
+  <jsonx:object name="GRCh37">
+    <jsonx:string name="name">GRCh37.70</jsonx:string>
+    <jsonx:string name="description">ncbi GRCh37, ucsc hg19</jsonx:string>
+    <jsonx:boolean name="human">true</jsonx:boolean>
+    <jsonx:object name="indexes">
+      <jsonx:object name="bwa">
+        <jsonx:object name="0.7.4">
+          <jsonx:string name="path">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/index-bwa-0.7.4/human_g1k_v37.fasta</jsonx:string>
+        </jsonx:object>
+         <jsonx:object name="0.6.2">
+          <jsonx:string name="path">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/human_g1k_v37.fasta</jsonx:string>
+        </jsonx:object>
+      </jsonx:object>
+      
+    </jsonx:object>
+    <jsonx:object name="groups">
+      <jsonx:object name="g1">
+        <jsonx:array name="ALL">
+          <jsonx:string>1</jsonx:string>
+          <jsonx:string>2</jsonx:string>
+          <jsonx:string>3</jsonx:string>
+          <jsonx:string>4</jsonx:string>
+          <jsonx:string>5</jsonx:string>
+          <jsonx:string>6</jsonx:string>
+          <jsonx:string>7</jsonx:string>
+          <jsonx:string>8</jsonx:string>
+          <jsonx:string>9</jsonx:string>
+          <jsonx:string>10</jsonx:string>
+          <jsonx:string>11</jsonx:string>
+          <jsonx:string>12</jsonx:string>
+          <jsonx:string>13</jsonx:string>
+          <jsonx:string>14</jsonx:string>
+          <jsonx:string>15</jsonx:string>
+          <jsonx:string>16</jsonx:string>
+          <jsonx:string>17</jsonx:string>
+          <jsonx:string>18</jsonx:string>
+          <jsonx:string>19</jsonx:string>
+          <jsonx:string>20</jsonx:string>
+          <jsonx:string>21</jsonx:string>
+          <jsonx:string>22</jsonx:string>
+          <jsonx:string>X</jsonx:string>
+          <jsonx:string>Y</jsonx:string>
+          <jsonx:string>MT</jsonx:string>
+          <jsonx:string>GL000207.1</jsonx:string>
+          <jsonx:string>GL000226.1</jsonx:string>
+          <jsonx:string>GL000229.1</jsonx:string>
+          <jsonx:string>GL000231.1</jsonx:string>
+          <jsonx:string>GL000210.1</jsonx:string>
+          <jsonx:string>GL000239.1</jsonx:string>
+          <jsonx:string>GL000235.1</jsonx:string>
+          <jsonx:string>GL000201.1</jsonx:string>
+          <jsonx:string>GL000247.1</jsonx:string>
+          <jsonx:string>GL000245.1</jsonx:string>
+          <jsonx:string>GL000197.1</jsonx:string>
+          <jsonx:string>GL000203.1</jsonx:string>
+          <jsonx:string>GL000246.1</jsonx:string>
+          <jsonx:string>GL000249.1</jsonx:string>
+          <jsonx:string>GL000196.1</jsonx:string>
+          <jsonx:string>GL000248.1</jsonx:string>
+          <jsonx:string>GL000244.1</jsonx:string>
+          <jsonx:string>GL000238.1</jsonx:string>
+          <jsonx:string>GL000202.1</jsonx:string>
+          <jsonx:string>GL000234.1</jsonx:string>
+          <jsonx:string>GL000232.1</jsonx:string>
+          <jsonx:string>GL000206.1</jsonx:string>
+          <jsonx:string>GL000240.1</jsonx:string>
+          <jsonx:string>GL000236.1</jsonx:string>
+          <jsonx:string>GL000241.1</jsonx:string>
+          <jsonx:string>GL000243.1</jsonx:string>
+          <jsonx:string>GL000242.1</jsonx:string>
+          <jsonx:string>GL000230.1</jsonx:string>
+          <jsonx:string>GL000237.1</jsonx:string>
+          <jsonx:string>GL000233.1</jsonx:string>
+          <jsonx:string>GL000204.1</jsonx:string>
+          <jsonx:string>GL000198.1</jsonx:string>
+          <jsonx:string>GL000208.1</jsonx:string>
+          <jsonx:string>GL000191.1</jsonx:string>
+          <jsonx:string>GL000227.1</jsonx:string>
+          <jsonx:string>GL000228.1</jsonx:string>
+          <jsonx:string>GL000214.1</jsonx:string>
+          <jsonx:string>GL000221.1</jsonx:string>
+          <jsonx:string>GL000209.1</jsonx:string>
+          <jsonx:string>GL000218.1</jsonx:string>
+          <jsonx:string>GL000220.1</jsonx:string>
+          <jsonx:string>GL000213.1</jsonx:string>
+          <jsonx:string>GL000211.1</jsonx:string>
+          <jsonx:string>GL000199.1</jsonx:string>
+          <jsonx:string>GL000217.1</jsonx:string>
+          <jsonx:string>GL000216.1</jsonx:string>
+          <jsonx:string>GL000215.1</jsonx:string>
+          <jsonx:string>GL000205.1</jsonx:string>
+          <jsonx:string>GL000219.1</jsonx:string>
+          <jsonx:string>GL000224.1</jsonx:string>
+          <jsonx:string>GL000223.1</jsonx:string>
+          <jsonx:string>GL000195.1</jsonx:string>
+          <jsonx:string>GL000212.1</jsonx:string>
+          <jsonx:string>GL000222.1</jsonx:string>
+          <jsonx:string>GL000200.1</jsonx:string>
+          <jsonx:string>GL000193.1</jsonx:string>
+          <jsonx:string>GL000194.1</jsonx:string>
+          <jsonx:string>GL000225.1</jsonx:string>
+          <jsonx:string>GL000192.1</jsonx:string>
+        </jsonx:array>
+      </jsonx:object>
+      <jsonx:object name="g2">
+        <jsonx:array name="1">
+          <jsonx:string>1</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="2">
+          <jsonx:string>2</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="3">
+          <jsonx:string>3</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="4">
+          <jsonx:string>4</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="5">
+          <jsonx:string>5</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="6">
+          <jsonx:string>6</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="7">
+          <jsonx:string>7</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="8">
+          <jsonx:string>8</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="9">
+          <jsonx:string>9</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="10">
+          <jsonx:string>10</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="11">
+          <jsonx:string>11</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="12">
+          <jsonx:string>12</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="13">
+          <jsonx:string>13</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="14">
+          <jsonx:string>14</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="15">
+          <jsonx:string>15</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="16">
+          <jsonx:string>16</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="17">
+          <jsonx:string>17</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="18">
+          <jsonx:string>18</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="19">
+          <jsonx:string>19</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="20">
+          <jsonx:string>20</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="21">
+          <jsonx:string>21</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="22">
+          <jsonx:string>22</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="X">
+          <jsonx:string>X</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="Y">
+          <jsonx:string>Y</jsonx:string>
+        </jsonx:array>
+        <jsonx:array name="OTHERS">
+          <jsonx:string>MT</jsonx:string>
+          <jsonx:string>GL000207.1</jsonx:string>
+          <jsonx:string>GL000226.1</jsonx:string>
+          <jsonx:string>GL000229.1</jsonx:string>
+          <jsonx:string>GL000231.1</jsonx:string>
+          <jsonx:string>GL000210.1</jsonx:string>
+          <jsonx:string>GL000239.1</jsonx:string>
+          <jsonx:string>GL000235.1</jsonx:string>
+          <jsonx:string>GL000201.1</jsonx:string>
+          <jsonx:string>GL000247.1</jsonx:string>
+          <jsonx:string>GL000245.1</jsonx:string>
+          <jsonx:string>GL000197.1</jsonx:string>
+          <jsonx:string>GL000203.1</jsonx:string>
+          <jsonx:string>GL000246.1</jsonx:string>
+          <jsonx:string>GL000249.1</jsonx:string>
+          <jsonx:string>GL000196.1</jsonx:string>
+          <jsonx:string>GL000248.1</jsonx:string>
+          <jsonx:string>GL000244.1</jsonx:string>
+          <jsonx:string>GL000238.1</jsonx:string>
+          <jsonx:string>GL000202.1</jsonx:string>
+          <jsonx:string>GL000234.1</jsonx:string>
+          <jsonx:string>GL000232.1</jsonx:string>
+          <jsonx:string>GL000206.1</jsonx:string>
+          <jsonx:string>GL000240.1</jsonx:string>
+          <jsonx:string>GL000236.1</jsonx:string>
+          <jsonx:string>GL000241.1</jsonx:string>
+          <jsonx:string>GL000243.1</jsonx:string>
+          <jsonx:string>GL000242.1</jsonx:string>
+          <jsonx:string>GL000230.1</jsonx:string>
+          <jsonx:string>GL000237.1</jsonx:string>
+          <jsonx:string>GL000233.1</jsonx:string>
+          <jsonx:string>GL000204.1</jsonx:string>
+          <jsonx:string>GL000198.1</jsonx:string>
+          <jsonx:string>GL000208.1</jsonx:string>
+          <jsonx:string>GL000191.1</jsonx:string>
+          <jsonx:string>GL000227.1</jsonx:string>
+          <jsonx:string>GL000228.1</jsonx:string>
+          <jsonx:string>GL000214.1</jsonx:string>
+          <jsonx:string>GL000221.1</jsonx:string>
+          <jsonx:string>GL000209.1</jsonx:string>
+          <jsonx:string>GL000218.1</jsonx:string>
+          <jsonx:string>GL000220.1</jsonx:string>
+          <jsonx:string>GL000213.1</jsonx:string>
+          <jsonx:string>GL000211.1</jsonx:string>
+          <jsonx:string>GL000199.1</jsonx:string>
+          <jsonx:string>GL000217.1</jsonx:string>
+          <jsonx:string>GL000216.1</jsonx:string>
+          <jsonx:string>GL000215.1</jsonx:string>
+          <jsonx:string>GL000205.1</jsonx:string>
+          <jsonx:string>GL000219.1</jsonx:string>
+          <jsonx:string>GL000224.1</jsonx:string>
+          <jsonx:string>GL000223.1</jsonx:string>
+          <jsonx:string>GL000195.1</jsonx:string>
+          <jsonx:string>GL000212.1</jsonx:string>
+          <jsonx:string>GL000222.1</jsonx:string>
+          <jsonx:string>GL000200.1</jsonx:string>
+          <jsonx:string>GL000193.1</jsonx:string>
+          <jsonx:string>GL000194.1</jsonx:string>
+          <jsonx:string>GL000225.1</jsonx:string>
+          <jsonx:string>GL000192.1</jsonx:string>
+        </jsonx:array>
+      </jsonx:object>
+    </jsonx:object>
+  </jsonx:object>
+</jsonx:object>

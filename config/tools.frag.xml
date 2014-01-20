@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsonx:object
+	xmlns:xi="http://www.w3.org/2001/XInclude"
+	xmlns:jsonx="http://www.ibm.com/xmlns/prod/2009/jsonx"
+	name="tools">
+
+<!--  bedtools -->
+<jsonx:object name="bedtools">
+	<jsonx:string name="default">2.16.2</jsonx:string>
+	<jsonx:object name="2.16.2">
+		<jsonx:string name="bindir">/commun/data/packages/BEDTools-Version-2.16.2/bin</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+<!--  samtools -->
+<jsonx:object name="samtools">
+	<jsonx:string name="default">0.1.19</jsonx:string>
+	<jsonx:object name="0.1.19">
+		<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/samtools</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+<!--  bcftools -->
+<jsonx:object name="bcftools">
+	<jsonx:string name="default">0.1.19</jsonx:string>
+	<jsonx:object name="0.1.19">
+		<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/bcftools/bcftools</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+<!--  bwa -->
+<jsonx:object name="bwa">
+	<jsonx:string name="default">0.7.4</jsonx:string>
+	<jsonx:object name="0.6.2">
+		<jsonx:string name="exe">/commun/data/packages/bwa-0.6.2/bwa</jsonx:string>
+	</jsonx:object>
+	<jsonx:object name="0.7.4">
+		<jsonx:string name="exe">/commun/data/packages/bwa-0.7.4/bwa</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+<!--  R -->
+<jsonx:object name="rstats">
+	<jsonx:string name="default">2.15.2</jsonx:string>
+	<jsonx:object name="2.15.2">
+		<jsonx:string name="exe">/commun/data/packages/R/bin</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+<!--  Tabix -->
+<jsonx:object name="tabix">
+	<jsonx:string name="default">0.2.6</jsonx:string>
+	<jsonx:object name="0.2.6">
+		<jsonx:string name="bgzip_exe">/commun/data/packages/tabix-0.2.6/bgzip</jsonx:string>
+		<jsonx:string name="tabix_exe">/commun/data/packages/tabix-0.2.6/tabix</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+<jsonx:object name="java">
+	<jsonx:string name="default">1.7.0_25</jsonx:string>
+	<jsonx:object name="1.7.0_25">
+		<jsonx:string name="exe">/usr/bin/java</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+<!--  jvarkit -->
+<jsonx:object name="jvarkit">
+	<jsonx:object name="latest">
+		<jsonx:string name="dist">/commun/data/packages/jvarkit-git</jsonx:string>
+		<jsonx:object name="vcfmerge">
+			<jsonx:number name="max_records_in_ram">10000</jsonx:number>
+		</jsonx:object>
+		<jsonx:object name="splitbam">
+			<jsonx:number name="max_records_in_ram">5000000</jsonx:number>
+		</jsonx:object>
+	</jsonx:object>
+</jsonx:object>
+
+
+
+<jsonx:object name="vcftools">
+	<jsonx:string name="default">0.1.10</jsonx:string>
+	<jsonx:object name="0.1.10">
+		<jsonx:string name="dir">/commun/data/packages/vcftools/vcftools_0.1.10</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+<jsonx:object name="cutadapt">
+	<jsonx:string name="default">1.2.1</jsonx:string>
+	<jsonx:object name="1.2.1">
+		<jsonx:string name="exe">/commun/data/packages/cutadapt-1.2.1/bin/cutadapt</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+<jsonx:object name="fastqc">
+	<jsonx:string name="default">0.10.1</jsonx:string>
+	<jsonx:object name="0.10.1">
+		<jsonx:string name="exe">/commun/data/packages/FastQC/fastqc</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+<jsonx:object name="fastx">
+	<jsonx:string name="default">0.0.13.2</jsonx:string>
+	<jsonx:object name="0.0.13.2">
+		<jsonx:string name="bindir">/commun/data/packages/fastx_toolkit-0.0.13.2/bin</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+<jsonx:object name="picard">
+	<jsonx:string name="default">1.100</jsonx:string>
+	<jsonx:object name="1.100">
+		<jsonx:string name="dir">/commun/data/packages//picard-tools-1.100</jsonx:string>
+	</jsonx:object>
+</jsonx:object>
+
+
+</jsonx:object>
