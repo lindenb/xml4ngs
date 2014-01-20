@@ -1,4 +1,0 @@
-#parse("samtools.mod.vm")
-#set( $bcftools_version = ${samtools_version})
-#set( $bcftools_dir = $samtools_dir + "/bcftools" )
-#set( $bcftools_exe = $bcftools_dir + "/bcftools")

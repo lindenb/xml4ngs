@@ -1,4 +1,0 @@
-#parse("common.mod.vm")
-#set( $fastx_version = "0.0.13.2")
-#set( $fastx_dir = $packages_dir + "/fastx_toolkit-" + $fastx_version)
-#set( $fastx_bindir = $fastx_dir + "/bin")

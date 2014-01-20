@@ -1,5 +1,0 @@
-#parse("common.mod.vm")
-#set( $tabix_version = "0.2.6")
-#set( $tabix_dir = $packages_dir + "/tabix-" + $tabix_version )
-#set( $bgzip_exe = $tabix_dir + "/bgzip" )
-#set( $tabix_exe = $tabix_dir + "/tabix" )

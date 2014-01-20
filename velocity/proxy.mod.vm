@@ -1,2 +1,0 @@
-#set($httpProxyPort="proxy-upgrade.univ-nantes.prive")
-#set($httpProxyHost="3128")
