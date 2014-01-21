@@ -24,5 +24,16 @@ merge chromosomes after bwa
 		COMMENT="Merged for chromosome ${chromGroup} from $^" \
 		$(foreach B,$^, I=$(B) ) 
 
+#else
+
+
+ $(call bai_files, #sample_merged_chrom(${sample} ${chromGroup})  ): #sample_merged_chrom(${sample} ${chromGroup})
+	
+	mkdir -p $(dir $@) && \
+	${java_exe} ${config.tools.picard.BuildBamIndex.jvm} -jar #picard_jar("BuildBamIndex") \
+		I=$< \
+		VALIDATION_STRINGENCY=SILENT \
+		VERBOSITY=WARNING \
+		MAX_RECORDS_IN_RAM=${config.tools.picard.BuildBamIndex.max_records_in_ram.value} 
 
 #end

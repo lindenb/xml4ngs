@@ -14,6 +14,7 @@
     <jsonx:boolean name="remove_duplicates">true</jsonx:boolean>
     <jsonx:boolean name="realign_around_indels">true</jsonx:boolean>
     <jsonx:boolean name="recalibrate">true</jsonx:boolean>
+    <jsonx:boolean name="one_vcf_per_sample">false</jsonx:boolean>
     <jsonx:string name="chromgroup">g1</jsonx:string>
     
     <jsonx:object name="output">

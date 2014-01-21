@@ -1,5 +1,4 @@
 #macro(fastq_raw $fastq)${fastq.path}#end
 #macro(fastq_trim5 $fastq)#if(${fastq.hasProperty("trim5")})#sample_dir(${fastq.pair.sample})/FASTQ/${config.project.output.prefix.value}#pair_name(${fastq.pair})_trim5_${fastq.index}.fastq.gz #else#fastq_raw($fastq)#end#end
-#macro(fastq_cutadapt $fastq)#if(${project.getPropertyByName("is.haloplex","no")}=="yes")#sample_dir(${fastq.pair.sample})/FASTQ/${config.project.output.prefix.value}#pair_name(${fastq.pair})_preproc_${fastq.index}.fastq.gz #else#fastq_trim5($fastq)#end#end
-#macro(fastq_sai $fastq)#sample_dir(${fastq.pair.sample})/SAI/${config.project.output.prefix.value}#pair_name(${fastq.pair})_${fastq.index}.sai#end
+#macro(fastq_cutadapt $fastq)#if(${config.project.haloplex.value})#sample_dir(${fastq.pair.sample})/FASTQ/${config.project.output.prefix.value}#pair_name(${fastq.pair})_preproc_${fastq.index}.fastq.gz #else#fastq_trim5($fastq)#end#end
 

@@ -153,21 +153,34 @@ toptarget:
 
 
 LIST_PHONY_TARGET+= all
-all:  #foreach($sample in $project.sample) #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
-	#sample_recal_chrom(${sample} ${chromGroup})  #end #end
+all:  #foreach($sample in $project.sample) \
+	#sample_final_bam($sample) #end
 
+#if(${config.project.one_vcf_per_sample.value}==false)
+	#parse("p2m.calling.multi.mod.vm")
+	#parse("p2m.annotation.multi.mod.vm")
+#end
 
 
 #foreach($sample in $project.sample)
-
 	
-
+	#if(${config.project.one_vcf_per_sample.value}==true)
+		#parse("p2m.calling.one.mod.vm")
+		#parse("p2m.annotation.one.mod.vm")	
+	#end
+	
+	
+	#parse("p2m.bam.final.mod.vm")	
+	
 	#foreach($chromGroup in ${chromosomeGroups.keySet()})
 		#parse("p2m.recalibrate.mod.vm")	
 		#parse("p2m.rmdup.mod.vm")	
 		#parse("p2m.realignaroundindels.mod.vm")	
 		#parse("p2m.mergepairs.mod.vm")	
 	#end
+	
+	#set($chromGroup = "Unmapped" )
+	#parse("p2m.mergepairs.mod.vm")	
 	
 	#foreach($pair in $sample.sequences.pair)
 		#parse("p2m.alignbwa.mod.vm")

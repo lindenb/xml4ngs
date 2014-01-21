@@ -1,0 +1,32 @@
+
+
+
+#foreach($genotypeMethod in ${config.project.genotypeMethods})
+
+#sample_vcf_genotyper($sample ${genotypeMethod.value}) : #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+	#sample_vcf_genotyper_chrom($sample ${genotypeMethod.value} $chromGroup) #end
+	
+	mkdir -p $(dir $@) && \
+	#execute_vcftools_cmd("vcf-concat") $(filter %.vcf.gz ,$^) |\
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} > $(basename $@) && \
+	${bgzip_exe} $(basename $@) && \
+	${tabix_exe} -f -p vcf $@
+
+#end
+
+#foreach($chromGroup in ${chromosomeGroups.keySet()})
+
+#sample_vcf_genotyper_chrom($sample "samtools" $chromGroup): $(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) \
+	#XCAPTURE_CHROM($chromGroup) \
+	$(REF)
+#parse("p2m.calling.samtools.mod.vm")
+
+
+#sample_vcf_genotyper_chrom($sample "gatk" $chromGroup): $(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) \
+	#XCAPTURE_CHROM($chromGroup) \
+	$(REF)
+#parse("p2m.calling.gatk.mod.vm")
+
+	
+#end
+

@@ -121,6 +121,14 @@
 		<jsonx:string name="jvm"></jsonx:string>
 		<jsonx:number name="max_records_in_ram">50000</jsonx:number>
 	</jsonx:object>
+	<jsonx:object name="BuildBamIndex">
+		<jsonx:string name="jvm"></jsonx:string>
+		<jsonx:number name="max_records_in_ram">50000</jsonx:number>
+	</jsonx:object>
+	
+	
+	
+	
 </jsonx:object>
 
 <jsonx:object name="gatk">
@@ -144,6 +152,13 @@
 	<jsonx:object name="PrintReads">
 			<jsonx:string name="jvm"></jsonx:string>
 	</jsonx:object>
+	
+	<jsonx:object name="UnifiedGenotyper">
+			<jsonx:string name="jvm"></jsonx:string>
+			<jsonx:string name="dbsnp">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/00-All.vcf.gz</jsonx:string>
+	</jsonx:object>
+	
+	
 	
 	
 	<jsonx:array name="files">

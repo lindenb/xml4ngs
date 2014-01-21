@@ -1,6 +1,0 @@
-#parse("common.mod.vm")
-#set( $picard_version = "1.100")
-#set( $picard_dir = $packages_dir + "/picard-tools-" + $picard_version)
-#macro(picard_jar $command) ${picard_dir}/${command}.jar #end
-
-

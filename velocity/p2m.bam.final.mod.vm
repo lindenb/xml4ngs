@@ -1,0 +1,22 @@
+
+
+
+
+#sample_final_bam(${sample}) : #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+	#sample_recal_chrom( ${sample} ${chromGroup})  #end \
+	#sample_merged_chrom(${sample} "Unmapped")
+	
+	mkdir -p $(dir $@) && \
+	${java_exe} ${config.tools.picard.MergeSamFiles.jvm} -jar #picard_jar("MergeSamFiles") \
+		O=$@ \
+		SO=coordinate \
+		AS=true \
+		MAX_RECORDS_IN_RAM=${config.tools.picard.MergeSamFiles.max_records_in_ram.value} \
+		CREATE_INDEX=true \
+		COMPRESSION_LEVEL=9 \
+		VALIDATION_STRINGENCY=SILENT \
+		USE_THREADING=true \
+		VERBOSITY=WARNING \
+		COMMENT="Merged from $^" \
+		$(foreach B,$^, I=$(B) ) 
+

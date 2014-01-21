@@ -1,0 +1,11 @@
+	mkdir -p $(dir $@) && \
+	${samtools_exe} mpileup -uD  -E -C50 -m3 -F0.002  -q 30 \
+		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
+		-f $(REF) $(filter %.bam,$^)  |\
+	${bcftools_exe} view -vcg - #if(${config.project.one_vcf_per_sample.value}==true) |\
+	${java_exe} -jar ${JVARKITGIT}/vcffixindels.jar #end |\
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} > $(basename $@) && \
+	${bgzip_exe}  $(basename $@) && \
+	${tabix_exe} -f -p vcf $@ 
+ 
+	

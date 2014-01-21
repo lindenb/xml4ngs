@@ -1,0 +1,9 @@
+
+
+#foreach($genotypeMethod in ${config.project.genotypeMethods})
+
+#sample_vcf_genotyper_annotations($sample ${genotypeMethod.value}  ) : #sample_vcf_genotyper($sample ${genotypeMethod.value}) 
+	
+	echo "TODO"
+
+#end

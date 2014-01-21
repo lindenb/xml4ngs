@@ -1,3 +1,5 @@
+#if(${config.project.haloplex.value}==true)
+
 #*
 Preprocess FASTQ with cutadapt
 *#
@@ -17,3 +19,4 @@ Preprocess FASTQ with cutadapt
 	gzip --best --force $(basename $@)
 
 
+#end
