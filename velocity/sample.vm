@@ -5,59 +5,37 @@
 #macro(sample_VCF_chrom $sample $chrom)#sample_VCF($sample)/${chrom}#end
 #macro(sample_STATS $sample)#sample_dir($sample)/STATS#end
 #macro(sample_CONTAMINATIONS $sample)#sample_dir($sample)/CONTAMINATIONS#end
-#macro(sample_realigned $sample)#if(${project.getPropertyByName("disable.indelrealigner","no")}=="yes")#sample_merged($sample)#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_realigned.bam#end#end
-#macro(sample_realigned_chrom $sample $chrom)#if(${project.getPropertyByName("disable.indelrealigner","no")}=="yes")#sample_merged_chrom($sample $chrom)#else#sample_BAM_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_realigned.${chrom}.bam#end#end
-#macro(sample_markdup $sample)#if(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes")#sample_realigned(${sample})#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_markdup.bam#end#end
-
+#macro(sample_realigned $sample)#if(${config.project.realign_around_indels.value}==false)#sample_merged($sample)#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_realigned.bam#end#end
+#macro(sample_realigned_chrom $sample $chrom)#if(${config.project.realign_around_indels.value}==false)#sample_merged_chrom($sample $chrom)#else#sample_BAM_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_realigned.${chrom}.bam#end#end
+#macro(sample_markdup $sample)#if(${config.project.remove_duplicates.value}==false || ${config.project.haloplex.value}==true)#sample_realigned(${sample})#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_markdup.bam#end#end
 #macro(sample_contaminations_tsv $sample)#sample_CONTAMINATIONS($sample)/${config.project.output.prefix}${sample.name}_contaminations.tsv#end
 #macro(sample_final_bam $sample)#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_final.bam#end
-
-#macro(sample_markdup_chrom $sample $chrom)#if(${project.getPropertyByName("disable.mark.duplicates","no")}=="yes" || ${project.getPropertyByName("is.haloplex","no")}=="yes")#sample_realigned_chrom(${sample} ${chrom})#else#sample_BAM_chrom($sample ${chrom})/${config.project.output.prefix}${sample.name}_markdup.${chrom}.bam#end#end
-
-#macro(sample_recal $sample)#if($project.getPropertyByName("disable.recalibration","no")=="yes")#sample_markdup($sample)#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_recal.bam#end#end
-
-#macro(sample_recal_chrom $sample $chrom)#if($project.getPropertyByName("disable.recalibration","no")=="yes")#sample_markdup_chrom($sample $chrom)#else#sample_BAM_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_recal.${chrom}.bam#end#end
-
+#macro(sample_markdup_chrom $sample $chrom)#if(${config.project.remove_duplicates.value}==false || ${config.project.haloplex.value}==true)#sample_realigned_chrom(${sample} ${chrom})#else#sample_BAM_chrom($sample ${chrom})/${config.project.output.prefix}${sample.name}_markdup.${chrom}.bam#end#end
+#macro(sample_recal $sample)#if(${config.project.recalibrate.value}==false)#sample_markdup($sample)#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_recal.bam#end#end
+#macro(sample_recal_chrom $sample $chrom)#if(${config.project.recalibrate.value}==false)#sample_markdup_chrom($sample $chrom)#else#sample_BAM_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_recal.${chrom}.bam#end#end
 #macro(sample_sorted $sample)#sample_BAM($sample)/${sample.name}_sorted.bam#end
-
 #macro(sample_merged $sample)#if($sample.sequences.pair.size() <= 1)#foreach($p in ${sample.sequences.pair})#pair_bam_sorted($p)#end#else#sample_BAM($sample)/${config.project.output.prefix}${sample.name}_merged.bam#end#end
-
 #macro(sample_merged_chrom $sample $chrom)#if($sample.sequences.pair.size() <= 1)#foreach($pair in ${sample.sequences.pair})#pair_bam_sorted_chrom(${pair} ${chrom})#end#else#sample_BAM_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_merged.${chrom}.bam#end#end
-
-
 #macro(sample_coverage $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}_coverage#end
-
-
-
 #macro(sample_vcf_samtools $sample)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.samtools.vcf.gz #end
 #macro(sample_vcf_gatk $sample)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.gatk.vcf.gz #end
-
 #macro(sample_vcf_samtools_snpeff $sample)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.samtools.snpeff.vcf.gz #end
 #macro(sample_vcf_gatk_snpeff $sample)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.gatk.vcf.snpeff.gz #end
 #macro(sample_vcf_samtools_vep $sample)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.samtools.vep.vcf.gz #end
 #macro(sample_vcf_gatk_vep $sample)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.gatk.vcf.vep.gz #end
-
 #macro(sample_bamstat01_tsv $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}_bamstats01.tsv #end
 #macro(sample_bamstat04_tsv $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}_bamstats04.tsv.gz #end
 #macro(sample_beddepth $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}_beddepth.tsv.gz #end
-
-
 #macro(sample_distribution_of_coverage_merged $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}.merged.coverage.pdf #end
 #macro(sample_distribution_of_coverage_markdup $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}.markdup.coverage.pdf #end
 #macro(sample_distribution_of_coverage_recal $sample)#sample_STATS($sample)/${config.project.output.prefix}${sample.name}.recal.coverage.pdf #end
-
-
-
 #macro(sample_vcf_genotyper $sample $genotyper)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.vcf.gz #end
 #macro(sample_vcf_genotyper_chrom $sample $genotyper $chrom)#sample_VCF_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.${chrom}.vcf.gz #end
 #macro(sample_vcf_genotyper_annotator $sample $genotyper $annotator)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.${annotator}.vcf.gz #end
 #macro(sample_vcf_genotyper_annotations $sample $genotyper )#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.annotations.vcf.gz #end
-
 #macro(fastx_sample_dir $sample)#sample_dir($sample)/FASTX#end
 #macro(fastx_sample_qual $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.qualchart.ps#end
 #macro(fastx_sample_nucl $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.nuclchart.ps#end
 #macro(fastx_sample_stats $sample)#fastx_sample_dir($sample)/${sample.name}.tmp.stats#end
-
 #macro(fastqc_dir $sample)#sample_dir($sample)/FASTQC#end
 #macro(fastqc_report $sample)#fastqc_dir($sample)/${config.project.output.prefix}${sample.name}_fastqc/fastqc_report.html#end
-

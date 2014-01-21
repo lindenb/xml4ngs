@@ -33,8 +33,7 @@
 #set( $bcftools_exe = ${config.tools.bcftools["${config.tools.bcftools.default}"].exe})
 
 # bedtools_exe
-#set( $bedtools_exe = ${config.tools.bedtools["${config.tools.bcftools.default}"].exe})
-
+#macro(execute_bedtools $command)${config.tools.bedtools.dir}/bin/${command} #end
 
 # cutadapt_exec
 #set( $cutadapt_exec = ${config.tools.cutadapt["${config.tools.cutadapt.default}"].exe})
@@ -48,7 +47,7 @@
 
 
 
-#macro(picard_jar $command)  ${config.tools.picard["${config.tools.picard.default}"].dir}/${command}.jar #end
+#macro(picard_jar $command) ${config.tools.picard.dir}/${command}.jar #end
 
 
 
@@ -56,4 +55,8 @@
 
 #set( $freebayes_exe = $packages_dir + "/freebayes/freebayes/bin/freebayes")
 
+
+
+#macro(gatk_command $command) -jar ${config.tools.gatk.jar} -T ${command} #end
+#macro(gatk_no_phone_home)#if(${config.tools.gatk.no_phone_key})  -et NO_ET -K ${config.tools.gatk.no_phone_key} #end#end
 

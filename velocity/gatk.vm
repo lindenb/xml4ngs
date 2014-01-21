@@ -1,4 +1,3 @@
-#macro(gatk_no_phone_home)#if(${project.hasProperty("gatk/no.phone.key")})  -et NO_ET -K ${project.getProperty("gatk/no.phone.key")} #end#end
 
 #macro(gatk_distribution_of_coverage $target $dependencies $type )
 ##

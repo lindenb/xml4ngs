@@ -1,0 +1,19 @@
+#*
+Preprocess FASTQ with cutadapt
+*#
+
+
+#fastq_cutadapt($fastq) : #fastq_trim5($fastq)
+
+	mkdir -p $(dir $@) && \
+	${cutadapt_exe} -a #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
+		)${project.propertyMap["cutadapt.sequence.for"]}#elseif(
+		$project.propertyMap.containsKey("cutadapt.sequence.rev") &&  ${fastq.index}==2
+		)${project.propertyMap["cutadapt.sequence.rev"]}#elseif(
+		${fastq.index}==1)AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC#elseif(
+		${fastq.index}==2)AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT#else${utils.warning("cutadapt params undefined for ${fastq} index=${fastq.index}")}#end  $< -o $(basename $@) > $(addsuffix .report.txt,$@) && \
+	awk '{if(NR%4==2 && length($$0)==0) { printf("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN\n");} else if(NR%4==0 && length($$0)==0) { printf("#[[##################################################]]#\n");} else {print;}}'  $(basename $@) > $(addsuffix .tmp,$(basename $@)) && \
+	mv $(addsuffix .tmp,$(basename $@)) $(basename $@) && \
+	gzip --best --force $(basename $@)
+
+

@@ -1,0 +1,28 @@
+#*
+
+merge chromosomes after bwa
+
+*#
+
+#if( ${sample.sequences.pair.size()} > 1)
+
+
+#sample_merged_chrom(${sample} ${chromGroup}) : #foreach($pair in ${sample.sequences.pair} ) \
+	#pair_bam_sorted_chrom(${pair} ${chromGroup}) #end
+	
+	mkdir -p $(dir $@) && \
+	${java_exe} ${config.tools.picard.MergeSamFiles.jvm} -jar #picard_jar("MergeSamFiles") \
+		O=$@ \
+		SO=coordinate \
+		AS=true \
+		MAX_RECORDS_IN_RAM=${config.tools.picard.MergeSamFiles.max_records_in_ram.value} \
+		CREATE_INDEX=true \
+		COMPRESSION_LEVEL=9 \
+		VALIDATION_STRINGENCY=SILENT \
+		USE_THREADING=true \
+		VERBOSITY=WARNING \
+		COMMENT="Merged for chromosome ${chromGroup} from $^" \
+		$(foreach B,$^, I=$(B) ) 
+
+
+#end

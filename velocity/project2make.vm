@@ -113,7 +113,8 @@ extended_capture_bed=$(OUTDIR)/BED/capture${config.project.capture.extend.value}
 # PHONY TARGETS
 #
 #
-.PHONY: all toptarget ${LIST_PHONY_TARGET} 
+
+.PHONY:  ${LIST_PHONY_TARGET} 
 
 ##########################################################################################################
 #
@@ -145,177 +146,48 @@ endef
 
 
 
-
+LIST_PHONY_TARGET+= toptarget
 toptarget:
 	@echo "This is the top target. Please select a specific target"
 	@echo "e.g: ${TOP_TARGETS} "
 
 
-
-all: #foreach($sample in $project.sample)#foreach($pair in $sample.sequences.pair)#foreach($c in ${chromosomeGroups.keySet()}) \
-	#pair_bam_sorted_chrom($pair $c )
-	#end#end #end
-	
-	echo ">>>" $^
+LIST_PHONY_TARGET+= all
+all:  #foreach($sample in $project.sample) #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+	#sample_recal_chrom(${sample} ${chromGroup})  #end #end
 
 
 
-
-
-
-
-
-##############################################################################
-#
-# BEGIN SAMPLES
-#
-##############################################################################
 #foreach($sample in $project.sample)
 
-
-
-#foreach($chromGroup in ${chromosomeGroups.keySet()})
-
-
-
-#if( ${sample.sequences.pair.size()} > 1)
-#
-#
-# Merge all Bams for ${sample.name} for chromosome ${chrom}
-#
-#
-#sample_merged_chrom(${sample} ${chrom}) : #foreach($pair in ${sample.sequences.pair} ) #pair_bam_sorted_chrom(${pair} ${chromGroup}) #end
 	
+
+	#foreach($chromGroup in ${chromosomeGroups.keySet()})
+		#parse("p2m.recalibrate.mod.vm")	
+		#parse("p2m.rmdup.mod.vm")	
+		#parse("p2m.realignaroundindels.mod.vm")	
+		#parse("p2m.mergepairs.mod.vm")	
+	#end
+	
+	#foreach($pair in $sample.sequences.pair)
+		#parse("p2m.alignbwa.mod.vm")
+		#foreach($fastq in ${pair.fastq})
+			#parse("p2m.preprocfastq.mod.vm")
+		#end
+	#end
+
+#end
+
+
+$(extended_capture_bed): $(capture.bed) ${REF}
 	mkdir -p $(dir $@) && \
-	${java_exe} -jar $(PICARD)/MergeSamFiles.jar O=$@ SO=coordinate AS=true \
-		#if(${project.propertyMap.containsKey("picard.merge.options")}
-			 ) ${project.getPropertyByName("picard.merge.options","")} #end \
-		MAX_RECORDS_IN_RAM=${PICARD_MAX_RECORDS_IN_RAM} \
-		CREATE_INDEX=true \
-		COMPRESSION_LEVEL=9 \
-		VALIDATION_STRINGENCY=SILENT \
-		USE_THREADING=true \
-		COMMENT="Merged for chromosome ${chrom} from $^" \
-		$(foreach B,$^, I=$(B) ) 
-
-
-#end
-#end
-
-##############################################################################
-#
-# BEGIN PAIR ${sample.name}
-#
-##############################################################################
-
-#foreach($pair in $sample.sequences.pair)
-
-
-
-
-
-#foreach($c in ${chromosomeGroups.keySet()})
-
-
-#pair_bam_sorted_chrom($pair $c ): #pair_bam_unsorted_chrom($pair $c )
-	
-	${samtools_exe} sort -l9 $< $(basename $@)
-
-
-#end
-
-
-#pair_bam_sorted_chrom($pair  "Unmapped" ): #pair_bam_unsorted_chrom($pair "Unmapped" )
-	
-	${samtools_exe} sort -l9  $< $(basename $@)
-
-
-
-#
-# Call BWA mem
-#
-#
-#foreach($c in ${chromosomeGroups.keySet()})#pair_bam_unsorted_chrom($pair $c ) #end #pair_bam_unsorted_chrom($pair "Unmapped" ): ${sample.name}_sampe_pair${pair.index}_chromosomes
-
-LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
-
-${sample.name}_sampe_pair${pair.index}_chromosomes : \
-	#fastq_cutadapt(${pair.forward}) \
-	#fastq_cutadapt(${pair.reverse}) \
-	${REF} \
-	$(OUTDIR)/BED/chromgroups.txt
-	mkdir -p #sample_BAM(${pair.sample}) && \
-	${bwa_exe} mem  \
-		-R "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
-		$(REF) \
-		#fastq_cutadapt(${pair.forward}) \
-		#fastq_cutadapt(${pair.reverse}) |\
-		#execjvarkitcmd("splitbam2") -E -m \
-			-g $(OUTDIR)/BED/chromgroups.txt \
-			-p #pair_bam_unsorted_chrom($pair "__CHROM__" )  \
-			-u Unmapped	
-
-
-
-##
-## BEGIN : loop over the fastqs
-##
-#foreach($fastq in ${pair.fastq})
-
-#if(${config.project.haloplex.value}==true)
-
-#
-# Preprocess FASTQ
-#
-#fastq_cutadapt($fastq) : #fastq_trim5($fastq)
-
-	mkdir -p $(dir $@) && \
-	${cutadapt_exe} -a #if($project.propertyMap.containsKey("cutadapt.sequence.for") && ${fastq.index}==1
-		)${project.propertyMap["cutadapt.sequence.for"]}#elseif(
-		$project.propertyMap.containsKey("cutadapt.sequence.rev") &&  ${fastq.index}==2
-		)${project.propertyMap["cutadapt.sequence.rev"]}#elseif(
-		${fastq.index}==1)AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC#elseif(
-		${fastq.index}==2)AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT#else${utils.warning("cutadapt params undefined for ${fastq} index=${fastq.index}")}#end  $< -o $(basename $@) > $(addsuffix .report.txt,$@) && \
-	awk '{if(NR%4==2 && length($$0)==0) { printf("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN\n");} else if(NR%4==0 && length($$0)==0) { printf("#[[##################################################]]#\n");} else {print;}}'  $(basename $@) > $(addsuffix .tmp,$(basename $@)) && \
-	mv $(addsuffix .tmp,$(basename $@)) $(basename $@) && \
-	gzip --best --force $(basename $@) && \
-	$(call timeenddb,$@,cutadapt) && \
-	$(call sizedb,$@) && \
-	$(call notempty,$@)
-
-#end
-
-
-#end
-
-##
-## END : loop over the fastq
-##
-
-##############################################################################
-#
-# END PAIR ${pair.index} for sample ${pair.sample.name}
-#
-##############################################################################
-
-#end
-
-##############################################################################
-#
-# END SAMPLES ${sample.name}
-#
-##############################################################################
-
-#end
-
-
-##############################################################################
-# 
-# END SAMPLES
-#
-##############################################################################
-
-
+	cut -d '	' -f1,2,3 $< |\
+	#execjvarkitcmd("extendbed") \
+		REF=${REF} \
+		X=${config.project.capture.extend} \
+		VALIDATION_STRINGENCY=LENIENT |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
+	#execute_bedtools("mergeBed") -d ${config.project.capture.extend} -i - > $@
 
 
 
@@ -327,7 +199,19 @@ $(OUTDIR)/BED/chromgroups.txt :
 	&& echo -n "	${C2}" >> $@ #end && \
 	echo >> $@ #end
 
+#foreach($chromGroup in ${chromosomeGroups.keySet()})
 
+
+#XCAPTURE_CHROM($chromGroup):$(extended_capture_bed)
+	mkdir -p $(dir $@) && \
+	awk -F '	'  'BEGIN{N=0;} {if(!($$1==" -%- " #foreach($c in ${chromosomeGroups["${chromGroup}"]}) || $$1=="${c}" #set($lastchrom = $c)#end)) next; print;N++;} END{if(N==0) printf("${lastchrom}\t1\t2\tIGNORE_PLEASE\n");}' $< > $@
+
+#XWHOLE_CHROM($chromGroup):$(addsuffix .fai,$(REF))
+	mkdir -p $(dir $@) && \
+	awk -F '	'  '{if(!($$1==" -%- " #foreach($c in ${chromosomeGroups["${chromGroup}"]}) || $$1=="${c}" #end)) next; printf("%s\t0\t%d\n",$$1,int($$2)-1);}' $< > $@
+
+
+#end
 
 #
 # END

@@ -1,0 +1,7 @@
+#if(${config.project.haloplex.value}==true)
+#parse("p2m.preprocfastq.cutadapt.mod.vm")
+#end
+
+#if(${config.project.trim5} && ${config.project.trim5.intValue()}> 0 )
+#parse("p2m.preprocfastq.trim.mod.vm")
+#end

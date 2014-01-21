@@ -1,0 +1,31 @@
+#if(${config.project.realign_around_indels.value}==true)
+
+$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chromGroup})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chromGroup}) ) \
+		#XCAPTURE_CHROM(${chromGroup})
+		
+		mkdir -p $(dir $@) && \
+		${java_exe} ${config.tools.gatk.RealignerTargetCreator.jvm} #gatk_command("RealignerTargetCreator") \
+  			-R $(REF) \
+  			#gatk_no_phone_home() \
+			-L:capture,BED $(filter %.bed,$^) \
+  			-I $(filter %.bam,$^) \
+			-o $@ \
+			#foreach($gatkfile in $config.tools.gatk.files) --known:${gatkfile.name.value},VCF ${gatkfile.path.value}  #end \
+			-S SILENT 
+
+
+#sample_realigned_chrom(${sample} ${chromGroup}) :	$(call indexed_bam, #sample_merged_chrom(${sample} ${chromGroup}) ) \
+				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chromGroup})) 
+		
+		mkdir -p $(dir $@) && \
+		${java_exe} ${config.tools.gatk.IndelRealigner.jvm} -jar  #gatk_command("IndelRealigner") \
+  			#gatk_no_phone_home() \
+  			-R $(REF) \
+  			-I $(filter %.bam,$^) \
+  			-o $@ \
+  			-targetIntervals $(filter %.intervals,$^)  \
+  			#foreach($gatkfile in $config.tools.gatk.files) --knownAlleles:${gatkfile.name.value},VCF ${gatkfile.path.value}  #end \
+			-S SILENT 
+
+			
+#end

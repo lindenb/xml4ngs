@@ -1,0 +1,11 @@
+#*
+trim 5' of fastq
+*#
+
+
+#fastq_trim5($fastq) : #fastq_raw($fastq)
+	
+	mkdir -p $(dir $@) && \
+	gunzip -c $< |\
+	awk '{if(NR%4==2 || NR%4==0) {if(length($$0)<=${fastq.getProperty("trim5")}) {printf("\n");} else {printf("%s\n",subst($$0,${fastq.getProperty("trim5")}));} } else {print;}}' |\
+	gzip --best > $@ 

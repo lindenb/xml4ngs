@@ -1,0 +1,18 @@
+#if(${config.project.remove_duplicates.value}==true && ${config.project.haloplex.value}==false)
+
+
+#sample_markdup_chrom(${sample} ${chromGroup}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chromGroup}) )
+	mkdir -p $(dir $@) && \
+	mkdir -p $(addsuffix tmp.rmdup,$(dir $@)) && \
+	${java_exe} ${config.tools.picard.MarkDuplicates.jvm} -jar #picard_jar("MarkDuplicates") \
+		MAX_RECORDS_IN_RAM=${config.tools.picard.MarkDuplicates.max_records_in_ram} \
+		TMP_DIR=$(addsuffix tmp.rmdup,$(dir $@)) \
+		INPUT=$(filter %.bam,$^) \
+		O=$@ \
+		M=$@.metrics \
+		AS=true \
+		VALIDATION_STRINGENCY=SILENT \
+		CREATE_INDEX=true
+
+		
+#end

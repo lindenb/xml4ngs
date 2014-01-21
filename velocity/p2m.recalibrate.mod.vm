@@ -1,0 +1,37 @@
+#if(${config.project.recalibrate.value}==true)
+
+#sample_recal_chrom( ${sample} ${chromGroup})  : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chromGroup}) ) \
+		#XCAPTURE_CHROM(${chromGroup}) \
+		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chromGroup}) )
+	mkdir -p $(dir $@) && \
+	${java_exe} ${config.tools.gatk.PrintReads.jvm} -jar  #gatk_command("PrintReads") \
+		#gatk_no_phone_home() \
+		-R $(REF) \
+		-BQSR $(filter %.grp,$^) \
+		-I $(filter %.bam,$^) \
+		-o $@ \
+		--validation_strictness LENIENT \
+		-l INFO
+
+
+$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chromGroup}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chromGroup}) ) \
+			#XCAPTURE_CHROM(${chromGroup})
+	
+	mkdir -p $(dir $@) && \
+	${java_exe} ${config.tools.gatk.BaseRecalibrator.jvm} -jar  #gatk_command("BaseRecalibrator") \
+		#gatk_no_phone_home() \
+		--validation_strictness LENIENT \
+		-R $(REF) \
+		-I $(filter %.bam,$^) \
+		-l INFO \
+		-o $@ \
+		#foreach($gatkfile in $config.tools.gatk.files) -knownSites:${gatkfile.name.value},VCF ${gatkfile.path.value}  #end \
+		-L:capture,BED $(filter %.bed,$^) \
+		-cov ReadGroupCovariate \
+		-cov QualityScoreCovariate \
+		-cov CycleCovariate \
+		-cov ContextCovariate
+
+	
+#end
+
