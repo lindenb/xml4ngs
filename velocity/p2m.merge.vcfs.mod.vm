@@ -1,0 +1,5 @@
+	mkdir -p $(dir $@) && \
+	#execute_vcftools_cmd("vcf-concat") $(filter %.vcf.gz ,$^) |\
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} > $(basename $@) && \
+	${bgzip_exe} $(basename $@) && \
+	${tabix_exe} -f -p vcf $@

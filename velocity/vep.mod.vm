@@ -1,5 +1,0 @@
-#parse("common.mod.vm")
-#set( $vep_version = "71")
-#set( $vep_dir = $packages_dir + "/variant_effect_predictor" )
-#set( $vep_bin = $vep_dir + "/variant_effect_predictor.pl" )
-#set( $vep_cache =  " --cache --dir /commun/data/pubdb/ensembl/vep/cache --write_cache ")

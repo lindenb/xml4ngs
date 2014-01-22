@@ -1,5 +1,37 @@
 
 
+#sample_bamstat01_tsv(${sample}) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
+	mkdir -p $(dir $@) && \
+	#execjvarkitcmd("bamstats01") \
+		BED=$(capture.bed) \
+		IN=$(filter %.bam,$^) \
+		OUT=$@ \
+		VALIDATION_STRINGENCY=SILENT
+
+#sample_bamstat04_tsv(${sample}) : $(call indexed_bam,  #sample_final_bam(${sample}) ) $(capture.bed)
+	mkdir -p $(dir $@) && \
+	#execjvarkitcmd("bamstats04") \
+		BED=$(capture.bed) \
+		IN=$(filter %.bam,$^) \
+		MIN_COV=10 \
+		#if(${config.project.haloplex.value}==true) NO_ORPHAN=false #end \
+		VALIDATION_STRINGENCY=SILENT >  $(basename $@) && \
+	gzip -f --best $(basename $@)
+
+
+$(addsuffix .sample_summary, #sample_coverage($sample)) : $(call indexed_bam, #sample_final_bam( ${sample} ) ) $(OUTDIR)/BED/non_redondant_capture.bed 
+	mkdir -p $(dir #sample_coverage(${sample}) ) && \
+	${java_exe} ${config.tools.gatk.DepthOfCoverage.jvm} -jar  #gatk_command("DepthOfCoverage") \
+		#gatk_no_phone_home() \
+		-R $(REF) \
+		-L:capture,BED $(filter %.bed,$^) \
+		-S SILENT \
+		--minMappingQuality 30 \
+		--summaryCoverageThreshold 5 \
+		-I $(filter %.bam,$^) \
+		-o #sample_coverage(${sample}) \
+		-omitBaseOutput
+
 
 
 #sample_final_bam(${sample}) : #foreach($chromGroup in ${chromosomeGroups.keySet()}) \

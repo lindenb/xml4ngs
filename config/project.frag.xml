@@ -10,7 +10,6 @@
    		 <jsonx:number name="extend">500</jsonx:number>
     </jsonx:object>
     <jsonx:boolean name="haloplex">false</jsonx:boolean>
-    <jsonx:boolean name="one_vcf_per_sample">true</jsonx:boolean>
     <jsonx:boolean name="remove_duplicates">true</jsonx:boolean>
     <jsonx:boolean name="realign_around_indels">true</jsonx:boolean>
     <jsonx:boolean name="recalibrate">true</jsonx:boolean>

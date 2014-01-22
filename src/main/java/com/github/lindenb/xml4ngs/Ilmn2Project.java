@@ -7,8 +7,6 @@ import java.util.regex.Pattern;
 import com.github.lindenb.xml4ngs.entities.Fastq;
 import com.github.lindenb.xml4ngs.entities.Pair;
 import com.github.lindenb.xml4ngs.entities.Project;
-import com.github.lindenb.xml4ngs.entities.PropertyMap;
-import com.github.lindenb.xml4ngs.entities.PropertyString;
 import com.github.lindenb.xml4ngs.entities.Sample;
 import com.github.lindenb.xml4ngs.entities.Sequences;
 
@@ -226,16 +224,12 @@ public class Ilmn2Project
 		}
 	
 	
-	private void readPropertyFile(File f)  throws Exception
-		{
-		PropertyMap p2=ProjectReader.readProperties(f);
-		this.project.getProperties().putAll(p2);
-		}
 	
 	
 	
 	private void run(String args[]) throws Exception
 		{
+		File userPropertyFile=null;
 		int optind=0;
 		while(optind< args.length)
 			{
@@ -243,7 +237,6 @@ public class Ilmn2Project
 				{
 				System.out.println(" -h help (this screen)");
 				System.out.println(" -f (properties.xml)");
-				System.out.println(" -p prop.key prop.value");
 				System.out.println(" -S (sample.name) (optional: only keep those sample name, ignore the others). Can be used multiple times.");					      
 				System.out.println(" -D (sample.name) (optional: always discard those sample name). Can be used multiple times.");
 				System.out.println(" -q (file) (optional: read list of fastqs)");
@@ -259,18 +252,11 @@ public class Ilmn2Project
 				}
 			else if(args[optind].equals("-f") && optind+1< args.length)
 				{
-				readPropertyFile(new File(args[++optind]));
+				userPropertyFile=new File(args[++optind]);
 				}
 			else if(args[optind].equals("-q") && optind+1< args.length)
 				{
 				readFatqList(new File(args[++optind]));
-				}
-			else if(args[optind].equals("-p") && optind+2< args.length)
-				{
-				String key=args[++optind];
-				String val=args[++optind];
-				PropertyString prop=new PropertyString(val);
-				this.project.getProperties().put(key,prop);
 				}
 			else if(args[optind].equals("--"))
 				{
@@ -287,6 +273,10 @@ public class Ilmn2Project
 				break;
 				}
 			++optind;
+			}
+		if(userPropertyFile!=null)
+			{
+			this.project.readPropertyFile(userPropertyFile);
 			}
 		if(optind==args.length)
 			{

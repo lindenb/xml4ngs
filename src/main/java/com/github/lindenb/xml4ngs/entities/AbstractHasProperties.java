@@ -1,12 +1,13 @@
 package com.github.lindenb.xml4ngs.entities;
 
+import com.github.lindenb.jsonx.JsonFactory;
+import com.github.lindenb.jsonx.JsonObject;
+
 public abstract class AbstractHasProperties
 	{
-    protected PropertyMap properties=new PropertyMap();
+	protected static final JsonFactory JSON_FACTORY=new JsonFactory();
+    protected JsonObject properties=JSON_FACTORY.newObject();
     
-    public abstract AbstractHasProperties getParentProperties();
-  
-
     
     /**
      * Gets the value of the properties property.
@@ -16,43 +17,15 @@ public abstract class AbstractHasProperties
      *     {@link PropertyMap }
      *     
      */
-    public PropertyMap getProperties()
+    public JsonObject getProperties()
     		{
     		return properties;
     		}
 
-    
-    public PropertyMap getPropertyMap()
-      	{
-      	return properties;
-      	}
-      	
-      public String getPropertyByName(String key,String def)
-      	{
-      	ProjectProperty v=this.properties.get(key);
-      	if(v!=null) return v.toString();
-      	if(getParentProperties()!=null) return getParentProperties().getPropertyByName(key, def);
-      	return def;
-      	}
-      
-      public boolean hasProperty(String key)
-      	{
-    	if( this.properties.hasProperty(key)) return true;
-    	if(getParentProperties()!=null && getParentProperties().hasProperty(key)) return true;
-    	return false;
-      	}
-      
-      public String getProperty(String key)
+    public void setProperties(JsonObject properties)
     	{
-    	if( this.properties.hasProperty(key)) 
-    		{
-    		return this.properties.getProperty(key);
-    		}
-    	if(getParentProperties()!=null && getParentProperties().hasProperty(key))
-    		{
-    		return getParentProperties().getProperty(key);
-    		}
-    	return "";
-    	}
+		this.properties = properties;
+		}
+    
 
 	}

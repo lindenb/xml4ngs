@@ -1,0 +1,4 @@
+#macro(vcf_multi_chr $genotyper $chromGroup)$(OUTDIR)/VCF/$chromGroup/${config.project.output.prefix}variations.${genotyper}.vcf.gz#end
+#macro(vcf_multi_chr_annot $genotyper $chromGroup)$(OUTDIR)/VCF/$chromGroup/${config.project.output.prefix}variations.${genotyper}.annotations.vcf.gz#end
+#macro(vcf_multi_annot $genotyper)$(OUTDIR)/VCF/${config.project.output.prefix}variations.${genotyper}.annotations.vcf.gz#end
+#macro(vcf_multi $genotyper)$(OUTDIR)/VCF/${config.project.output.prefix}variations.${genotyper}.vcf.gz#end

@@ -7,27 +7,24 @@ import java.io.IOException;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 
+import com.github.lindenb.jsonx.JsonConstants;
+import com.github.lindenb.jsonx.io.JsonXmlReader;
 import com.github.lindenb.xml4ngs.entities.Fastq;
 import com.github.lindenb.xml4ngs.entities.Pair;
 import com.github.lindenb.xml4ngs.entities.Project;
-import com.github.lindenb.xml4ngs.entities.ProjectProperty;
-import com.github.lindenb.xml4ngs.entities.PropertyList;
-import com.github.lindenb.xml4ngs.entities.PropertyMap;
-import com.github.lindenb.xml4ngs.entities.PropertyString;
 import com.github.lindenb.xml4ngs.entities.Sample;
 import com.github.lindenb.xml4ngs.entities.Sequences;
 
 public class ProjectReader
 	{
 	private XMLEventReader r;
+	private JsonXmlReader jsonXmlReader=new JsonXmlReader();
 	
 	private ProjectReader()
 		{
@@ -73,10 +70,9 @@ public class ProjectReader
 			if(evt.isStartElement())
 				{
 				StartElement E=evt.asStartElement();
-				if(E.getName().getLocalPart().equals("properties"))
+				if(JsonConstants.XMLNS.equals(E.getName().getNamespaceURI()))
 					{	
-					PropertyMap pm=readPropertyMap(E);
-					o.getProperties().putAll(pm);
+					o.setProperties(this.jsonXmlReader.any(r,E).getAsJsonObject());
 					}
 				else
 					{
@@ -112,10 +108,9 @@ public class ProjectReader
 					fq.setPair(o);
 					o.put(fq);
 					}
-				else if(E.getName().getLocalPart().equals("properties"))
+				else if(JsonConstants.XMLNS.equals(E.getName().getNamespaceURI()))
 					{	
-					PropertyMap pm=readPropertyMap(E);
-					o.getProperties().putAll(pm);
+					o.setProperties(this.jsonXmlReader.any(r,E).getAsJsonObject());
 					}
 				else
 					{
@@ -187,10 +182,10 @@ public class ProjectReader
 						p.setSample(o);
 						}
 					}
-				else if(E.getName().getLocalPart().equals("properties"))
+				else if(JsonConstants.XMLNS.equals(E.getName().getNamespaceURI()))
 					{	
-					PropertyMap pm=readPropertyMap(E);
-					o.getProperties().putAll(pm);
+					o.setProperties(this.jsonXmlReader.any(r,E).getAsJsonObject());
+
 					}
 				else
 					{
@@ -206,103 +201,8 @@ public class ProjectReader
 		throw new XMLStreamException("illegal state");
 		}
 	
-	private PropertyList readPropertyList(StartElement root) throws XMLStreamException
-		{
-		PropertyList o=new PropertyList();
-		while(r.hasNext())
-			{
-			XMLEvent evt=r.nextEvent();
-			if(evt.isStartElement())
-				{
-				StartElement E=evt.asStartElement();
-				o.add(anyProperty(E));
-				}
-			else if(evt.isEndElement())
-				{
-				if(evt.asEndElement().getName().equals(root.getName())) return o;
-				fatal(evt);
-				}
-			}
-		throw new XMLStreamException("illegal state");
-		}
-	
-	private ProjectProperty anyProperty(StartElement E) throws XMLStreamException
-		{
-		if(E.getName().getLocalPart().equals("list"))
-			{
-			return readPropertyList(E);
-			}
-		else if(E.getName().getLocalPart().equals("properties"))
-			{	
-			return readPropertyMap(E);
-			}
-		else if(E.getName().getLocalPart().equals("property"))
-			{	
-			return readPropertyString(E);
-			}
-		else
-			{
-			throw new XMLStreamException("bad property",E.getLocation());
-			}
-		}
-	
-	private PropertyString readPropertyString(StartElement root) throws XMLStreamException
-		{
-		StringBuilder b=null;
-		while(r.hasNext())
-			{
-			XMLEvent evt=r.nextEvent();
-			if(evt.isStartElement())
-				{
-				fatal(evt);
-				}
-			else if(evt.isEndElement())
-				{
-				if(!evt.asEndElement().getName().equals(root.getName())) fatal(evt);	
-				if(b==null)
-					{
-					System.err.println("warning empty property string "+evt.getLocation());
-					return new PropertyString("");
-					}
-				return new PropertyString(b.toString());
-				}
-			else if(evt.isCharacters())
-				{
-				if(b==null) b=new StringBuilder();
-				b.append(evt.asCharacters().getData());
-				}
-			}
-		throw new XMLStreamException("illegal state");
-		}
 	
 	
-	private PropertyMap readPropertyMap(StartElement root) throws XMLStreamException
-		{
-		PropertyMap o=new PropertyMap();
-		while(r.hasNext())
-			{
-			XMLEvent evt=r.nextEvent();
-			if(evt.isStartElement())
-				{
-				StartElement E=evt.asStartElement();
-				ProjectProperty pp=anyProperty(E);
-				Attribute att=E.getAttributeByName(new QName("key"));
-				if(att==null) throw new XMLStreamException("key missing",evt.getLocation());
-				if(o.containsKey(att.getValue()))
-					{
-					throw new XMLStreamException("duplicate key "+att.getValue(),root.getLocation());
-					}
-				o.put(att.getValue(), pp);
-				}
-			else if(evt.isEndElement())
-				{
-				if(evt.asEndElement().getName().equals(root.getName())) return o;
-				fatal(evt);
-				}
-			}
-		throw new XMLStreamException("illegal state");
-		}
-
 	
 	
 	private Project readProject(StartElement root) throws XMLStreamException
@@ -321,10 +221,9 @@ public class ProjectReader
 					o.getSample().add(sample);
 					sample.setProject(o);
 					}
-				else if(E.getName().getLocalPart().equals("properties"))
+				else if(JsonConstants.XMLNS.equals(E.getName().getNamespaceURI()))
 					{	
-					PropertyMap pm=readPropertyMap(E);
-					o.getProperties().putAll(pm);
+					o.setProperties(this.jsonXmlReader.any(r,E).getAsJsonObject());
 					}
 				else
 					{
@@ -365,42 +264,6 @@ public class ProjectReader
 		throw new XMLStreamException("illegal state");
 		}
 	
-	private PropertyMap readPropertyMap() throws XMLStreamException
-		{
-		while(r.hasNext())
-			{
-			XMLEvent evt=r.nextEvent();
-			if(evt.isStartElement())
-				{
-				StartElement E=evt.asStartElement();
-				if(E.getName().getLocalPart().equals("properties"))
-					{	
-					return readPropertyMap(E);
-					}
-				else
-					{
-					fatal(E);
-					}
-				}
-			else if(evt.isEndElement())
-				{
-				fatal(evt);
-				}
-			}
-		throw new XMLStreamException("illegal state");
-		}
-	
-	public static PropertyMap readProperties(File f) throws XMLStreamException,IOException
-		{
-		ProjectReader pr=new ProjectReader();
-		FileReader fr=new FileReader(f);
-		XMLInputFactory xif=XMLInputFactory.newFactory();
-		pr.r=xif.createXMLEventReader(fr);
-		PropertyMap p=pr.readPropertyMap();
-		pr.r.close();
-		fr.close();
-		return p;
-		}
 	
 	
 	public static Project readProject(File f) throws XMLStreamException,IOException
@@ -408,6 +271,7 @@ public class ProjectReader
 		ProjectReader pr=new ProjectReader();
 		FileReader fr=new FileReader(f);
 		XMLInputFactory xif=XMLInputFactory.newFactory();
+		
 		pr.r=xif.createXMLEventReader(fr);
 		Project p=pr.readProject();
 		pr.r.close();
@@ -416,16 +280,4 @@ public class ProjectReader
 		}
 	
 	
-	public static void main(String[] args) throws Exception
-		{
-		Project p=readProject(new File("/commun/data/projects/20130710.EXOMESJJS/script/project.xml"));
-		
-		XMLOutputFactory xof=XMLOutputFactory.newFactory();
-		XMLStreamWriter sw=xof.createXMLStreamWriter(System.out, "UTF-8");
-		sw.writeStartDocument( "UTF-8","1.0");
-		p.write(sw);
-		sw.writeEndDocument();
-		sw.flush();
-		sw.close();
-		}
 	}

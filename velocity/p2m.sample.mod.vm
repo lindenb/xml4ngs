@@ -33,6 +33,7 @@
 #macro(sample_vcf_genotyper_chrom $sample $genotyper $chrom)#sample_VCF_chrom($sample $chrom)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.${chrom}.vcf.gz #end
 #macro(sample_vcf_genotyper_annotator $sample $genotyper $annotator)#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.${annotator}.vcf.gz #end
 #macro(sample_vcf_genotyper_annotations $sample $genotyper )#sample_VCF($sample)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.annotations.vcf.gz #end
+#macro(sample_vcf_genotyper_annotations_chrom $sample $genotyper $chrom)#sample_VCF_chrom($sample)/${config.project.output.prefix}${sample.name}_variations.${genotyper}.annotations.${chrom}.vcf.gz #end
 #macro(fastx_sample_dir $sample)#sample_dir($sample)/FASTX#end
 #macro(fastx_sample_qual $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.qualchart.ps#end
 #macro(fastx_sample_nucl $sample)#fastx_sample_dir($sample)/${sample.name}.fastx.nuclchart.ps#end

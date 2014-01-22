@@ -1,52 +1,24 @@
-
-#parse("gatk.mod.vm")
-#parse("java.mod.vm")
-#parse("jvarkit.mod.vm")
-#parse("snpeff.mod.vm")
-#parse("vep.mod.vm")
-#parse("tabix.mod.vm")
-
-SHELL=/bin/bash
-
-PICARD_MAX_RECORDS_IN_RAM=50000
-
-export LANG=en_US.UTF-8
-export LC_ALL=C
-
-capture.bed=${config.capture}
-REF=${config.reference}
-
-all: #foreach($VCF in ${config.vcfs}) $(basename $(basename ${VCF.vcf} )).annot.vcf.gz #end
-	
-
-
-#foreach($VCF in ${config.vcfs})
-
-$(basename $(basename ${VCF.vcf} )).annot.vcf.gz : ${VCF.vcf} \
-		$(REF)
 	mkdir -p $(dir $@) && \
 	rm -f $(addsuffix .tbi,$@ $(addsuffix .tmp1.vcf,$@) $(addsuffix .tmp2.vcf, $@ )) && \
 	gunzip -c $< | \
 	awk -F  '	' '/^#/ {print;next;}   {OFS="	";gsub(/,/,".",$$6); if($$6!="." && $$6<0) $$6=0; print;}' |\
 	#execjvarkitcmd("nozerovariationvcf") -r ${REF} |\
 	#execjvarkitcmd("vcfpolyx") REF=${REF} |\
-	#execjvarkitcmd("vcfrebase") -R  ${REF} -w 8  #if(${VCF.bam}) |\
-	#execjvarkitcmd("vcfannobam") \
-		BED=$(capture.bed) \
-		BAM=$inputBamFile \
-		VALIDATION_STRINGENCY=SILENT  #end > $(addsuffix .tmp1.vcf, $@ ) &&  \
+	#execjvarkitcmd("vcfrebase") -R  ${REF} -w 8  \
+	$(foreach BF,$(filter %.bam,$^), | #execjvarkitcmd("vcfannobam")  VALIDATION_STRINGENCY=SILENT BED=$(capture.bed) BAM=${BF}   ) > $(addsuffix .tmp1.vcf, $@ ) &&  \
 	echo "NOW SNPEFF" && \
-   	#exec_snpeff_eff() \
+	${java_exe} -jar ${config.tools.snpeff.jar} eff ${config.tools.snpeff.database}  \
    			-i vcf \
    			-o vcf \
 			-sequenceOntolgy \
 			-lof \
-			-c ${snpeff_config} \
+			-c $(dir ${config.tools.snpeff.jar})/snpEff.config \
 			-s $(addsuffix .snpeff.report,$@) \
 			${snpeff_database} $(addsuffix .tmp1.vcf, $@ )  > $(addsuffix .tmp2.vcf, $@ )  && \
 	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) &&  \
 	echo "NOW VEP" && \
-	${vep_bin}  ${vep_cache} \
+	${config.tools.vep.exe}  \
+		 --cache --dir ${config.tools.vep.cache} --write_cache  \
 		--fasta $(REF) \
 		--offline \
 		--hgnc \
@@ -63,9 +35,8 @@ $(basename $(basename ${VCF.vcf} )).annot.vcf.gz : ${VCF.vcf} \
 	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) && \
 	#execjvarkitcmd("sortvcfonref2") $(addsuffix .tmp1.vcf, $@ ) > $(addsuffix .tmp2.vcf, $@  ) && \
 	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) && \
-   	#exec_gatk() \
-			-T VariantFiltration \
-			  -et NO_ET -K /commun/data/packages/gatk.no_home.key  \
+   	${java_exe} ${config.tools.gatk.VariantFiltration.jvm} -jar  #gatk_command("VariantFiltration") \
+			#gatk_no_phone_home() \
 			-R $(REF) \
 			-o $(addsuffix .tmp2.vcf, $@ ) \
 			-U LENIENT_VCF_PROCESSING \
@@ -93,14 +64,11 @@ $(basename $(basename ${VCF.vcf} )).annot.vcf.gz : ${VCF.vcf} \
 		T=SEGDUP \
 		TABIX=/commun/data/pubdb/ucsc/hg19/database/genomicSuperDups_noprefix.txt.gz \
 		FMT='$${2}:$${3}-$${4}'  |\
+	#execjvarkitcmd("vcfjaspar") \
+		-R ${REF} -f 0.95 \
+		-J /commun/data/pubdb/jaspar.genereg.net/pfm/nonredundant/pfm_vertebrates.txt  |\
 	#execjvarkitcmd("sortvcfonref2") -T $(dir $@)  > $(basename $@) && \
 	rm -f  "$(addsuffix .tmp1.vcf, $@ )" && \
 	${bgzip_exe} -f $(basename $@) && \
-	${tabix_exe} -f -p vcf $@ 
-
-
-#end
-
-
-
+	${tabix_exe} -f -p vcf $@
 

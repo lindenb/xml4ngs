@@ -1,0 +1,27 @@
+
+
+
+#foreach($genotypeMethod in ${config.project.genotypeMethods})
+
+#vcf_multi_annot(${genotypeMethod}): #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+	#vcf_multi_chr_annot(${genotypeMethod} ${chromGroup}) #end
+	
+#parse("p2m.merge.vcfs.mod.vm")
+
+#end
+
+
+
+#foreach($chromGroup in ${chromosomeGroups.keySet()})
+
+#foreach($genotypeMethod in ${config.project.genotypeMethods})
+
+#vcf_multi_chr_annot(${genotypeMethod}) : #vcf_multi_chr(${genotypeMethod}  $chromGroup)
+
+#parse("p2m.annotation.mod.vm")
+
+#end
+
+#end
+
+

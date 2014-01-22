@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsonx:object
+        xmlns:xi="http://www.w3.org/2001/XInclude"
+        xmlns:jsonx="http://www.ibm.com/xmlns/prod/2009/jsonx">
+
+<jsonx:object name="captures">
+  <jsonx:object name="mycapture">
+    <jsonx:string name="description">MyCapture</jsonx:string>
+    <jsonx:string name="path">capture.bed</jsonx:string>
+  </jsonx:object>
+</jsonx:object>
+
+<jsonx:string name="project/capture/ref">mycapture</jsonx:string> 
+<jsonx:string name="project/output/directory">../align2</jsonx:string>
+<jsonx:boolean name="project/one_vcf_per_sample">true</jsonx:boolean>
+
+</jsonx:object>
+

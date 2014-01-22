@@ -11,7 +11,15 @@
    <mkdir dir="tmp"/>
    <mkdir dir="dist"/>
  	<ant  antfile="build.xml" dir="jsonx" target="generate-sources"/>
-   
+ 	 <loadfile
+ 		              property="git.master.hash"
+ 		              srcFile=".git/refs/heads/master"
+ 		                  failonerror="false"
+ 		                  >
+ 		                        <filterchain>
+ 		                        <striplinebreaks/>
+ 		                        </filterchain>
+ 		            </loadfile>
    <javac destdir="tmp" includeAntRuntime="false" debug="true">
    		<src path="src/main/java"/>
 		<src path="jsonx/src/main/java/"/>
@@ -24,6 +32,7 @@
 	     <fileset dir="tmp" />
 	     <manifest>
 	       <attribute name="Main-Class" value="com.github.lindenb.xml4ngs.Ilmn2Project"/>
+	     	<attribute name="Git-Hash" value="${git.master.hash}"/>
 	     </manifest>
  	</jar>
    
@@ -35,7 +44,17 @@
     <mkdir dir="tmp"/>
    <mkdir dir="dist"/>
 	<ant  antfile="build.xml" dir="jsonx" target="generate-sources"/>
-    
+   
+	 <loadfile
+	              property="git.master.hash"
+	              srcFile=".git/refs/heads/master"
+	                  failonerror="false"
+	                  >
+	                        <filterchain>
+	                        <striplinebreaks/>
+	                        </filterchain>
+	            </loadfile>
+	
    <javac destdir="tmp" includeAntRuntime="false" debug="true">
    		<classpath refid="lib.path.id"/>
    		<src path="src/main/java"/>
@@ -51,6 +70,7 @@
 	       <attribute name="Built-By" value="${user.name}"/>
 	       <attribute name="Main-Class" value="com.github.lindenb.xml4ngs.TransformProject"/>
 	       <attribute name="Class-Path" value="${manifest_cp1}"/>
+	     	<attribute name="Git-Hash" value="${git.master.hash}"/>
 	     </manifest>
  	</jar>
    

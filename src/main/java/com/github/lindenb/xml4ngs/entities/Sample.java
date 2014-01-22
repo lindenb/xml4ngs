@@ -11,6 +11,8 @@ package com.github.lindenb.xml4ngs.entities;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.github.lindenb.jsonx.io.JsonXmlWriter;
+
 
 public class Sample extends AbstractHasProperties{
 
@@ -20,11 +22,7 @@ public class Sample extends AbstractHasProperties{
     protected String name=null;
     private boolean enabled=true;
     
-	 @Override
-	public AbstractHasProperties getParentProperties()
-	 	{
-		return owner;
-	 	}
+
 	 
 	 public boolean isEnabled()
 	 	{
@@ -100,7 +98,7 @@ public class Sample extends AbstractHasProperties{
 	 	}
 	 w.writeAttribute("name", getName());
 	 
-	 if(!properties.isEmpty()) properties.write(w, null);
+	 if(!properties.isEmpty()) new JsonXmlWriter().write(w, properties);
 	 
 		if(getSequences()!=null) getSequences().write(w);
 	if(getBam()!=null) getBam().write(w);
@@ -128,27 +126,6 @@ public class Sample extends AbstractHasProperties{
   	}
  
  
-  @javax.xml.bind.annotation.XmlTransient
-  public PropertyMap getPropertyMap()
-  	{
-	  PropertyMap p=new PropertyMap();
-  	p.putAll(getProject().getPropertyMap());
-  	if(properties!=null)
-  		{
-  		p.putAll(properties.getPropertyMap());
-  		}
-  	return p;
-  	}
-  
-    public String getPropertyByName(String key,String def)
-	  	{
-	  	ProjectProperty v=getPropertyMap().get(key);
-	  	if(v!=null && !(v instanceof PropertyString))
-	  		{
-	  		throw new IllegalArgumentException("not a string property :"+key);
-	  		}
-	  	return v==null?def:((PropertyString)v).getValue();
-	  	}
   
   @Override
   public String toString()

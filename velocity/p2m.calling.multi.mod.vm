@@ -1,8 +1,8 @@
 
 #foreach($genotypeMethod in ${config.project.genotypeMethods})
 
- $(OUTDIR)/VCF/${config.project.output.prefix}variations.${genotypeMethod.value}.vcf.gz: #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
-	$(OUTDIR)/VCF/$chromGroup/${config.project.output.prefix}variations.${genotypeMethod.value}.vcf.gz #end
+#vcf_multi(${genotypeMethod.value}): #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+	#vcf_multi_chr(${genotypeMethod} ${chromGroup}) #end
 	
 	mkdir -p $(dir $@) && \
 	#execute_vcftools_cmd("vcf-concat") $(filter %.vcf.gz ,$^) |\
@@ -17,13 +17,13 @@
 #foreach($chromGroup in ${chromosomeGroups.keySet()})
 
 
-$(OUTDIR)/VCF/$chromGroup/${config.project.output.prefix}variations.samtools.vcf.gz : #foreach($sample in $project.sample) \
+#vcf_multi_chr("samtools" $chromGroup) : #foreach($sample in $project.sample) \
 	$(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) #end \
 	#XCAPTURE_CHROM($chromGroup) \
 	$(REF)
 #parse("p2m.calling.samtools.mod.vm")
 
- $(OUTDIR)/VCF/$chromGroup/${config.project.output.prefix}variations.gatk.vcf.gz : #foreach($sample in $project.sample) \
+#vcf_multi_chr("gatk" $chromGroup) : #foreach($sample in $project.sample) \
 	$(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) #end \
 	#XCAPTURE_CHROM($chromGroup) \
 	$(REF)

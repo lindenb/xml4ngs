@@ -1,62 +1,46 @@
-
-#R
+## R
 #set( $Rstats_R_exe = ${config.tools.rstats["${config.tools.rstats.default}"].exe})
 
-
-#tabix
+## tabix
 #set( $tabix_exe = ${config.tools.tabix["${config.tools.tabix.default}"].tabix_exe} )
 #set( $bgzip_exe = ${config.tools.tabix["${config.tools.tabix.default}"].bgzip_exe} )
 
-#java
+## java
 #set( $java_exe = ${config.tools.java["${config.tools.java.default}"].exe})
 
-
-#jvarkit
+## jvarkit
 #macro(jvarkitjar $command)${config.tools.jvarkit.latest.dist}/${command}.jar#end
 #macro(execjvarkitcmd $command)${java_exe} -jar #jvarkitjar(${command}) #end
 
-#vcftools
+## vcftools
 #set( $vcftools_dir = ${config.tools.vcftools["${config.tools.vcftools.default}"].dir.value} )
 #macro(execute_vcftools_cmd $command) perl -I ${vcftools_dir}/perl ${vcftools_dir}/perl/${command}  #end
 
+## samtools
+#set( $samtools_exe = ${config.tools.samtools.exe} )
 
-#samtools
-#set( $samtools_exe = ${config.tools.samtools["${config.tools.samtools.default}"].exe} )
- 
- 
-
-#bwa
+## bwa
 #set( $bwa_exe = ${config.tools.bwa["${config.tools.bwa.default}"].exe})
 
- 
-# bcftools_exe
+## bcftools_exe
 #set( $bcftools_exe = ${config.tools.bcftools["${config.tools.bcftools.default}"].exe})
 
-# bedtools_exe
+## bedtools_exe
 #macro(execute_bedtools $command)${config.tools.bedtools.dir}/bin/${command} #end
 
-# cutadapt_exec
-#set( $cutadapt_exec = ${config.tools.cutadapt["${config.tools.cutadapt.default}"].exe})
+## cutadapt
+#set( $cutadapt_exec = ${config.tools.cutadapt.exe})
 
-
-# fastqc
+## fastqc
 #set( $fastqc_exe = ${config.tools.fastqc["${config.tools.fastqc.default}"].exe})
 
-# fastx
+## fastx
 #set( $fastx_bindir = ${config.tools.fastx["${config.tools.fastx.default}"].bindir})
 
-
-
+## picard
 #macro(picard_jar $command) ${config.tools.picard.dir}/${command}.jar #end
 
-
-
-
-
-#set( $freebayes_exe = $packages_dir + "/freebayes/freebayes/bin/freebayes")
-
-
-
+##gatk
 #macro(gatk_command $command) -jar ${config.tools.gatk.jar} -T ${command} #end
 #macro(gatk_no_phone_home)#if(${config.tools.gatk.no_phone_key})  -et NO_ET -K ${config.tools.gatk.no_phone_key} #end#end
 

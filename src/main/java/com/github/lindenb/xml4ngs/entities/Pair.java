@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.github.lindenb.jsonx.io.JsonXmlWriter;
+
 
 
 public class Pair extends AbstractHasProperties
@@ -210,17 +212,13 @@ public class Pair extends AbstractHasProperties
 	 if(getLane()!=null) w.writeAttribute("lane",String.valueOf(getLane()));
 	 if(getSampleIndex()!=null) w.writeAttribute("sample-index",String.valueOf(getSampleIndex()));
 	 
-	 if(!properties.isEmpty()) properties.write(w, null);
+	 if(!properties.isEmpty()) new JsonXmlWriter().write(w, properties);
 
 	 
 	 for(Fastq p:getFastq()) p.write(w);
 	 w.writeEndElement();
 	}
 
-  @Override
-public AbstractHasProperties getParentProperties()
-	{
-	return getSample();
-	}
+
   
 }

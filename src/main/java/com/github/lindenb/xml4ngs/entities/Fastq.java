@@ -13,6 +13,8 @@ import java.io.File;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.github.lindenb.jsonx.io.JsonXmlWriter;
+
 
 
 public class Fastq extends AbstractHasProperties
@@ -73,11 +75,7 @@ public class Fastq extends AbstractHasProperties
   	this.owner=owner;
   	}
   
-  @Override
-public AbstractHasProperties getParentProperties()
-	{
-	return getPair();
-	}
+
   
   @Override
   public String toString()
@@ -90,7 +88,7 @@ public AbstractHasProperties getParentProperties()
 	 if(!properties.isEmpty())
 		 {
 		 w.writeStartElement("fastq");
-		 properties.write(w, null);
+		 new JsonXmlWriter().write(w, this.properties);
 		 }
 	 else
 		 {

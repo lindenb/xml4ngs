@@ -13,8 +13,9 @@
 <!--  samtools -->
 <jsonx:object name="samtools">
 	<jsonx:string name="default">0.1.19</jsonx:string>
-	<jsonx:object name="0.1.19">
-		<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/samtools</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/samtools</jsonx:string>
+	<jsonx:object name="mpileup">
+		<jsonx:string name="options">  -E -C50 -m3 -F0.002  -q 30 </jsonx:string>
 	</jsonx:object>
 </jsonx:object>
 
@@ -87,14 +88,6 @@
 </jsonx:object>
 
 
-<jsonx:object name="cutadapt">
-	<jsonx:string name="default">1.2.1</jsonx:string>
-	<jsonx:object name="1.2.1">
-		<jsonx:string name="exe">/commun/data/packages/cutadapt-1.2.1/bin/cutadapt</jsonx:string>
-	</jsonx:object>
-</jsonx:object>
-
-
 <jsonx:object name="fastqc">
 	<jsonx:string name="default">0.10.1</jsonx:string>
 	<jsonx:object name="0.10.1">
@@ -114,18 +107,17 @@
 	<jsonx:string name="version">1.100</jsonx:string>
 	<jsonx:string name="dir">/commun/data/packages/picard-tools-1.100</jsonx:string>
 	<jsonx:object name="MergeSamFiles">
-		<jsonx:string name="jvm"></jsonx:string>
+		<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 		<jsonx:number name="max_records_in_ram">50000</jsonx:number>
 	</jsonx:object>
 	<jsonx:object name="MarkDuplicates">
-		<jsonx:string name="jvm"></jsonx:string>
+		<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 		<jsonx:number name="max_records_in_ram">50000</jsonx:number>
 	</jsonx:object>
 	<jsonx:object name="BuildBamIndex">
 		<jsonx:string name="jvm"></jsonx:string>
 		<jsonx:number name="max_records_in_ram">50000</jsonx:number>
 	</jsonx:object>
-	
 	
 	
 	
@@ -137,25 +129,33 @@
 	<jsonx:string name="jar">/commun/data/packages/GenomeAnalysisTK-2.6-4-g3e5ff60/GenomeAnalysisTK.jar</jsonx:string>
 	
 	<jsonx:object name="RealignerTargetCreator">
-			<jsonx:string name="jvm"></jsonx:string>
+			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 		
 	</jsonx:object>
 	
 	<jsonx:object name="IndelRealigner">
-			<jsonx:string name="jvm"></jsonx:string>
+			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 	</jsonx:object>
 	
 	<jsonx:object name="BaseRecalibrator">
-			<jsonx:string name="jvm"></jsonx:string>
+			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 	</jsonx:object>
 
 	<jsonx:object name="PrintReads">
-			<jsonx:string name="jvm"></jsonx:string>
+			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 	</jsonx:object>
 	
 	<jsonx:object name="UnifiedGenotyper">
-			<jsonx:string name="jvm"></jsonx:string>
+			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 			<jsonx:string name="dbsnp">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/00-All.vcf.gz</jsonx:string>
+	</jsonx:object>
+	
+		<jsonx:object name="VariantFiltration">
+			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
+	</jsonx:object>
+	
+	<jsonx:object name="DepthOfCoverage">
+		<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 	</jsonx:object>
 	
 	
@@ -177,6 +177,29 @@
 		
 	</jsonx:array>
 </jsonx:object>
+
+
+<jsonx:object name="vep">
+	<jsonx:string name="version">71</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/variant_effect_predictor/variant_effect_predictor.pl</jsonx:string>
+	<jsonx:string name="cache">/commun/data/pubdb/ensembl/vep/cache</jsonx:string>
+</jsonx:object>
+
+
+<jsonx:object name="snpeff">
+	<jsonx:string name="version">3_2a</jsonx:string>
+	<jsonx:string name="database">GRCh37.70</jsonx:string>
+	<jsonx:string name="jar">/commun/data/packages/snpEff_3_2a/snpEff.jar</jsonx:string>
+</jsonx:object>
+
+
+<jsonx:object name="cutadapt">
+	<jsonx:string name="version">1.2.1</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/cutadapt-1.2.1/bin/cutadapt</jsonx:string>
+	<jsonx:string name="primerF">AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC</jsonx:string>
+	<jsonx:string name="primerR">AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT</jsonx:string>
+</jsonx:object>
+
 
 
 </jsonx:object>

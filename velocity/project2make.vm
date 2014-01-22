@@ -6,22 +6,14 @@
 # Date : $now
 #
 
+#parse("p2m.fastq.mod.vm")
+#parse("p2m.pair.mod.vm")
+#parse("p2m.sample.mod.vm")
+#parse("p2m.vcf.mod.vm")
+#parse("p2m.chromgroup.mod.vm")
+#parse("p2m.tools.mod.vm")
 
 
-
-
-#parse("common.vm")
-#parse("sample.vm")
-#parse("fastq.vm")
-#parse("pair.vm")
-#parse("sample.vm")
-
-#parse("tools.mod.vm")
-
-
-#
-# http://unix.stackexchange.com/questions/16702
-#
 SHELL=/bin/bash
 .SUFFIXES=
 
@@ -44,7 +36,7 @@ OUTDIR=${config.project.output.directory.value}
 #
 # misc targets
 #
-LIST_PHONY_TARGET=
+LIST_PHONY_TARGET=all_predictions all bamstats01 bamstats04   config
 TOP_TARGETS=
 LIST_BWA_SORTED=
 
@@ -56,8 +48,8 @@ export PATH:=$(PATH):${samtools.dir}:${CUFFLINKS.dir}:${tabix_dir}:${Rstats_bind
 ###
 # FIX LOCALE (http://unix.stackexchange.com/questions/61985)
 #
-export LC_ALL:=C
-
+export LANG=en_US.UTF-8
+export LC_ALL=C
 
 #
 #
@@ -146,19 +138,61 @@ endef
 
 
 
-LIST_PHONY_TARGET+= toptarget
-toptarget:
-	@echo "This is the top target. Please select a specific target"
-	@echo "e.g: ${TOP_TARGETS} "
 
 
-LIST_PHONY_TARGET+= all
-all:  #foreach($sample in $project.sample) \
-	#sample_final_bam($sample) #end
+all:  all_predictions bamstats01 bamstats04 coverage config
+
+
+	
+
+
+
+coverage:$(OUTDIR)/Statistics/${config.project.output.prefix}mean_coverage01.tsv
+$(OUTDIR)/Statistics/${config.project.output.prefix}mean_coverage01.tsv: #foreach($sample in $project.sample) \
+	$(addsuffix .sample_summary, #sample_coverage($sample)) #end
+	
+	mkdir -p $(dir $@) && \
+	echo "sample	mean-coverage" > $@ && \
+	cat $^ |\
+	LC_ALL=C sort |\
+	grep -v -E  '^(Total|sample_id)'  |\
+	cut -d '	' -f1,3 >>  $@
+
+
+bamstats01: $(OUTDIR)/Statistics/${config.project.output.prefix}bamstats01.tsv
+$(OUTDIR)/Statistics/${config.project.output.prefix}bamstats01.tsv : #foreach($sample in $project.sample) \
+	#sample_bamstat01_tsv($sample) #end
+
+	mkdir -p $(dir $@) && \
+	cut -d	'	' -f 2- $^  |\
+	sed 's/^Sample/#Sample/'|\
+	LC_ALL=C sort -t '	' -k1,1 |\
+	uniq > $@
+
+
+bamstats04: $(OUTDIR)/Statistics/${config.project.output.prefix}bamstats04.tsv.gz
+$(OUTDIR)/Statistics/${config.project.output.prefix}bamstats04.tsv.gz : #foreach($sample in $project.sample)\
+	#sample_bamstat04_tsv($sample) #end
+
+	mkdir -p $(dir $@) && rm -f $@ $(basename $@)  #foreach($sample in $project.sample) && \
+	gunzip -c #sample_bamstat04_tsv($sample) | awk -v S=${sample.name} '{printf("%s\t%s\n",S,$$0);}' >> $(basename $@) #end && \
+	gzip --best $(basename $@)
+
 
 #if(${config.project.one_vcf_per_sample.value}==false)
-	#parse("p2m.calling.multi.mod.vm")
+
+all_predictions: #foreach($genotypeMethod in ${config.project.genotypeMethods}) \
+	#vcf_multi_annot(${genotypeMethod}) #end
+
 	#parse("p2m.annotation.multi.mod.vm")
+	#parse("p2m.calling.multi.mod.vm")
+
+#else
+
+all_predictions: #foreach($sample in $project.sample)#foreach($genotypeMethod in ${config.project.genotypeMethods}) \
+	#sample_vcf_genotyper_annotations(${sample} ${genotypeMethod}  )#end#end
+
+
 #end
 
 
@@ -212,6 +246,16 @@ $(OUTDIR)/BED/chromgroups.txt :
 	&& echo -n "	${C2}" >> $@ #end && \
 	echo >> $@ #end
 
+$(OUTDIR)/BED/non_redondant_capture.bed : $(capture.bed)
+	mkdir -p $(dir $@) && \
+	cut -d '	' -f1,2,3 $< |\
+	#execjvarkitcmd("extendbed") \
+		 REF=${REF} X=0 \
+		 VALIDATION_STRINGENCY=LENIENT |\
+	LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
+	#execute_bedtools("mergeBed") -i - > $@
+
+
 #foreach($chromGroup in ${chromosomeGroups.keySet()})
 
 
@@ -225,6 +269,15 @@ $(OUTDIR)/BED/chromgroups.txt :
 
 
 #end
+
+
+
+config: $(OUTDIR)/CONFS/config.${now}.xml.gz
+$(OUTDIR)/CONFS/config.${now}.xml.gz:
+	@mkdir -p $(dir $@) && \
+	echo -e "${configAsString}" |\
+		gzip --best > $@
+
 
 #
 # END

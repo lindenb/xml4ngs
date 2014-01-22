@@ -6,11 +6,7 @@
 #sample_vcf_genotyper($sample ${genotypeMethod.value}) : #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
 	#sample_vcf_genotyper_chrom($sample ${genotypeMethod.value} $chromGroup) #end
 	
-	mkdir -p $(dir $@) && \
-	#execute_vcftools_cmd("vcf-concat") $(filter %.vcf.gz ,$^) |\
-	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} > $(basename $@) && \
-	${bgzip_exe} $(basename $@) && \
-	${tabix_exe} -f -p vcf $@
+#parse("p2m.merge.vcfs.mod.vm")
 
 #end
 

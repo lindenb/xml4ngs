@@ -1,7 +1,0 @@
-#parse("java.mod.vm")
-#set( $snpeff_version = "3_2a")
-#set( $snpeff_dir = $packages_dir + "/snpEff_"+ $snpeff_version )
-#set( $snpeff_database = "GRCh37.70")
-#set( $snpeff_config =${snpeff_dir}+"/snpEff.config")
-#macro(exec_snpeff_eff)${java_exe} -jar ${snpeff_dir}/snpEff.jar eff #end
-

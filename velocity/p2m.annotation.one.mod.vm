@@ -2,8 +2,21 @@
 
 #foreach($genotypeMethod in ${config.project.genotypeMethods})
 
-#sample_vcf_genotyper_annotations($sample ${genotypeMethod.value}  ) : #sample_vcf_genotyper($sample ${genotypeMethod.value}) 
-	
-	echo "TODO"
+
+#sample_vcf_genotyper_annotations($sample ${genotypeMethod.value}  ) :#foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+	#sample_vcf_genotyper_annotations_chrom($sample $genotypeMethod $chromGroup) #end
+
+#parse("p2m.merge.vcfs.mod.vm")
+
+
+#foreach($chromGroup in ${chromosomeGroups.keySet()})
+
+#sample_vcf_genotyper_annotations_chrom($sample $genotypeMethod $chromGroup): #sample_vcf_genotyper_chrom($sample $genotypeMethod  $chromGroup)  $(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) )
+#parse("p2m.annotation.mod.vm")
+
+#end
+
+
+
 
 #end
