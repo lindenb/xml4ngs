@@ -2,11 +2,11 @@
 #set( $Rstats_R_exe = ${config.tools.rstats["${config.tools.rstats.default}"].exe})
 
 ## tabix
-#set( $tabix_exe = ${config.tools.tabix["${config.tools.tabix.default}"].tabix_exe} )
-#set( $bgzip_exe = ${config.tools.tabix["${config.tools.tabix.default}"].bgzip_exe} )
+#set( $tabix_exe = ${config.tools.tabix.tabix_exe} )
+#set( $bgzip_exe = ${config.tools.tabix.bgzip_exe} )
 
 ## java
-#set( $java_exe = ${config.tools.java["${config.tools.java.default}"].exe})
+#set( $java_exe = ${config.tools.java.exe})
 
 ## jvarkit
 #macro(jvarkitjar $command)${config.tools.jvarkit.latest.dist}/${command}.jar#end
@@ -20,10 +20,10 @@
 #set( $samtools_exe = ${config.tools.samtools.exe} )
 
 ## bwa
-#set( $bwa_exe = ${config.tools.bwa["${config.tools.bwa.default}"].exe})
+#set( $bwa_exe = ${config.tools.bwa.exe})
 
 ## bcftools_exe
-#set( $bcftools_exe = ${config.tools.bcftools["${config.tools.bcftools.default}"].exe})
+#set( $bcftools_exe = ${config.tools.bcftools.exe} )
 
 ## bedtools_exe
 #macro(execute_bedtools $command)${config.tools.bedtools.dir}/bin/${command} #end
@@ -32,7 +32,7 @@
 #set( $cutadapt_exec = ${config.tools.cutadapt.exe})
 
 ## fastqc
-#set( $fastqc_exe = ${config.tools.fastqc["${config.tools.fastqc.default}"].exe})
+#set( $fastqc_exe = ${config.tools.fastqc.exe})
 
 ## fastx
 #set( $fastx_bindir = ${config.tools.fastx["${config.tools.fastx.default}"].bindir})
@@ -43,4 +43,8 @@
 ##gatk
 #macro(gatk_command $command) -jar ${config.tools.gatk.jar} -T ${command} #end
 #macro(gatk_no_phone_home)#if(${config.tools.gatk.no_phone_key})  -et NO_ET -K ${config.tools.gatk.no_phone_key} #end#end
+
+## freebayes
+#set( $freebayes_exe = ${config.tools.freebayes.exe})
+
 

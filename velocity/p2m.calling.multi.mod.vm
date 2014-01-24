@@ -1,7 +1,7 @@
 
-#foreach($genotypeMethod in ${config.project.genotypeMethods})
+#foreach($genotypeMethod in ${enabledGenotypeMethods})
 
-#vcf_multi(${genotypeMethod.value}): #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+#vcf_multi(${genotypeMethod}): #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
 	#vcf_multi_chr(${genotypeMethod} ${chromGroup}) #end
 	
 	mkdir -p $(dir $@) && \
@@ -28,6 +28,29 @@
 	#XCAPTURE_CHROM($chromGroup) \
 	$(REF)
 #parse("p2m.calling.gatk.mod.vm")
+
+
+#vcf_multi_chr("gatkHapCaller" $chromGroup) : #foreach($sample in $project.sample) \
+	$(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) #end \
+	#XCAPTURE_CHROM($chromGroup) \
+	$(REF)
+#parse("p2m.calling.hapcaller.mod.vm")
+
+#vcf_multi_chr("freebayes" $chromGroup) : #foreach($sample in $project.sample) \
+	$(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) #end \
+	#XCAPTURE_CHROM($chromGroup) \
+	$(REF)
+#parse("p2m.calling.freebayes.mod.vm")
+
+
+#set($genotyped_samples=[])#foreach($sample in $project.sample)#set($_ignoreBool=$genotyped_samples.add(${sample.name}))#end
+#vcf_multi_chr("varscan" $chromGroup) : #foreach($sample in $project.sample) \
+	$(call indexed_bam, #sample_recal_chrom( ${sample} $chromGroup) ) #end \
+	#XCAPTURE_CHROM($chromGroup) \
+	$(REF)
+#parse("p2m.calling.varscan.mod.vm")
+
+
 
 
 #end

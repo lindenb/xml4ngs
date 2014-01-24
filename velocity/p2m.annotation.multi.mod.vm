@@ -1,7 +1,7 @@
 
 
 
-#foreach($genotypeMethod in ${config.project.genotypeMethods})
+#foreach($genotypeMethod in ${enabledGenotypeMethods})
 
 #vcf_multi_annot(${genotypeMethod}): #foreach($chromGroup in ${chromosomeGroups.keySet()}) \
 	#vcf_multi_chr_annot(${genotypeMethod} ${chromGroup}) #end
@@ -14,7 +14,7 @@
 
 #foreach($chromGroup in ${chromosomeGroups.keySet()})
 
-#foreach($genotypeMethod in ${config.project.genotypeMethods})
+#foreach($genotypeMethod in ${enabledGenotypeMethods})
 
 #vcf_multi_chr_annot(${genotypeMethod}) : #vcf_multi_chr(${genotypeMethod}  $chromGroup)
 

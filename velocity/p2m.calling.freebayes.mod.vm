@@ -1,0 +1,10 @@
+	mkdir -p $(dir $@) && \
+	${freebayes_exe} $(foreach B,$(filter %.bam,$^), -b ${B} ) \
+		-m  30 \
+		$(foreach D,$(filter %.bed,$^), -t $(D) ) \
+		-v $(basename $@).tmp.vcf \
+		-f ${REF} 2> $@.errors && \
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} $(basename $@).tmp.vcf > $(basename $@) && \
+	${bgzip_exe} -f $(basename $@) && \
+	${tabix_exe} -f -p vcf $@ && \
+	rm -f  $@.errors $(basename $@).tmp.vcf

@@ -32,6 +32,11 @@ $(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chromGroup}) )   : 
 		-cov CycleCovariate \
 		-cov ContextCovariate
 
+
+## nothing to do index already created
+$(call bai_files,#sample_recal_chrom(${sample} ${chromGroup})  ) : #sample_recal_chrom(${sample} ${chromGroup})
+
+
 	
 #end
 

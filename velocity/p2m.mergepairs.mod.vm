@@ -24,6 +24,11 @@ merge chromosomes after bwa
 		COMMENT="Merged for chromosome ${chromGroup} from $^" \
 		$(foreach B,$^, I=$(B) ) 
 
+
+## nothing to do, already indexed
+$(call bai_files, #sample_merged_chrom(${sample} ${chromGroup})  ): #sample_merged_chrom(${sample} ${chromGroup})
+	
+
 #else
 
 

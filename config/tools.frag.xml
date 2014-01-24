@@ -6,13 +6,13 @@
 
 <!--  bedtools -->
 <jsonx:object name="bedtools">
-	<jsonx:string name="version">2.16.2</jsonx:string>
-	<jsonx:string name="dir">/commun/data/packages/BEDTools-Version-2.16.2</jsonx:string>
+	<jsonx:string name="version">2.18.2</jsonx:string>
+	<jsonx:string name="dir">/commun/data/packages/bedtools-2.18.2</jsonx:string>
 </jsonx:object>
 
 <!--  samtools -->
 <jsonx:object name="samtools">
-	<jsonx:string name="default">0.1.19</jsonx:string>
+	<jsonx:string name="version">0.1.19</jsonx:string>
 	<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/samtools</jsonx:string>
 	<jsonx:object name="mpileup">
 		<jsonx:string name="options">  -E -C50 -m3 -F0.002  -q 30 </jsonx:string>
@@ -21,20 +21,17 @@
 
 <!--  bcftools -->
 <jsonx:object name="bcftools">
-	<jsonx:string name="default">0.1.19</jsonx:string>
-	<jsonx:object name="0.1.19">
-		<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/bcftools/bcftools</jsonx:string>
-	</jsonx:object>
+	<jsonx:string name="version">0.1.19</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/samtools-0.1.19/bcftools/bcftools</jsonx:string>
 </jsonx:object>
 
 <!--  bwa -->
 <jsonx:object name="bwa">
-	<jsonx:string name="default">0.7.4</jsonx:string>
-	<jsonx:object name="0.6.2">
-		<jsonx:string name="exe">/commun/data/packages/bwa-0.6.2/bwa</jsonx:string>
-	</jsonx:object>
-	<jsonx:object name="0.7.4">
-		<jsonx:string name="exe">/commun/data/packages/bwa-0.7.4/bwa</jsonx:string>
+	<jsonx:string name="version">0.7.4</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/bwa-0.7.4/bwa</jsonx:string>
+	<jsonx:object name="mem">
+		<jsonx:number name="threads">10</jsonx:number>
+		<jsonx:string name="options">-M</jsonx:string>
 	</jsonx:object>
 </jsonx:object>
 
@@ -49,19 +46,15 @@
 
 <!--  Tabix -->
 <jsonx:object name="tabix">
-	<jsonx:string name="default">0.2.6</jsonx:string>
-	<jsonx:object name="0.2.6">
-		<jsonx:string name="bgzip_exe">/commun/data/packages/tabix-0.2.6/bgzip</jsonx:string>
-		<jsonx:string name="tabix_exe">/commun/data/packages/tabix-0.2.6/tabix</jsonx:string>
-	</jsonx:object>
+	<jsonx:string name="version">0.2.6</jsonx:string>
+	<jsonx:string name="bgzip_exe">/commun/data/packages/tabix-0.2.6/bgzip</jsonx:string>
+	<jsonx:string name="tabix_exe">/commun/data/packages/tabix-0.2.6/tabix</jsonx:string>
 </jsonx:object>
 
 
 <jsonx:object name="java">
-	<jsonx:string name="default">1.7.0_25</jsonx:string>
-	<jsonx:object name="1.7.0_25">
-		<jsonx:string name="exe">/usr/bin/java</jsonx:string>
-	</jsonx:object>
+	<jsonx:string name="version">1.7.0_25</jsonx:string>
+	<jsonx:string name="exe">/usr/bin/java</jsonx:string>
 </jsonx:object>
 
 
@@ -89,10 +82,13 @@
 
 
 <jsonx:object name="fastqc">
-	<jsonx:string name="default">0.10.1</jsonx:string>
-	<jsonx:object name="0.10.1">
-		<jsonx:string name="exe">/commun/data/packages/FastQC/fastqc</jsonx:string>
-	</jsonx:object>
+	<jsonx:string name="version">0.10.1</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/FastQC/fastqc</jsonx:string>
+</jsonx:object>
+
+<jsonx:object name="freebayes">
+	<jsonx:string name="version">a97dbf8</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/freebayes/freebayes/bin/freebayes</jsonx:string>
 </jsonx:object>
 
 
@@ -125,8 +121,8 @@
 
 <jsonx:object name="gatk">
 	<jsonx:string name="no_phone_key">/commun/data/packages/gatk.no_home.key</jsonx:string>
-	<jsonx:string name="version">2.6-4</jsonx:string>
-	<jsonx:string name="jar">/commun/data/packages/GenomeAnalysisTK-2.6-4-g3e5ff60/GenomeAnalysisTK.jar</jsonx:string>
+	<jsonx:string name="version">2.8-1</jsonx:string>
+	<jsonx:string name="jar">/commun/data/packages/GenomeAnalysisTK-2.8-1-g932cd3a/GenomeAnalysisTK.jar</jsonx:string>
 	
 	<jsonx:object name="RealignerTargetCreator">
 			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
@@ -147,7 +143,7 @@
 	
 	<jsonx:object name="UnifiedGenotyper">
 			<jsonx:string name="jvm">-Xmx5g</jsonx:string>
-			<jsonx:string name="dbsnp">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/00-All.vcf.gz</jsonx:string>
+			<jsonx:string name="dbsnp">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/GRCh37_dbsnp138_00-All.vcf.gz</jsonx:string>
 	</jsonx:object>
 	
 		<jsonx:object name="VariantFiltration">
@@ -158,7 +154,10 @@
 		<jsonx:string name="jvm">-Xmx5g</jsonx:string>
 	</jsonx:object>
 	
-	
+	<jsonx:object name="HaplotypeCaller">
+		<jsonx:string name="jvm">-Xmx5g</jsonx:string>
+		<jsonx:string name="dbsnp">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/GRCh37_dbsnp138_00-All.vcf.gz</jsonx:string>
+	</jsonx:object>
 	
 	
 	<jsonx:array name="files">
@@ -172,7 +171,7 @@
 		</jsonx:object>	
 		<jsonx:object>
 			<jsonx:string name="name">dbsnp_137</jsonx:string>
-			<jsonx:string name="path">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/00-All.vcf.gz</jsonx:string>
+			<jsonx:string name="path">/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/GRCh37_dbsnp138_00-All.vcf.gz</jsonx:string>
 		</jsonx:object>	
 		
 	</jsonx:array>
@@ -187,9 +186,9 @@
 
 
 <jsonx:object name="snpeff">
-	<jsonx:string name="version">3_2a</jsonx:string>
-	<jsonx:string name="database">GRCh37.70</jsonx:string>
-	<jsonx:string name="jar">/commun/data/packages/snpEff_3_2a/snpEff.jar</jsonx:string>
+	<jsonx:string name="version">3_4</jsonx:string>
+	<jsonx:string name="database">GRCh37.64</jsonx:string>
+	<jsonx:string name="jar">/commun/data/packages/snpEff_3_4/snpEff.jar</jsonx:string>
 </jsonx:object>
 
 
@@ -198,6 +197,11 @@
 	<jsonx:string name="exe">/commun/data/packages/cutadapt-1.2.1/bin/cutadapt</jsonx:string>
 	<jsonx:string name="primerF">AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC</jsonx:string>
 	<jsonx:string name="primerR">AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT</jsonx:string>
+</jsonx:object>
+
+<jsonx:object name="varscan">
+	<jsonx:string name="version">2.3.6</jsonx:string>
+	<jsonx:string name="jar">/commun/data/packages/VarScan.v2.3.6.jar</jsonx:string>
 </jsonx:object>
 
 

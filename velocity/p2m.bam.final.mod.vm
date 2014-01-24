@@ -52,3 +52,8 @@ $(addsuffix .sample_summary, #sample_coverage($sample)) : $(call indexed_bam, #s
 		COMMENT="Merged from $^" \
 		$(foreach B,$^, I=$(B) ) 
 
+
+## nothing to do index already created
+$(call bai_files,#sample_final_bam(${sample} ${chromGroup})  ) : #sample_final_bam(${sample} ${chromGroup})
+
+

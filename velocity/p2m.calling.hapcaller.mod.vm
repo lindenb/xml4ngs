@@ -1,16 +1,17 @@
 	mkdir -p $(dir $@) && \
-	${java_exe} ${config.tools.gatk.UnifiedGenotyper.jvm} -jar  #gatk_command("UnifiedGenotyper") \
+	${java_exe} ${config.tools.gatk.HaplotypeCaller.jvm} -jar  #gatk_command("HaplotypeCaller") \
 		#gatk_no_phone_home() \
 		-R $(REF) \
-		-glm BOTH \
+		-stand_call_conf 50.0 \
+		-stand_emit_conf 10.0 \
 		-S SILENT \
 		#if(${config.project.haloplex.value}==true)  --downsample_to_coverage  8000  #end \
 		$(foreach D,$(filter %.bed,$^), -L:capture,BED $(D) ) \
 		$(foreach B,$(filter %.bam,$^), -I $B ) \
-		--dbsnp:vcfinput,VCF ${config.tools.gatk.UnifiedGenotyper.dbsnp.value} \
+		--dbsnp:vcfinput,VCF ${config.tools.gatk.HaplotypeCaller.dbsnp.value} \
 		-o $(basename $@).tmp.vcf && \
-	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} $(basename $@).tmp.vcf > $(basename $@) && \
-	${bgzip_exe} -f $(basename $@) && \
+	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} $(basename $@).tmp.vcf |\
+	${bgzip_exe} -c > $@ && \
 	${tabix_exe} -f -p vcf $@ && \
 	rm $(basename $@).tmp.vcf && \
 	rm -f $(basename $@).tmp.vcf $(basename $@).tmp.vcf.idx 

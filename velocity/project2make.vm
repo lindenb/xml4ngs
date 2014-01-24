@@ -6,6 +6,12 @@
 # Date : $now
 #
 
+#set($enabledGenotypeMethods = [])
+#foreach($key in $config.project.allGenotypeMethods.keySet())
+#if( $config.project.allGenotypeMethods["${key}"].enabled.value == true)
+#set($doNotShowResultBool = $enabledGenotypeMethods.add($key) )
+#end#end
+
 #parse("p2m.fastq.mod.vm")
 #parse("p2m.pair.mod.vm")
 #parse("p2m.sample.mod.vm")
@@ -36,14 +42,14 @@ OUTDIR=${config.project.output.directory.value}
 #
 # misc targets
 #
-LIST_PHONY_TARGET=all_predictions all bamstats01 bamstats04   config
+LIST_PHONY_TARGET=all_predictions all bamstats01 bamstats04   config fastqc_raw
 TOP_TARGETS=
 LIST_BWA_SORTED=
 
 #
 # fix PATH (tophat needs this)
 #
-export PATH:=$(PATH):${samtools.dir}:${CUFFLINKS.dir}:${tabix_dir}:${Rstats_bindir}:/usr/bin
+export PATH:=$(PATH):$(dir ${samtools_exe}):${tabix_dir}:${Rstats_bindir}:/usr/bin
 
 ###
 # FIX LOCALE (http://unix.stackexchange.com/questions/61985)
@@ -66,7 +72,7 @@ GHOSTVIEW ?= gs
 #set($_global_reference_id = ${config.project.reference.ref.value})
 #set($_global_chromgroup_id = ${config.project.chromgroup.value})
 #set($_global_reference = ${config.references["${_global_reference_id}"]})
-REF=${_global_reference.indexes.bwa["${config.tools.bwa.default}"].path}
+REF=${_global_reference.indexes.bwa["${config.tools.bwa.version}"].path}
 
 
 #
@@ -140,7 +146,7 @@ endef
 
 
 
-all:  all_predictions bamstats01 bamstats04 coverage config
+all: fastqc_raw all_predictions bamstats01 bamstats04 coverage config 
 
 
 	
@@ -181,19 +187,20 @@ $(OUTDIR)/Statistics/${config.project.output.prefix}bamstats04.tsv.gz : #foreach
 
 #if(${config.project.one_vcf_per_sample.value}==false)
 
-all_predictions: #foreach($genotypeMethod in ${config.project.genotypeMethods}) \
-	#vcf_multi_annot(${genotypeMethod}) #end
+all_predictions: #foreach($genotypeMethod in ${enabledGenotypeMethods}) \
+	 #vcf_multi_annot(${genotypeMethod}) #end
 
 	#parse("p2m.annotation.multi.mod.vm")
 	#parse("p2m.calling.multi.mod.vm")
 
 #else
 
-all_predictions: #foreach($sample in $project.sample)#foreach($genotypeMethod in ${config.project.genotypeMethods}) \
+all_predictions: #foreach($sample in $project.sample)#foreach($genotypeMethod in ${enabledGenotypeMethods}) \
 	#sample_vcf_genotyper_annotations(${sample} ${genotypeMethod}  )#end#end
 
 
 #end
+
 
 
 #foreach($sample in $project.sample)
@@ -270,7 +277,7 @@ $(OUTDIR)/BED/non_redondant_capture.bed : $(capture.bed)
 
 #end
 
-
+#parse("p2m.fastqc.mod.vm")	
 
 config: $(OUTDIR)/CONFS/config.${now}.xml.gz
 $(OUTDIR)/CONFS/config.${now}.xml.gz:

@@ -1,8 +1,10 @@
 .PHONY:  all fastqs compile test1
 SAMDIR=/commun/data/packages/samtools-0.1.19
 BWA=/commun/data/packages/bwa-0.7.4/bwa
-FASTQS=  data/fastq/Sample1_ACAGTG_L001_R1_001.fastq.gz \
+FASTQS=  	 data/fastq/Sample1_ACAGTG_L001_R1_001.fastq.gz \
 		 data/fastq/Sample1_ACAGTG_L001_R2_001.fastq.gz \
+		 data/fastq/Sample1_ACAGTG_L001_R1_002.fastq.gz \
+		 data/fastq/Sample1_ACAGTG_L001_R2_002.fastq.gz \
 		 data/fastq/Sample1_ACAGTG_L002_R1_002.fastq.gz \
 		 data/fastq/Sample1_ACAGTG_L002_R2_002.fastq.gz \
 		 data/fastq/Sample2_ACAGTG_L003_R1_001.fastq.gz \
@@ -35,6 +37,7 @@ fastqs : ${FASTQS}
 ${FASTQS}: data/reference.fa
 	mkdir -p data/fastq && \
 	${SAMDIR}/misc/wgsim -N ${NREADS} $<  data/fastq/Sample1_ACAGTG_L001_R1_001.fastq data/fastq/Sample1_ACAGTG_L001_R2_001.fastq > /dev/null && \
+	${SAMDIR}/misc/wgsim -N ${NREADS} $<  data/fastq/Sample1_ACAGTG_L001_R1_002.fastq data/fastq/Sample1_ACAGTG_L001_R2_002.fastq > /dev/null && \
 	${SAMDIR}/misc/wgsim -N ${NREADS} $<  data/fastq/Sample1_ACAGTG_L002_R1_002.fastq data/fastq/Sample1_ACAGTG_L002_R2_002.fastq > /dev/null && \
 	${SAMDIR}/misc/wgsim -N ${NREADS} $<  data/fastq/Sample2_ACAGTG_L003_R1_001.fastq data/fastq/Sample2_ACAGTG_L003_R2_001.fastq > /dev/null  && \
 	gzip --force --best  data/fastq/*.fastq
@@ -49,7 +52,8 @@ data/reference.fa :
 data/capture.bed:
 	mkdir -p data && \
 	echo "17	7555097	7560856" > $@
+	echo "1	7555097	7560856" >> $@
 
 clean:
-	rm -f data/reference.fa
+	rm -rf data/reference.fa align1 align2 align3
 	

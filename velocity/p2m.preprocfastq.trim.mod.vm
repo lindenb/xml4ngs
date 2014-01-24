@@ -7,5 +7,5 @@ trim 5' of fastq
 	
 	mkdir -p $(dir $@) && \
 	gunzip -c $< |\
-	awk '{if(NR%4==2 || NR%4==0) {if(length($$0)<=${config.project.trim5}) {printf("\n");} else {printf("%s\n",subst($$0,${config.project.trim5}));} } else {print;}}' |\
+	awk '{if(NR%4==2 || NR%4==0) {if(length($$0)<=${config.project.trim5.value}) {printf("\n");} else {printf("%s\n",subst($$0,${config.project.trim5}));} } else {print;}}' |\
 	gzip --best > $@ 

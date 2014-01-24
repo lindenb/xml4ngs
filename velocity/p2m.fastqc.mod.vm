@@ -1,0 +1,24 @@
+
+fastqc_raw: $(OUTDIR)/Quality/FastQC/RawReads
+
+#if(${config.project.project.fastqc.enable.value} == true)
+
+$(OUTDIR)/Quality/FastQC/RawReads : #foreach($sample in $project.sample)#foreach($pair in ${sample.sequences.pair}) \
+	#fastq_raw(${pair.forward}) \
+	#fastq_raw(${pair.reverse}) #end #end
+
+	mkdir -p  $@ && \
+	${fastqc_exe}  \
+		-o  $@ \
+		-j ${java_exe} \
+		--casava --noextract --format fastq \
+		 $(filter %.fastq.gz,$^) $(filter %.fastq,$^)  $(filter %.fq.gz,$^) $(filter %.fq,$^)
+
+#else
+
+$(OUTDIR)/Quality/FastQC/RawReads:
+	mkdir -p  $@
+
+
+#end
+	

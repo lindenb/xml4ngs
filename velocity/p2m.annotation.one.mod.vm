@@ -1,9 +1,9 @@
 
 
-#foreach($genotypeMethod in ${config.project.genotypeMethods})
+#foreach($genotypeMethod in ${enabledGenotypeMethods})
 
 
-#sample_vcf_genotyper_annotations($sample ${genotypeMethod.value}  ) :#foreach($chromGroup in ${chromosomeGroups.keySet()}) \
+#sample_vcf_genotyper_annotations($sample ${genotypeMethod}  ) :#foreach($chromGroup in ${chromosomeGroups.keySet()}) \
 	#sample_vcf_genotyper_annotations_chrom($sample $genotypeMethod $chromGroup) #end
 
 #parse("p2m.merge.vcfs.mod.vm")

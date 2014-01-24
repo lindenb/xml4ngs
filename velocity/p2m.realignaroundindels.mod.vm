@@ -25,7 +25,12 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chromGroup})) : $(call i
   			-o $@ \
   			-targetIntervals $(filter %.intervals,$^)  \
   			#foreach($gatkfile in $config.tools.gatk.files) --knownAlleles:${gatkfile.name.value},VCF ${gatkfile.path.value}  #end \
-			-S SILENT 
+			-S SILENT
+
+
+## nothing to do index already created
+$(call bai_files,#sample_realigned_chrom(${sample} ${chromGroup})  ) : #sample_realigned_chrom(${sample} ${chromGroup})
+
 
 			
 #end

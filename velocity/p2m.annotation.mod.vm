@@ -41,7 +41,7 @@
 			-o $(addsuffix .tmp2.vcf, $@ ) \
 			-U LENIENT_VCF_PROCESSING \
 			--variant:vcfinput,VCF $(addsuffix .tmp1.vcf,$@) \
-			--filterExpression '(DP <  4 || DP > 1200 || MQ < 10)' --filterName 'StandardFilters' && \
+			--filterExpression "(DP <  4 || DP > 1200 $(if $(findstring freebayes,$@),,  ||  MQ < 10))" --filterName 'StandardFilters' && \
 	rm -f $(addsuffix .tmp2.vcf,$(addsuffix .tmp2.vcf, $@ )) $(addsuffix .tmp2.vcf.idx,$(addsuffix .tmp2.vcf, $@ )) $(addsuffix .idx,$(addsuffix .tmp2.vcf, $@ ))  && \
 	mv $(addsuffix .tmp2.vcf, $@ ) $(addsuffix .tmp1.vcf, $@ ) &&	\
 	cat $(addsuffix .tmp1.vcf, $@ )   |\
@@ -57,9 +57,9 @@
  		$(foreach FLAG,AMR_AF ASN_AF AFR_AF EUR_AF SNPSOURCE SVTYPE SVLEN, INFO=${FLAG} ) \
  		TABIX=/commun/data/pubdb/ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20110521/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.gz 2> /dev/null |\
 	#execjvarkitcmd("vcfvcf") \
-		ACF=CONFLICTALTDBSNP137 \
+		ACF=CONFLICTALTDBSNP138 \
 		$(foreach FLAG,PM PMC NSF NSM NSN G5A KGValidated PH3 CDA OM, INFO=${FLAG} ) \
-		TABIX=/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/00-All.vcf.gz 2> /dev/null |\
+		TABIX=/commun/data/pubdb/ncbi/snp/organisms/human_9606/VCF/GRCh37_dbsnp138_00-All.vcf.gz 2> /dev/null |\
 	#execjvarkitcmd("vcfbed") \
 		T=SEGDUP \
 		TABIX=/commun/data/pubdb/ucsc/hg19/database/genomicSuperDups_noprefix.txt.gz \
@@ -67,6 +67,9 @@
 	#execjvarkitcmd("vcfjaspar") \
 		-R ${REF} -f 0.95 \
 		-J /commun/data/pubdb/jaspar.genereg.net/pfm/nonredundant/pfm_vertebrates.txt  |\
+	#execjvarkitcmd("vcfpredictions") \
+		-R ${REF}  \
+		-k /commun/data/pubdb/ucsc/hg19/database/knownGene_noPrefix.txt.gz  |\
 	#execjvarkitcmd("sortvcfonref2") -T $(dir $@)  > $(basename $@) && \
 	rm -f  "$(addsuffix .tmp1.vcf, $@ )" && \
 	${bgzip_exe} -f $(basename $@) && \

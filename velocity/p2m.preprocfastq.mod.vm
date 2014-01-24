@@ -2,6 +2,6 @@
 #parse("p2m.preprocfastq.cutadapt.mod.vm")
 #end
 
-#if(${config.project.trim5} && ${config.project.trim5.intValue()}> 0 )
+#if(${config.project.trim5} && ${config.project.trim5.value.intValue()}> 0 )
 #parse("p2m.preprocfastq.trim.mod.vm")
 #end

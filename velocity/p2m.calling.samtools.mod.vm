@@ -5,7 +5,7 @@
 	${bcftools_exe} view -vcg - #if(${config.project.one_vcf_per_sample.value}==true) |\
 	#execjvarkitcmd("vcffixindels") #end |\
 	#execjvarkitcmd("sortvcfonref2") -T $(dir $@) -R ${REF} > $(basename $@) && \
-	${bgzip_exe}  $(basename $@) && \
+	${bgzip_exe} -f $(basename $@) && \
 	${tabix_exe} -f -p vcf $@ 
  
 	

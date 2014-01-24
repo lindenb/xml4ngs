@@ -14,6 +14,7 @@ LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 	$(OUTDIR)/BED/chromgroups.txt
 	mkdir -p #sample_BAM(${pair.sample}) && \
 	${bwa_exe} mem  \
+		-t ${config.tools.bwa.mem.threads}  ${config.tools.bwa.mem.options} \
 		-R "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
 		$(REF) \
 		#fastq_cutadapt(${pair.forward}) \

@@ -23,14 +23,25 @@
     <jsonx:object name="make">
    		 <jsonx:boolean name="secondary">false</jsonx:boolean>
     </jsonx:object>
-    <jsonx:array name="annotationMethods">
-   		 <jsonx:string>snpeff</jsonx:string>
-   		 <jsonx:string>vep</jsonx:string>
-   		 <jsonx:string>gatkfilter</jsonx:string>
-    </jsonx:array>
-    <jsonx:array name="genotypeMethods">
-   		 <jsonx:string>samtools</jsonx:string>
-   		 <jsonx:string>gatk</jsonx:string>
-    </jsonx:array>
+     <jsonx:object name="fastqc">
+   		 	 <jsonx:boolean name="enabled">false</jsonx:boolean>
+    </jsonx:object>
+    <jsonx:object name="allGenotypeMethods">
+   		 <jsonx:object name="samtools">
+   		 	 <jsonx:boolean name="enabled">true</jsonx:boolean>
+   		 </jsonx:object>
+   		  <jsonx:object name="gatk">
+   		 	 <jsonx:boolean name="enabled">true</jsonx:boolean>
+   		 </jsonx:object>
+   		 <jsonx:object name="freebayes">
+   		 	 <jsonx:boolean name="enabled">true</jsonx:boolean>
+   		 </jsonx:object>
+   		 <jsonx:object name="varscan">
+   		 	 <jsonx:boolean name="enabled">true</jsonx:boolean>
+   		 </jsonx:object>
+   		  <jsonx:object name="gatkHapCaller">
+   		 	 <jsonx:boolean name="enabled">true</jsonx:boolean>
+   		 </jsonx:object>
+    </jsonx:object>
     
 </jsonx:object>

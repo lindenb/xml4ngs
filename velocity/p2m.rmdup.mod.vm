@@ -14,5 +14,9 @@
 		VALIDATION_STRINGENCY=SILENT \
 		CREATE_INDEX=true
 
-		
+
+## nothing to do index already created
+$(call bai_files,#sample_markdup_chrom(${sample} ${chromGroup})  ) : #sample_markdup_chrom(${sample} ${chromGroup})
+
+
 #end
