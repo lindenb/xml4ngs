@@ -180,9 +180,9 @@ bamstats04: $(OUTDIR)/Statistics/${config.project.output.prefix}bamstats04.tsv.g
 $(OUTDIR)/Statistics/${config.project.output.prefix}bamstats04.tsv.gz : #foreach($sample in $project.sample)\
 	#sample_bamstat04_tsv($sample) #end
 
-	mkdir -p $(dir $@) && rm -f $@ $(basename $@)  #foreach($sample in $project.sample) && \
-	gunzip -c #sample_bamstat04_tsv($sample) | awk -v S=${sample.name} '{printf("%s\t%s\n",S,$$0);}' >> $(basename $@) #end && \
-	gzip --best $(basename $@)
+	mkdir -p $(dir $@) && rm -f $@ $(basename $@) 
+	#foreach($sample in $project.sample) gunzip -c #sample_bamstat04_tsv($sample) | awk -v S=${sample.name} '{printf("%s\t%s\n",S,$$0);}' >> $(basename $@) 
+	#end gzip --best $(basename $@)
 
 
 #if(${config.project.one_vcf_per_sample.value}==false)

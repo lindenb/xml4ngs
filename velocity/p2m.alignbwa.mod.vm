@@ -24,8 +24,12 @@ LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 			-p #pair_bam_unsorted_chrom($pair "__CHROM__" )  \
 			-u Unmapped \
 		#foreach($c in ${chromosomeGroups.keySet()}) && \
-		${samtools_exe} sort -l9 #pair_bam_unsorted_chrom($pair $c ) $(basename #pair_bam_sorted_chrom($pair $c ) ) #end && \
-		${samtools_exe} sort -l9 #pair_bam_unsorted_chrom($pair "Unmapped") $(basename #pair_bam_sorted_chrom($pair "Unmapped") )
+		${samtools_exe} sort -l9 #pair_bam_unsorted_chrom($pair $c ) $(basename #pair_bam_sorted_chrom($pair $c ) ) && \
+		rm #pair_bam_unsorted_chrom($pair $c ) #end && \
+		${samtools_exe} sort -l9 #pair_bam_unsorted_chrom($pair "Unmapped") $(basename #pair_bam_sorted_chrom($pair "Unmapped") ) && \
+		rm  #pair_bam_unsorted_chrom($pair "Unmapped")
+
+
 	
 
 	

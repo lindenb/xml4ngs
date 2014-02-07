@@ -1,5 +1,7 @@
 	mkdir -p $(dir $@) && \
-	${samtools_exe} mpileup  ${config.tools.samtools.mpileup.options} \
+	${samtools_exe} mpileup  \
+		#if(${config.project.haloplex.value}==true) -A  -d 8000 -L 8000 #end \
+		${config.tools.samtools.mpileup.options} \
 		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
 		-f $(REF) $(filter %.bam,$^)  |\
 	gzip --best > $(addsuffix .mpileup.gz,$@) \

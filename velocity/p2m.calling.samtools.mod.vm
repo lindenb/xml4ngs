@@ -1,5 +1,7 @@
 	mkdir -p $(dir $@) && \
-	${samtools_exe} mpileup -uD  ${config.tools.samtools.mpileup.options} \
+	${samtools_exe} mpileup -uD \
+		#if(${config.project.haloplex.value}==true) -A  -d 8000 -L 8000 #end \
+		${config.tools.samtools.mpileup.options} \
 		$(foreach D,$(filter %.bed,$^), -l $(D) ) \
 		-f $(REF) $(filter %.bam,$^)  |\
 	${bcftools_exe} view -vcg - #if(${config.project.one_vcf_per_sample.value}==true) |\

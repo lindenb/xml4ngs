@@ -27,8 +27,8 @@
 
 <!--  bwa -->
 <jsonx:object name="bwa">
-	<jsonx:string name="version">0.7.4</jsonx:string>
-	<jsonx:string name="exe">/commun/data/packages/bwa-0.7.4/bwa</jsonx:string>
+	<jsonx:string name="version">0.7.6a</jsonx:string>
+	<jsonx:string name="exe">/commun/data/packages/bwa-0.7.6a/bwa</jsonx:string>
 	<jsonx:object name="mem">
 		<jsonx:number name="threads">10</jsonx:number>
 		<jsonx:string name="options">-M</jsonx:string>

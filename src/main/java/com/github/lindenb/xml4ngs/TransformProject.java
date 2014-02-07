@@ -13,6 +13,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.w3c.dom.Document;
 
 import com.github.lindenb.jsonx.DomParser;
+import com.github.lindenb.jsonx.JsonArray;
 import com.github.lindenb.jsonx.JsonElement;
 import com.github.lindenb.jsonx.JsonObject;
 import com.github.lindenb.jsonx.io.JsonXmlWriter;
@@ -192,6 +193,14 @@ public class TransformProject
 		config.put("version", getVersion());
 		String dateStr=new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
 		config.put("date", dateStr);
+		
+		StringBuilder cmdLine=new StringBuilder();
+		for(String arg:args) cmdLine.append(" ").append( arg);
+		config.put("command", cmdLine.toString().trim());
+		config.put("pwd", System.getProperty("user.dir", ""));
+		config.put("username", System.getProperty("user.name", ""));
+		
+		
 		
 		if(optind+2!=args.length)
 			{

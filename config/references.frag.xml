@@ -6,8 +6,8 @@
     <jsonx:boolean name="human">true</jsonx:boolean>
     <jsonx:object name="indexes">
       <jsonx:object name="bwa">
-        <jsonx:object name="0.7.4">
-          <jsonx:string name="path">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/index-bwa-0.7.4/human_g1k_v37.fasta</jsonx:string>
+        <jsonx:object name="0.7.6a">
+          <jsonx:string name="path">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/index-bwa-0.7.6a/human_g1k_v37.fasta</jsonx:string>
         </jsonx:object>
          <jsonx:object name="0.6.2">
           <jsonx:string name="path">/commun/data/pubdb/broadinstitute.org/bundle/1.5/b37/human_g1k_v37.fasta</jsonx:string>
