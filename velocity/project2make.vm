@@ -24,15 +24,6 @@ SHELL=/bin/bash
 .SUFFIXES=
 
 
-#if(${config.project.make.secondary.value} == true )
-
-#
-# treat all files as SECONDARY
-#
-.SECONDARY :
-
-#end
-
 
 #
 # OUTPUT DIRECTORY
@@ -85,10 +76,33 @@ REF=${_global_reference.indexes.bwa["${config.tools.bwa.version}"].path}
 #set($chromosomeGroups= ${_global_reference.groups["${_global_chromgroup_id}"]})
 
 
-#if(! ${config.project.capture.ref} )
-${utils.warning("'config.project.capture.ref' undefined in project.")}
-capture.bed=$(OUTDIR)/BED/ensembl.genes.bed
+#if(${config.project.make.secondary.value} == true )
+
+#
+# treat all files as SECONDARY
+#
+.SECONDARY :
+
 #else
+
+.SECONDARY : #foreach($sample in $project.sample)#foreach($pair in $sample.sequences.pair) \
+	${sample.name}_sampe_pair${pair.index}_chromosomes #foreach($C in ${chromosomeGroups.keySet()}) \
+	#pair_bam_sorted_chrom($pair $C ) #end \
+	#pair_bam_sorted_chrom($pair "Unmapped" ) #end#end
+
+#end
+
+
+
+#if(! ${config.project.capture.ref} ||  ${config.project.wholegenome.value} == true )
+#set( $_need_to_download_ensembl_genes = true )
+
+capture.bed=$(OUTDIR)/BED/ensembl.genes.bed
+
+
+#else
+#set( $_need_to_download_ensembl_genes = false )
+
 capture.bed=${config.captures["${config.project.capture.ref}"].path.value}
 #end
 
@@ -285,6 +299,19 @@ $(OUTDIR)/CONFS/config.${now}.xml.gz:
 	echo -e "${configAsString}" |\
 		gzip --best > $@
 
+
+#if( $_need_to_download_ensembl_genes == true )
+
+$(OUTDIR)/BED/ensembl.genes.bed:
+	mkdir -p $(dir $@) && \
+	curl -d 'query=<?xml version="1.0" encoding="UTF-8"?><Query virtualSchemaName="default" formatter="TSV" header="0" uniqueRows="0" count="" datasetConfigVersion="0.6" ><Dataset name="hsapiens_gene_ensembl" interface="default" ><Attribute name="chromosome_name" /><Attribute name="start_position" /><Attribute name="end_position" /></Dataset></Query>'  "http://www.biomart.org/biomart/martservice/result" |\
+	awk -F '	' '(int($$2) < int($$3))' |\
+	awk -F '	' '{OFS="	";if($$1==" -%- " #foreach($chromGroup in ${chromosomeGroups.keySet()})#foreach($chrom in   ${chromosomeGroups["${chromGroup}"]}) || $$1=="${chrom}" #end#end ) { print;} }' |\
+	uniq | LC_ALL=C sort -t '	' -k1,1 -k2,2n -k3,3n |\
+	#execute_bedtools("mergeBed") -i - | uniq > $@
+
+
+#end
 
 #
 # END

@@ -3,31 +3,35 @@ Align with bwa-mem
 
 *#
 
-${sample.name}_sampe_pair${pair.index}_chromosomes  : #foreach($c in ${chromosomeGroups.keySet()}) #pair_bam_sorted_chrom($pair $c ) #end #pair_bam_sorted_chrom($pair "Unmapped" )
+#foreach($c in ${chromosomeGroups.keySet()}) \
+	#pair_bam_sorted_chrom($pair $c ) #end \
+	#pair_bam_sorted_chrom($pair "Unmapped" ) : ${sample.name}_sampe_pair${pair.index}_chromosomes  
+
 
 LIST_PHONY_TARGET+= ${sample.name}_sampe_pair${pair.index}_chromosomes
 
-#foreach($c in ${chromosomeGroups.keySet()}) #pair_bam_sorted_chrom($pair $c ) #end #pair_bam_sorted_chrom($pair "Unmapped" ) : \
+${sample.name}_sampe_pair${pair.index}_chromosomes   : \
 	#fastq_cutadapt(${pair.forward}) \
 	#fastq_cutadapt(${pair.reverse}) \
 	${REF} \
 	$(OUTDIR)/BED/chromgroups.txt
-	mkdir -p #sample_BAM(${pair.sample}) && \
+	mkdir -p #sample_BAM(${sample}) && \
 	${bwa_exe} mem  \
 		-t ${config.tools.bwa.mem.threads}  ${config.tools.bwa.mem.options} \
 		-R "@RG	ID:${pair.generateId}	LB:${pair.sample.name}	SM:${pair.sample.name}	PL:ILLUMINA	PU:${pair.lane}" \
 		$(REF) \
 		#fastq_cutadapt(${pair.forward}) \
-		#fastq_cutadapt(${pair.reverse}) |\
+		#fastq_cutadapt(${pair.reverse}) | gzip --best > #sample_BAM(${sample})/sam${pair.index}.gz && \
+		gunzip -c #sample_BAM(${sample})/sam${pair.index}.gz |\
+		sed '/^@PG	ID\:bwa/s/\-R.*//' |\
 		#execjvarkitcmd("splitbam2") -E -m \
 			-g $(OUTDIR)/BED/chromgroups.txt \
-			-p #pair_bam_unsorted_chrom($pair "__CHROM__" )  \
+			-p #pair_bam_sorted_chrom($pair "__CHROM__" )  \
+			-T #sample_BAM(${sample}) \
 			-u Unmapped \
-		#foreach($c in ${chromosomeGroups.keySet()}) && \
-		${samtools_exe} sort -l9 #pair_bam_unsorted_chrom($pair $c ) $(basename #pair_bam_sorted_chrom($pair $c ) ) && \
-		rm #pair_bam_unsorted_chrom($pair $c ) #end && \
-		${samtools_exe} sort -l9 #pair_bam_unsorted_chrom($pair "Unmapped") $(basename #pair_bam_sorted_chrom($pair "Unmapped") ) && \
-		rm  #pair_bam_unsorted_chrom($pair "Unmapped")
+			-S \
+			-R 1000000
+		
 
 
 	

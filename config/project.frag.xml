@@ -9,11 +9,12 @@
    		 <jsonx:string name="ref">GRCh37Design5</jsonx:string>
    		 <jsonx:number name="extend">500</jsonx:number>
     </jsonx:object>
+    <jsonx:boolean name="wholegenome">false</jsonx:boolean>
     <jsonx:boolean name="haloplex">false</jsonx:boolean>
     <jsonx:boolean name="remove_duplicates">true</jsonx:boolean>
     <jsonx:boolean name="realign_around_indels">true</jsonx:boolean>
     <jsonx:boolean name="recalibrate">true</jsonx:boolean>
-    <jsonx:boolean name="one_vcf_per_sample">false</jsonx:boolean>
+    <jsonx:boolean name="one_vcf_per_sample">true</jsonx:boolean>
     <jsonx:string name="chromgroup">g1</jsonx:string>
     
     <jsonx:object name="output">

@@ -55,14 +55,6 @@ public class TransformProject
 		
 		}
 		
-	protected void usage(PrintStream out)
-		{
-		out.println();
-		out.println("Usage : java -jar transform.jar project.xml template.vm");
-		out.println();
-		out.println("$project is the structure passed to velocity.");
-		out.println();
-		}
 	
 	private String version=null;
     private String getVersion()
@@ -143,7 +135,15 @@ public class TransformProject
 			
 			}
 		}
-	
+	protected void usage(PrintStream out)
+		{
+		out.println();
+		out.println("Usage : java -jar transform.jar -C config.xml project.xml template.vm");
+		out.println();
+		out.println("$project is the structure passed to velocity.");
+		out.println();
+		}
+
 	private void run(String args[]) throws Exception
 		{
 		File configFile=null;

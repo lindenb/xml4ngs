@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsonx:object name="captures" xmlns:jsonx="http://www.ibm.com/xmlns/prod/2009/jsonx">
+
   <jsonx:object name="GRCh37Design5">
     <jsonx:string name="description">Agilent Design 5</jsonx:string>
     <jsonx:string name="path">/commun/data/pubdb/agilent/designs/S04380110/S04380110_Covered_noprefix.bed</jsonx:string>
   </jsonx:object>
+  
   <jsonx:object name="GRCh37Design4">
     <jsonx:string name="description">Agilent Design 4</jsonx:string>
     <jsonx:string name="path">/commun/data/pubdb/agilent/designs/S03723314/S03723314_Covered_noprefix.bed</jsonx:string>
@@ -12,6 +14,11 @@
   <jsonx:object name="GRCh37CardioplexCoding10">
     <jsonx:string name="description">Cardioplex coding 10</jsonx:string>
     <jsonx:string name="path">/commun/data/etc/20130905_cardioplex_coding10.bed</jsonx:string>
+  </jsonx:object>
+  
+  <jsonx:object name="GRCh37BarceloneC0328671">
+    <jsonx:string name="description">design Agilent custom fournit par Solena : C0328671_Covered.bed </jsonx:string>
+    <jsonx:string name="path">/commun/data/etc/20140221BarceloneGRCh37_C0328671_Covered.bed</jsonx:string>
   </jsonx:object>
   
 </jsonx:object>
