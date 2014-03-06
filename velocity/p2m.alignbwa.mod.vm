@@ -30,8 +30,11 @@ ${sample.name}_sampe_pair${pair.index}_chromosomes   : \
 			-T #sample_BAM(${sample}) \
 			-u Unmapped \
 			-S \
-			-R 1000000
-		
+			-R 1000000 && \
+		rm -f  #sample_BAM(${sample})/sam${pair.index}.gz
+
+
+
 
 
 	
