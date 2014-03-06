@@ -1,6 +1,6 @@
 #if(${config.project.realign_around_indels.value}==true)
 
-$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chromGroup})) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chromGroup}) ) \
+$(addsuffix .intervals,#sample_markdup_chrom(${sample} ${chromGroup})) : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chromGroup}) ) \
 		#XCAPTURE_CHROM(${chromGroup})
 		
 		mkdir -p $(dir $@) && \
@@ -14,8 +14,8 @@ $(addsuffix .intervals,#sample_merged_chrom(${sample} ${chromGroup})) : $(call i
 			-S SILENT 
 
 
-#sample_realigned_chrom(${sample} ${chromGroup}) :	$(call indexed_bam, #sample_merged_chrom(${sample} ${chromGroup}) ) \
-				$(addsuffix .intervals,#sample_merged_chrom(${sample} ${chromGroup})) 
+#sample_realigned_chrom(${sample} ${chromGroup}) :	$(call indexed_bam, #sample_markdup_chrom(${sample} ${chromGroup}) ) \
+				$(addsuffix .intervals,#sample_markdup_chrom(${sample} ${chromGroup})) 
 		
 		mkdir -p $(dir $@) && \
 		${java_exe} ${config.tools.gatk.IndelRealigner.jvm} -jar  #gatk_command("IndelRealigner") \

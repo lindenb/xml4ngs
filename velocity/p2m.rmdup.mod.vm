@@ -1,7 +1,7 @@
 #if(${config.project.remove_duplicates.value}==true && ${config.project.haloplex.value}==false)
 
 
-#sample_markdup_chrom(${sample} ${chromGroup}) : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chromGroup}) )
+#sample_markdup_chrom(${sample} ${chromGroup}) : $(call indexed_bam, #sample_merged_chrom(${sample} ${chromGroup}) )
 	mkdir -p $(dir $@) && \
 	mkdir -p $(addsuffix tmp.rmdup,$(dir $@)) && \
 	${java_exe} ${config.tools.picard.MarkDuplicates.jvm} -jar #picard_jar("MarkDuplicates") \

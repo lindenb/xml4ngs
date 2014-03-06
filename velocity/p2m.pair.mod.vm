@@ -1,6 +1,6 @@
 #macro(pair_dir $pair)#sample_BAM(${pair.sample})#end
 #macro(pair_dir_chrom $pair $chrom)#sample_BAM_chrom(${pair.sample} ${chrom})#end
 #macro(pair_name $pair)${pair.sample.name}_pair${pair.index}#end
-#macro(pair_bam_sorted_chrom $pair $chrom)#pair_dir_chrom($pair $chrom)/${config.project.output.prefix.value}#pair_name($pair)_sorted.${chrom}.bam#end
-#macro(pair_bam_unsorted_chrom $pair $chrom)#pair_dir_chrom($pair $chrom)/${config.project.output.prefix.value}#pair_name($pair)_unsorted.${chrom}.bam#end
+#macro(pair_bam_sorted_chrom $pair $chrom)#pair_dir_chrom($pair $chrom)/_DELETE_${config.project.output.prefix.value}#pair_name($pair)_sorted.${chrom}.bam#end
+#macro(pair_bam_unsorted_chrom $pair $chrom)#pair_dir_chrom($pair $chrom)/_DELETE_${config.project.output.prefix.value}#pair_name($pair)_unsorted.${chrom}.bam#end
 
