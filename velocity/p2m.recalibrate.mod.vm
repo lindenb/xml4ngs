@@ -1,6 +1,6 @@
 #if(${config.project.recalibrate.value}==true)
 
-#sample_recal_chrom( ${sample} ${chromGroup})  : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chromGroup}) ) \
+#sample_recal_chrom( ${sample} ${chromGroup})  : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chromGroup}) ) \
 		#XCAPTURE_CHROM(${chromGroup}) \
 		$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chromGroup}) )
 	mkdir -p $(dir $@) && \
@@ -14,7 +14,7 @@
 		-l INFO
 
 
-$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chromGroup}) )   : $(call indexed_bam, #sample_markdup_chrom(${sample} ${chromGroup}) ) \
+$(addsuffix .recal_data.grp,#sample_recal_chrom( ${sample} ${chromGroup}) )   : $(call indexed_bam, #sample_realigned_chrom(${sample} ${chromGroup}) ) \
 			#XCAPTURE_CHROM(${chromGroup})
 	
 	mkdir -p $(dir $@) && \
